@@ -1,60 +1,77 @@
-# Physiological Modeling & Autonomic Regulation Knowledge Base
+# Open Computational Physiology Engine
 
-This directory contains the machine-readable scientific knowledge base of the **Invisible Illness Project**. The goal of this database is to compile, validate, and organize quantitative physiological data, autonomic nervous system feedback equations, systemic disease phenotypes (POTS, ME/CFS, etc.), and wearable sensor validations.
+An open-source, reproducible computational physiology platform designed as scientific infrastructure for synthetic wearable data generation, mechanistic autonomic modeling, digital twin calibration, and disease phenotype simulation (such as POTS, ME/CFS, etc.).
 
-Downstream agents will use this structured repository to:
-1. Construct physiological knowledge graphs.
-2. Build closed-loop cardiovascular and baroreflex mathematical simulations.
-3. Validate wearable sensor data streams (e.g., Polar H10, Apple Watch) against clinical gold standards.
-4. Simulate synthetic patients under orthostatic challenges (like Head-Up Tilt) and exercise stressors.
+---
+
+## Evolved Scientific Architecture
+
+The engine is structured into distinct modular layers that separate clinical/physiological facts from their execution mechanics:
+
+```text
+Scientific Literature
+        ↓
+Knowledge Extraction
+        ↓
+Computational Physiology Knowledge Base (knowledge_base/)
+        ↓
+Mathematical Models (models/)
+        ↓
+Simulation Engine (simulation/)
+        ↓
+Sensor Models (sensor_models/)
+        ↓
+Synthetic Patients & Validation (validation/)
+```
 
 ---
 
 ## Directory Structure
 
-*   [`SCHEMA.md`](file:///home/eddiem3/development/roeh-health/physiological_modeling/SCHEMA.md): Defines the strict YAML and Markdown formatting rules for variable registries, relationship maps, equations, and literature reviews.
-*   [`TEMPLATE.md`](file:///home/eddiem3/development/roeh-health/physiological_modeling/TEMPLATE.md): A blank template to copy and fill out when performing literature reviews on new publications.
-*   `knowledge_base/`:
-    *   `publications/`:
-        *   [`geddes_2022_baroreflex_pots.md`](file:///home/eddiem3/development/roeh-health/physiological_modeling/knowledge_base/publications/geddes_2022_baroreflex_pots.md): Literature review for the computational baroreflex response model. Includes system ordinary differential equations (ODEs), nominal mechanical constants (compliances, resistances), and POTS phenotype parameter settings.
-        *   [`schaffarczyk_2022_polar_h10_validation.md`](file:///home/eddiem3/development/roeh-health/physiological_modeling/knowledge_base/publications/schaffarczyk_2022_polar_h10_validation.md): Literature review for the Polar H10 sensor validation study. Details participant cohort demographics, Bland-Altman agreement metrics, intraclass correlations (ICC) vs. ECG, and motion artifact limits.
-    *   `variables/`:
-        *   [`definitions.yaml`](file:///home/eddiem3/development/roeh-health/physiological_modeling/knowledge_base/variables/definitions.yaml): The central registry mapping variable symbols (e.g., `pcm`, `Raup`, `DFA_a1`) to names, categories, units, and physiological ranges.
-    *   `relationships/`:
-        *   [`mechanistic_links.yaml`](file:///home/eddiem3/development/roeh-health/physiological_modeling/knowledge_base/relationships/mechanistic_links.yaml): Central map of causal biological linkages, detailing cause-and-effect symbols, types, evidence levels, and citation DOIs.
-    *   `models/`:
-        *   [`mathematical_models.yaml`](file:///home/eddiem3/development/roeh-health/physiological_modeling/knowledge_base/models/mathematical_models.yaml): Master registry of model ODEs (LaTeX formatted) and baseline/phenotype-specific constants.
-*   `tools/`:
-    *   [`validate_kb.py`](file:///home/eddiem3/development/roeh-health/physiological_modeling/tools/validate_kb.py): Python script that validates the syntax of the entire knowledge base against the schema, verifying variable cross-references, parameters, units, and citation identifiers.
-*   `BaroreflexPOTSmodel/`:
-    *   Cloned MATLAB simulation repository containing the exact driver, elastance functions, and ODE code from the Geddes et al. 2022 publication.
+*   [`SCHEMA.md`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/SCHEMA.md): Defines strict schemas for variables, relationships, mathematical models, and wearable sensors.
+*   [`TEMPLATE.md`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/TEMPLATE.md): Literature review template for adding new clinical publications.
+*   [`knowledge_base/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/): Programmatically parsed scientific database.
+    *   `ontology/`: Formal ontology definition ([concepts.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/ontology/concepts.yaml), [relationships.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/ontology/relationships.yaml), [mechanistic_links.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/ontology/mechanistic_links.yaml)).
+    *   `physiology/`: Registries of observable variables ([variables.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/physiology/variables.yaml)) and unobserved latent states ([latent_states.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/physiology/latent_states.yaml)).
+    *   `diseases/`: Syndrome parameters and overrides ([pots.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/diseases/pots.yaml)).
+    *   `interventions/`: Standardized stressor protocols ([tilt_test.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/interventions/tilt_test.yaml)).
+    *   `wearables/`: Sensor specs and validation errors ([polar_h10.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/wearables/polar_h10.yaml)).
+    *   `equations/`: LaTeX mathematical formulas ([definitions.yaml](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/knowledge_base/equations/definitions.yaml)).
+*   [`models/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/models/): Executable differential equation structures ([baroreflex_model.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/models/baroreflex_model.py)).
+*   [`simulation/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/simulation/): Beat-by-beat ODE numerical integration solver ([engine.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/simulation/engine.py)).
+*   [`sensor_models/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/sensor_models/): Wearable sensor telemetry translators ([wearable_sensors.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/sensor_models/wearable_sensors.py)).
+*   [`validation/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/validation/): Physiological boundary checks and clinical evaluators ([evaluator.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/validation/evaluator.py)).
+*   [`docs/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/): Reference manuals covering architecture, ontology, latent variables, and validation.
 
 ---
 
-## Validation and Verification
+## Getting Started
 
-A programmatic check should be run after editing or adding any file in the knowledge base to ensure schema compliance and maintain machine readability.
+### Prerequisites
 
-### Run Validation Script
-From the `physiological_modeling/` directory, run:
+Ensure you have Python 3 and the required computational packages installed:
+```bash
+pip install numpy scipy PyYAML
+```
+
+### 1. Validate the Scientific Knowledge Base
+To run the automated schema and cross-reference check on the YAML database files:
 ```bash
 python3 tools/validate_kb.py
 ```
 
-### Output Expectations
-A successful validation will output:
-```text
-Validating Knowledge Base in: /path/to/physiological_modeling
-[OK] Loaded 25 central variable definitions.
-[OK] Loaded 7 central relationships.
-[OK] Loaded 1 central mathematical models.
-Found 2 publication reviews to validate.
-[OK] Validated review: 'Validity of the Polar H10 Sensor...'
-[OK] Validated review: 'Postural orthostatic tachycardia syndrome...'
-
---- Validation Summary ---
-Total Errors: 0
-Total Warnings: 0
-[OK] Knowledge Base validation PASSED.
+### 2. Run the Multi-Cohort Posture Simulation
+To run the simulation pipeline (Healthy Control vs. POTS phenotypes) and generate clinical evaluation reports:
+```bash
+python3 examples/run_simulation.py
 ```
-Any errors (such as missing units, unregistered variables, or YAML syntax faults) will produce an exit code of `1` and list the specific file and line that caused the failure.
+*Simulation telemetry data is saved as `.npz` files in the `results/` directory for downstream analysis.*
+
+---
+
+## Documentation
+
+*   [architecture.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/architecture.md) – Evolution log, folder structures, and scientific rationale.
+*   [ontology.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/ontology.md) – Structural concepts and schemas.
+*   [latent_physiology.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/latent_physiology.md) – Autonomic tone and unobserved biological state mappings.
+*   [validation_strategy.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/validation_strategy.md) – Plausibility criteria and clinical limits.
