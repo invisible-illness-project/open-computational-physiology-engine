@@ -1,0 +1,92 @@
+relationships:
+  - relationship_id: "pcm_to_Hc"
+    cause: "pcm"
+    effect: "Hc"
+    type: "sigmoid_hill"
+    evidence_score: 9.0
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+        citation_keys:
+          - "Geddes et al. 2022"
+        population_cohorts:
+          - "pots_clinical_cohort"
+          - "healthy_control_cohort"
+    mathematical_ref: "models/mathematical_models.yaml#heart_rate_control"
+  - relationship_id: "pcm_to_Raup"
+    cause: "pcm"
+    effect: "Raup"
+    type: "sigmoid_hill"
+    evidence_score: 9.0
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+        citation_keys:
+          - "Geddes et al. 2022"
+        population_cohorts:
+          - "pots_clinical_cohort"
+          - "healthy_control_cohort"
+    mathematical_ref: "models/mathematical_models.yaml#upper_peripheral_resistance_control"
+  - relationship_id: "pcm_to_Ralp"
+    cause: "pcm"
+    effect: "Ralp"
+    type: "sigmoid_hill"
+    evidence_score: 9.0
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+        citation_keys:
+          - "Geddes et al. 2022"
+        population_cohorts:
+          - "pots_clinical_cohort"
+          - "healthy_control_cohort"
+    mathematical_ref: "models/mathematical_models.yaml#lower_peripheral_resistance_control"
+  - relationship_id: "pcm_to_Ed"
+    cause: "pcm"
+    effect: "Ed"
+    type: "sigmoid_hill"
+    evidence_score: 9.0
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+        citation_keys:
+          - "Geddes et al. 2022"
+        population_cohorts:
+          - "pots_clinical_cohort"
+          - "healthy_control_cohort"
+    mathematical_ref: "models/mathematical_models.yaml#end_diastolic_elastance_control"
+  - relationship_id: "pau_to_pc"
+    cause: "pau"
+    effect: "pc"
+    type: "gravity_hydrostatic"
+    evidence_score: 10.0
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+        citation_keys:
+          - "Geddes et al. 2022"
+        population_cohorts:
+          - "pots_clinical_cohort"
+          - "healthy_control_cohort"
+    mathematical_ref: "models/mathematical_models.yaml#carotid_pressure_calculation"
+  - relationship_id: "RR_to_HR"
+    cause: "RR"
+    effect: "HR"
+    type: "inverse_proportional"
+    evidence_score: 10.0
+    supporting_publications:
+      - doi: "10.3390/s22176536"
+        citation_keys:
+          - "Schaffarczyk et al. 2022"
+        population_cohorts:
+          - "recreational_men_cohort"
+          - "recreational_women_cohort"
+    mathematical_ref: "HR = 60000 / RR"
+  - relationship_id: "exercise_intensity_to_DFA_a1"
+    cause: "HR"
+    effect: "DFA_a1"
+    type: "inverse_nonlinear"
+    evidence_score: 8.5
+    supporting_publications:
+      - doi: "10.3390/s22176536"
+        citation_keys:
+          - "Schaffarczyk et al. 2022"
+        population_cohorts:
+          - "recreational_men_cohort"
+          - "recreational_women_cohort"
+    mathematical_ref: "DFA_a1 decreases as heart rate increases under physiological stress"

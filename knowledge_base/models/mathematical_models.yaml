@@ -1,0 +1,177 @@
+models:
+  - model_id: "pots_baroreflex_response_model"
+    name: "Closed-Loop Baroreflex Response and Systemic Hemodynamics Model"
+    equations:
+      - label: "Upper Arterial Pressure"
+        latex: 'p_{au}(t) = \frac{V_{au}(t)}{C_{au}}'
+      - label: "Lower Arterial Pressure"
+        latex: 'p_{al}(t) = \frac{V_{al}(t)}{C_{al}}'
+      - label: "Upper Venous Pressure"
+        latex: 'p_{vu}(t) = \frac{V_{vu}(t)}{C_{vu}}'
+      - label: "Lower Venous Pressure"
+        latex: 'p_{vl}(t) = \frac{1}{m_{vl}} \ln\left(\frac{V_{Mvl}}{V_{Mvl} - V_{vl}(t)}\right)'
+      - label: "Left Ventricular Pressure"
+        latex: 'p_{lv}(t) = E_{lv}(t) V_{lv}(t)'
+      - label: "Varying Ventricular Elastance"
+        latex: 'E_{lv}(t) = \begin{cases} E_d + \frac{E_s - E_d}{2} \left(1 - \cos\left(\frac{\pi (t \bmod T)}{T_s}\right)\right) & (t \bmod T) \le T_s \\ E_d + \frac{E_s - E_d}{2} \left(\cos\left(\frac{\pi (t \bmod T - T_s)}{T_r}\right) + 1\right) & T_s < (t \bmod T) \le T_s + T_r \\ E_d & (t \bmod T) > T_s + T_r \end{cases}'
+      - label: "Carotid Pressure Calculation"
+        latex: 'p_c(t) = p_{au}(t) - \rho g h_c \frac{\sin(\theta(t))}{conv}'
+      - label: "Mean Carotid Pressure Tracking"
+        latex: '\frac{d p_{cm}(t)}{d t} = \frac{p_c(t) - p_{cm}(t)}{\tau_P}'
+      - label: "Upper Peripheral Resistance Control"
+        latex: '\frac{d R_{aup}(t)}{d t} = \frac{-R_{aup}(t) + R_{aupf}(p_{cm}(t))}{\tau_r}'
+      - label: "Upper Peripheral Resistance Target Hill Equation"
+        latex: 'R_{aupf}(p_{cm}) = (R_{aupM} - R_{aupm}) \frac{p_{2Ru}^{k_R}}{p_{cm}^{k_R} + p_{2Ru}^{k_R}} + R_{aupm}'
+      - label: "Lower Peripheral Resistance Control"
+        latex: '\frac{d R_{alp}(t)}{d t} = \frac{-R_{alp}(t) + R_{alpf}(p_{cm}(t))}{\tau_r}'
+      - label: "Lower Peripheral Resistance Target Hill Equation"
+        latex: 'R_{alpf}(p_{cm}) = (R_{alpM} - R_{alpm}) \frac{p_{2Ra}^{k_R}}{p_{cm}^{k_R} + p_{2Ra}^{k_R}} + R_{alpm}'
+      - label: "End Diastolic Elastance Control"
+        latex: '\frac{d E_d(t)}{d t} = \frac{-E_d(t) + E_{df}(p_{cm}(t))}{\tau_E}'
+      - label: "End Diastolic Elastance Target Hill Equation"
+        latex: 'E_{df}(p_{cm}) = (E_{dM} - E_{dm}) \frac{p_{cm}^{k_E}}{p_{cm}^{k_E} + p_{2E}^{k_E}} + E_{dm}'
+      - label: "Heart Rate Control"
+        latex: '\frac{d H_c(t)}{d t} = \frac{-H_c(t) + H_f(p_{cm}(t))}{\tau_H}'
+      - label: "Heart Rate Target Hill Equation"
+        latex: 'H_f(p_{cm}) = (H_M - H_m) \frac{p_{2H}^{k_H}}{p_{cm}^{k_H} + p_{2H}^{k_H}} + H_m'
+      - label: "Upper Arterial Volume Derivative"
+        latex: '\frac{d Vau(t)}{dt} = q_{av}(t) - q_{al}(t) - q_{aup}(t)'
+      - label: "Upper Venous Volume Derivative"
+        latex: '\frac{d Vvu(t)}{dt} = q_{vl}(t) + q_{aup}(t) - q_{mv}(t)'
+      - label: "Lower Arterial Volume Derivative"
+        latex: '\frac{d Val(t)}{dt} = q_{al}(t) - q_{alp}(t)'
+      - label: "Lower Venous Volume Derivative"
+        latex: '\frac{d Vvl(t)}{dt} = q_{alp}(t) - q_{vl}(t)'
+      - label: "Left Ventricular Volume Derivative"
+        latex: '\frac{d Vlv(t)}{dt} = q_{mv}(t) - q_{av}(t)'
+    parameters:
+      - symbol: "Ral"
+        units: "mmHg*s/ml"
+        nominal_value: 0.0622
+        description: "Upper to lower body arterial resistance"
+      - symbol: "Rvl"
+        units: "mmHg*s/ml"
+        nominal_value: 0.0167
+        description: "Lower to upper body venous resistance"
+      - symbol: "Cau"
+        units: "ml/mmHg"
+        nominal_value: 1.7213
+        description: "Upper body arterial compliance"
+      - symbol: "Cal"
+        units: "ml/mmHg"
+        nominal_value: 0.3726
+        description: "Lower body arterial compliance"
+      - symbol: "Cvu"
+        units: "ml/mmHg"
+        nominal_value: 70.936
+        description: "Upper body venous compliance"
+      - symbol: "Es"
+        units: "mmHg/ml"
+        nominal_value: 3.0
+        description: "Left ventricular maximum systolic elastance"
+      - symbol: "Vd"
+        units: "ml"
+        nominal_value: 10.0
+        description: "Unstressed left ventricular volume"
+      - symbol: "kR"
+        units: "dimensionless"
+        nominal_value: 25.0
+        phenotypes:
+          - phenotype: "hyperadrenergic_pots"
+            value: 40.0 # Increased sensitivity/gain
+        description: "Hill coefficient for sympathetic baroreflex resistance control"
+      - symbol: "taur"
+        units: "s"
+        nominal_value: 12.5
+        description: "Time constant for resistance control"
+      - symbol: "RaupM"
+        units: "mmHg*s/ml"
+        nominal_value: 4.5292
+        description: "Maximum upper body peripheral resistance"
+      - symbol: "Raupm"
+        units: "mmHg*s/ml"
+        nominal_value: 0.3019
+        description: "Minimum upper body peripheral resistance"
+      - symbol: "p2Ru"
+        units: "mmHg"
+        nominal_value: 89.97
+        description: "Half-saturation carotid pressure for upper resistance control"
+      - symbol: "RalpM"
+        units: "mmHg*s/ml"
+        nominal_value: 17.88
+        phenotypes:
+          - phenotype: "neuropathic_pots"
+            value: 6.5 # Blunted/impaired vasoconstrictive reserve
+        description: "Maximum lower body peripheral resistance"
+      - symbol: "Ralpm"
+        units: "mmHg*s/ml"
+        nominal_value: 1.192
+        description: "Minimum lower body peripheral resistance"
+      - symbol: "p2Ra"
+        units: "mmHg"
+        nominal_value: 89.97
+        description: "Half-saturation carotid pressure for lower resistance control"
+      - symbol: "kE"
+        units: "dimensionless"
+        nominal_value: 7.0
+        description: "Hill coefficient for parasympathetic elastance control"
+      - symbol: "tauE"
+        units: "s"
+        nominal_value: 12.5
+        description: "Time constant for ventricular elastance control"
+      - symbol: "EdM"
+        units: "mmHg/ml"
+        nominal_value: 0.03125
+        description: "Maximum end-diastolic ventricular elastance"
+      - symbol: "Edm"
+        units: "mmHg/ml"
+        nominal_value: 0.00025
+        description: "Minimum end-diastolic ventricular elastance"
+      - symbol: "p2E"
+        units: "mmHg"
+        nominal_value: 76.62
+        description: "Half-saturation carotid pressure for elastance control"
+      - symbol: "kH"
+        units: "dimensionless"
+        nominal_value: 25.0
+        phenotypes:
+          - phenotype: "hyperadrenergic_pots"
+            value: 40.0 # Increased sensitivity/gain
+        description: "Hill coefficient for heart rate control"
+      - symbol: "tauH"
+        units: "s"
+        nominal_value: 6.25
+        description: "Time constant for heart rate control"
+      - symbol: "HM"
+        units: "bps"
+        nominal_value: 3.3333
+        description: "Maximum heart rate (equivalent to 200 bpm)"
+      - symbol: "Hm"
+        units: "bps"
+        nominal_value: 0.3
+        description: "Minimum heart rate (equivalent to 18 bpm)"
+      - symbol: "p2H"
+        units: "mmHg"
+        nominal_value: 88.66
+        description: "Half-saturation carotid pressure for heart rate control"
+      - symbol: "TotalVol"
+        units: "ml"
+        nominal_value: 4500.0
+        phenotypes:
+          - phenotype: "hypovolemic_pots"
+            value: 3500.0
+        description: "Total systemic blood volume"
+      - symbol: "VMvl"
+        units: "ml"
+        nominal_value: 195.075
+        description: "Maximum lower body venous volume capacity"
+      - symbol: "mvl"
+        units: "1/mmHg"
+        nominal_value: 0.0959
+        description: "Lower venous pressure-volume compliance parameter"
+      - symbol: "tauP"
+        units: "s"
+        nominal_value: 2.5
+        description: "Carotid baroreceptor pressure tracking time constant"
+    sources:
+      - "10.1098/rsif.2022.0220"

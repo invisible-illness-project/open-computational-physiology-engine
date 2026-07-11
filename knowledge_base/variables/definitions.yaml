@@ -1,0 +1,201 @@
+variables:
+  - symbol: "Vau"
+    name: "Upper Arterial Blood Volume"
+    category: "cardiovascular"
+    description: "Volume of blood in the systemic arteries of the upper body compartment"
+    units: "ml"
+    valid_range:
+      min: 0.0
+      max: 1000.0
+  - symbol: "Vvu"
+    name: "Upper Venous Blood Volume"
+    category: "cardiovascular"
+    description: "Volume of blood in the systemic veins of the upper body compartment"
+    units: "ml"
+    valid_range:
+      min: 0.0
+      max: 5000.0
+  - symbol: "Val"
+    name: "Lower Arterial Blood Volume"
+    category: "cardiovascular"
+    description: "Volume of blood in the systemic arteries of the lower body compartment"
+    units: "ml"
+    valid_range:
+      min: 0.0
+      max: 1000.0
+  - symbol: "Vvl"
+    name: "Lower Venous Blood Volume"
+    category: "cardiovascular"
+    description: "Volume of blood in the systemic veins of the lower body compartment (sensitive to orthostatic pooling)"
+    units: "ml"
+    valid_range:
+      min: 0.0
+      max: 5000.0
+  - symbol: "Vlv"
+    name: "Left Ventricular Blood Volume"
+    category: "cardiovascular"
+    description: "Volume of blood in the left ventricular chamber of the heart"
+    units: "ml"
+    valid_range:
+      min: 0.0
+      max: 300.0
+  - symbol: "pau"
+    name: "Upper Arterial Blood Pressure"
+    category: "cardiovascular"
+    description: "Systemic arterial pressure in the upper body, typically measured in the brachial artery or simulated at the aortic level"
+    units: "mmHg"
+    valid_range:
+      min: 20.0
+      max: 250.0
+  - symbol: "pal"
+    name: "Lower Arterial Blood Pressure"
+    category: "cardiovascular"
+    description: "Systemic arterial pressure in the lower body"
+    units: "mmHg"
+    valid_range:
+      min: 20.0
+      max: 250.0
+  - symbol: "pvu"
+    name: "Upper Venous Blood Pressure"
+    category: "cardiovascular"
+    description: "Systemic venous pressure in the upper body compartment"
+    units: "mmHg"
+    valid_range:
+      min: -5.0
+      max: 30.0
+  - symbol: "pvl"
+    name: "Lower Venous Blood Pressure"
+    category: "cardiovascular"
+    description: "Systemic venous pressure in the lower body compartment"
+    units: "mmHg"
+    valid_range:
+      min: -5.0
+      max: 60.0
+  - symbol: "plv"
+    name: "Left Ventricular Blood Pressure"
+    category: "cardiovascular"
+    description: "Pressure within the left ventricular chamber during the cardiac cycle"
+    units: "mmHg"
+    valid_range:
+      min: 0.0
+      max: 300.0
+  - symbol: "pc"
+    name: "Carotid Sinus Pressure"
+    category: "cardiovascular"
+    description: "Blood pressure sensed at the carotid sinus baroreceptors"
+    units: "mmHg"
+    valid_range:
+      min: 10.0
+      max: 250.0
+  - symbol: "pcm"
+    name: "Mean Carotid Blood Pressure"
+    category: "cardiovascular"
+    description: "Autonomic feedback control pressure, tracking carotid sinus pressure via a first-order delay"
+    units: "mmHg"
+    valid_range:
+      min: 10.0
+      max: 200.0
+  - symbol: "Raup"
+    name: "Upper Peripheral Resistance"
+    category: "cardiovascular"
+    description: "Microvascular fluid resistance of the upper body peripheral tissues (e.g., upper limbs and organs)"
+    units: "mmHg*s/ml"
+    valid_range:
+      min: 0.05
+      max: 10.0
+  - symbol: "Ralp"
+    name: "Lower Peripheral Resistance"
+    category: "cardiovascular"
+    description: "Microvascular fluid resistance of the lower body peripheral tissues (e.g., lower limbs and abdominal area)"
+    units: "mmHg*s/ml"
+    valid_range:
+      min: 0.1
+      max: 30.0
+  - symbol: "Ed"
+    name: "End Diastolic Left Ventricular Elastance"
+    category: "cardiovascular"
+    description: "Stiffness of the left ventricle during diastole, modulated by parasympathetic baroreflex loops"
+    units: "mmHg/ml"
+    valid_range:
+      min: 0.0001
+      max: 0.2
+  - symbol: "Hc"
+    name: "Heart Rate (bps)"
+    category: "autonomic"
+    description: "Heart rate in beats per second, regulated by sympathetic and parasympathetic nerves"
+    units: "bps"
+    valid_range:
+      min: 0.2
+      max: 4.0
+  - symbol: "HR"
+    name: "Heart Rate"
+    category: "autonomic"
+    description: "Heart rate in beats per minute, measured via ECG or wearable sensors"
+    units: "bpm"
+    valid_range:
+      min: 12.0
+      max: 240.0
+  - symbol: "RR"
+    name: "RR Interval"
+    category: "autonomic"
+    description: "Time interval between consecutive R-waves in the QRS complex of an electrocardiogram"
+    units: "ms"
+    valid_range:
+      min: 250.0
+      max: 3000.0
+  - symbol: "DFA_a1"
+    name: "Detrended Fluctuation Analysis alpha 1"
+    category: "autonomic"
+    description: "Short-term scaling exponent alpha1 of detrended fluctuation analysis, representing autonomic balance and cardiovascular fatigue"
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 2.0
+  - symbol: "qav"
+    name: "Aortic Valve Blood Flow"
+    category: "cardiovascular"
+    description: "Volume flow rate of blood exiting the left ventricle into the systemic aorta"
+    units: "ml/s"
+    valid_range:
+      min: 0.0
+      max: 1000.0
+  - symbol: "qmv"
+    name: "Mitral Valve Blood Flow"
+    category: "cardiovascular"
+    description: "Volume flow rate of blood entering the left ventricle from the pulmonary/upper venous compartment"
+    units: "ml/s"
+    valid_range:
+      min: 0.0
+      max: 1000.0
+  - symbol: "qal"
+    name: "Arterial Segment Flow"
+    category: "cardiovascular"
+    description: "Blood flow from upper to lower body arterial compartments"
+    units: "ml/s"
+    valid_range:
+      min: -100.0
+      max: 500.0
+  - symbol: "qaup"
+    name: "Upper Peripheral Tissue Blood Flow"
+    category: "cardiovascular"
+    description: "Blood flow from upper arteries to upper veins through systemic microvasculature"
+    units: "ml/s"
+    valid_range:
+      min: 0.0
+      max: 500.0
+  - symbol: "qalp"
+    name: "Lower Peripheral Tissue Blood Flow"
+    category: "cardiovascular"
+    description: "Blood flow from lower arteries to lower veins through systemic microvasculature"
+    units: "ml/s"
+    valid_range:
+      min: 0.0
+      max: 500.0
+  - symbol: "qvl"
+    name: "Venous Segment Flow"
+    category: "cardiovascular"
+    description: "Blood flow from lower to upper body venous compartments"
+    units: "ml/s"
+    valid_range:
+      min: -100.0
+      max: 500.0
