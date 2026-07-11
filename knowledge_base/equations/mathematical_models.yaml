@@ -1,3 +1,4 @@
+version: "1.0"
 models:
   - model_id: "pots_baroreflex_response_model"
     name: "Closed-Loop Baroreflex Response and Systemic Hemodynamics Model"
@@ -78,7 +79,7 @@ models:
         nominal_value: 25.0
         phenotypes:
           - phenotype: "hyperadrenergic_pots"
-            value: 40.0 # Increased sensitivity/gain
+            value: 40.0
         description: "Hill coefficient for sympathetic baroreflex resistance control"
       - symbol: "taur"
         units: "s"
@@ -101,7 +102,7 @@ models:
         nominal_value: 17.88
         phenotypes:
           - phenotype: "neuropathic_pots"
-            value: 6.5 # Blunted/impaired vasoconstrictive reserve
+            value: 6.5
         description: "Maximum lower body peripheral resistance"
       - symbol: "Ralpm"
         units: "mmHg*s/ml"
@@ -136,7 +137,7 @@ models:
         nominal_value: 25.0
         phenotypes:
           - phenotype: "hyperadrenergic_pots"
-            value: 40.0 # Increased sensitivity/gain
+            value: 40.0
         description: "Hill coefficient for heart rate control"
       - symbol: "tauH"
         units: "s"

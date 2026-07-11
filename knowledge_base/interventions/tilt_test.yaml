@@ -1,0 +1,15 @@
+version: "1.0"
+intervention:
+  id: "head_up_tilt_test"
+  name: "Head-Up Tilt (HUT) Test"
+  type: "orthostatic_challenge"
+  protocol:
+    supine_rest_seconds: 200.0
+    tilt_transition_seconds: 14.0
+    tilt_duration_seconds: 100.0
+    tilt_angle_degrees: 60.0
+    height_cm: 25.0
+    tilt_down_seconds: 14.0
+  purpose: "Assess autonomic cardiovascular regulation and diagnose orthostatic intolerance syndromes such as POTS."
+  provenance:
+    doi: "10.1098/rsif.2022.0220"

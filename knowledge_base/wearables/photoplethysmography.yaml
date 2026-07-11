@@ -1,0 +1,26 @@
+version: "1.0"
+sensor:
+  id: "photoplethysmography"
+  name: "Wearable Optical Photoplethysmography (PPG)"
+  type: "optical_ppg"
+  specifications:
+    sampling_frequency: 50.0 # Hz
+    wavelengths: ["green", "red", "infrared"]
+  validation:
+    - parameters_evaluated: ["HR"]
+      icc: 0.92
+      pearson_r: 0.91
+      bias: 0.5 # bpm
+      exercise_intensity: "rest"
+      reference_device: "Standard ECG"
+    - parameters_evaluated: ["RR"] # pulse rate variability
+      icc: 0.85
+      pearson_r: 0.84
+      bias: 2.1 # ms
+      exercise_intensity: "low_intensity"
+      reference_device: "Standard ECG"
+  failure_modes:
+    - "Vasoconstriction due to cold ambient temperatures leading to low perfusion index"
+    - "Slick/sweaty skin causing optical sensor slippage"
+    - "Ambient light leakage causing saturated signal photodetectors"
+  motion_artifact_handling: "Adaptive filtering using tri-axial accelerometer data"

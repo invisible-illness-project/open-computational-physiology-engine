@@ -1,0 +1,36 @@
+version: "1.0"
+sensor:
+  id: "polar_h10"
+  name: "Polar H10 Heart Rate Sensor"
+  type: "dry_electrode_ecg"
+  manufacturer: "Polar Electro"
+  specifications:
+    sampling_frequency: 130.0 # internal ECG sampling frequency in Hz
+    rr_resolution_ms: 1.0
+    communication: "Bluetooth Low Energy / ANT+"
+  validation:
+    - parameters_evaluated: ["RR", "HR"]
+      icc: 0.99
+      pearson_r: 0.99
+      bias: 0.05 # ms
+      loa_lower: -2.3
+      loa_upper: 2.4
+      exercise_intensity: "rest"
+      reference_device: "Standard 12-lead ECG"
+      provenance:
+        doi: "10.3390/s22176536"
+    - parameters_evaluated: ["RR", "HR"]
+      icc: 0.96
+      pearson_r: 0.96
+      bias: 0.2 # ms
+      loa_lower: -15.4
+      loa_upper: 15.8
+      exercise_intensity: "high_intensity"
+      reference_device: "Standard 12-lead ECG"
+      provenance:
+        doi: "10.3390/s22176536"
+  failure_modes:
+    - "Dry electrodes leading to high contact resistance and signal dropouts"
+    - "Motion artifacts during high-intensity upper body movements"
+    - "Incomplete contact with skin during rapid body rotation"
+  motion_artifact_handling: "Reject beats with >15% deviation from rolling mean RR interval"

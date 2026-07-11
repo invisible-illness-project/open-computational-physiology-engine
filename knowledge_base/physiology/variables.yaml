@@ -1,3 +1,4 @@
+version: "1.0"
 variables:
   - symbol: "Vau"
     name: "Upper Arterial Blood Volume"

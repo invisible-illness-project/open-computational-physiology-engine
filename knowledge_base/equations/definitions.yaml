@@ -1,0 +1,142 @@
+version: "1.0"
+equations:
+  - id: "upper_arterial_pressure"
+    label: "Upper Arterial Pressure"
+    latex: "p_{au}(t) = \\frac{V_{au}(t)}{C_{au}}"
+    inputs: ["Vau"]
+    parameters: ["Cau"]
+    outputs: ["pau"]
+    description: "Upper body arterial blood pressure derived from volume and compliance."
+  - id: "lower_arterial_pressure"
+    label: "Lower Arterial Pressure"
+    latex: "p_{al}(t) = \\frac{V_{al}(t)}{C_{al}}"
+    inputs: ["Val"]
+    parameters: ["Cal"]
+    outputs: ["pal"]
+    description: "Lower body arterial blood pressure derived from volume and compliance."
+  - id: "upper_venous_pressure"
+    label: "Upper Venous Pressure"
+    latex: "p_{vu}(t) = \\frac{V_{vu}(t)}{C_{vu}}"
+    inputs: ["Vvu"]
+    parameters: ["Cvu"]
+    outputs: ["pvu"]
+    description: "Upper body venous blood pressure derived from volume and compliance."
+  - id: "lower_venous_pressure"
+    label: "Lower Venous Pressure"
+    latex: "p_{vl}(t) = \\frac{1}{m_{vl}} \\ln\\left(\\frac{V_{Mvl}}{V_{Mvl} - V_{vl}(t)}\\right)"
+    inputs: ["Vvl"]
+    parameters: ["mvl", "VMvl"]
+    outputs: ["pvl"]
+    description: "Logarithmic pressure-volume relationship in the lower venous compartment (sensitive to orthostatic compliance limits)."
+  - id: "left_ventricular_pressure"
+    label: "Left Ventricular Pressure"
+    latex: "p_{lv}(t) = E_{lv}(t) V_{lv}(t)"
+    inputs: ["Vlv", "Elv"]
+    outputs: ["plv"]
+    description: "Time-varying left ventricular pressure."
+  - id: "varying_ventricular_elastance"
+    label: "Varying Ventricular Elastance"
+    latex: "E_{lv}(t) = \\begin{cases} E_d + \\frac{E_s - E_d}{2} \\left(1 - \\cos\\left(\\frac{\\pi (t \\bmod T)}{T_s}\\right)\\right) & (t \\bmod T) \\le T_s \\\\ E_d + \\frac{E_s - E_d}{2} \\left(\\cos\\left(\\frac{\\pi (t \\bmod T - T_s)}{T_r}\\right) + 1\\right) & T_s < (t \\bmod T) \\le T_s + T_r \\\\ E_d & (t \\bmod T) > T_s + T_r \\end{cases}"
+    inputs: ["t", "T", "Ts", "Tr", "Ed", "Es"]
+    outputs: ["Elv"]
+    description: "Double hill-shaped varying elastance function of the ventricle representing systole and diastole."
+  - id: "carotid_pressure_calculation"
+    label: "Carotid Pressure Calculation"
+    latex: "p_c(t) = p_{au}(t) - \\rho g h_c \\frac{\\sin(\\theta(t))}{conv}"
+    inputs: ["pau", "theta", "hc"]
+    parameters: ["rho", "g", "conv"]
+    outputs: ["pc"]
+    description: "Pressure at the carotid baroreceptors adjusting for hydrostatic columns during tilt."
+  - id: "mean_carotid_pressure_tracking"
+    label: "Mean Carotid Pressure Tracking"
+    latex: "\\frac{d p_{cm}(t)}{d t} = \\frac{p_c(t) - p_{cm}(t)}{\\tau_P}"
+    inputs: ["pc", "pcm"]
+    parameters: ["tauP"]
+    outputs: ["dpcm"]
+    description: "First-order delay equation tracking mean carotid pressure at baroreceptors."
+  - id: "upper_peripheral_resistance_control"
+    label: "Upper Peripheral Resistance Control"
+    latex: "\\frac{d R_{aup}(t)}{d t} = \\frac{-R_{aup}(t) + R_{aupf}(p_{cm}(t))}{\\tau_r}"
+    inputs: ["Raup", "pcm"]
+    parameters: ["taur"]
+    outputs: ["dRaup"]
+    description: "First order dynamics of autonomic upper body vasoconstriction."
+  - id: "upper_peripheral_resistance_target_hill"
+    label: "Upper Peripheral Resistance Target Hill Equation"
+    latex: "R_{aupf}(p_{cm}) = (R_{aupM} - R_{aupm}) \\frac{p_{2Ru}^{k_R}}{p_{cm}^{k_R} + p_{2Ru}^{k_R}} + R_{aupm}"
+    inputs: ["pcm"]
+    parameters: ["RaupM", "Raupm", "p2Ru", "kR"]
+    outputs: ["Raupf"]
+    description: "Sigmoidal Hill function relating carotid pressure to target upper peripheral resistance."
+  - id: "lower_peripheral_resistance_control"
+    label: "Lower Peripheral Resistance Control"
+    latex: "\\frac{d R_{alp}(t)}{d t} = \\frac{-R_{alp}(t) + R_{alpf}(p_{cm}(t))}{\\tau_r}"
+    inputs: ["Ralp", "pcm"]
+    parameters: ["taur"]
+    outputs: ["dRalp"]
+    description: "First order dynamics of autonomic lower body vasoconstriction."
+  - id: "lower_peripheral_resistance_target_hill"
+    label: "Lower Peripheral Resistance Target Hill Equation"
+    latex: "R_{alpf}(p_{cm}) = (R_{alpM} - R_{alpm}) \\frac{p_{2Ra}^{k_R}}{p_{cm}^{k_R} + p_{2Ra}^{k_R}} + R_{alpm}"
+    inputs: ["pcm"]
+    parameters: ["RalpM", "Ralpm", "p2Ra", "kR"]
+    outputs: ["Ralpf"]
+    description: "Sigmoidal Hill function relating carotid pressure to target lower peripheral resistance."
+  - id: "end_diastolic_elastance_control"
+    label: "End Diastolic Elastance Control"
+    latex: "\\frac{d E_d(t)}{d t} = \\frac{-E_d(t) + E_{df}(p_{cm}(t))}{\\tau_E}"
+    inputs: ["Ed", "pcm"]
+    parameters: ["tauE"]
+    outputs: ["dEd"]
+    description: "First order dynamics of end diastolic elastance (parasympathetic cardiac modulation)."
+  - id: "end_diastolic_elastance_target_hill"
+    label: "End Diastolic Elastance Target Hill Equation"
+    latex: "E_{df}(p_{cm}) = (E_{dM} - E_{dm}) \\frac{p_{cm}^{k_E}}{p_{cm}^{k_E} + p_{2E}^{k_E}} + E_{dm}"
+    inputs: ["pcm"]
+    parameters: ["EdM", "Edm", "p2E", "kE"]
+    outputs: ["Edf"]
+    description: "Sigmoidal Hill function relating carotid pressure to target end diastolic left ventricular elastance."
+  - id: "heart_rate_control"
+    label: "Heart Rate Control"
+    latex: "\\frac{d H_c(t)}{d t} = \\frac{-H_c(t) + H_f(p_{cm}(t))}{\\tau_H}"
+    inputs: ["Hc", "pcm"]
+    parameters: ["tauH"]
+    outputs: ["dHc"]
+    description: "First order dynamics of autonomic heart rate regulation."
+  - id: "heart_rate_target_hill"
+    label: "Heart Rate Target Hill Equation"
+    latex: "H_f(p_{cm}) = (H_M - H_m) \\frac{p_{2H}^{k_H}}{p_{cm}^{k_H} + p_{2H}^{k_H}} + H_m"
+    inputs: ["pcm"]
+    parameters: ["HM", "Hm", "p2H", "kH"]
+    outputs: ["Hf"]
+    description: "Sigmoidal Hill function relating carotid pressure to target heart rate (in bps)."
+  - id: "upper_arterial_volume_derivative"
+    label: "Upper Arterial Volume Derivative"
+    latex: "\\frac{d Vau(t)}{dt} = q_{av}(t) - q_{al}(t) - q_{aup}(t)"
+    inputs: ["qav", "qal", "qaup"]
+    outputs: ["dVau"]
+    description: "Conservation of mass for upper body arterial blood compartment."
+  - id: "upper_venous_volume_derivative"
+    label: "Upper Venous Volume Derivative"
+    latex: "\\frac{d Vvu(t)}{dt} = q_{vl}(t) + q_{aup}(t) - q_{mv}(t)"
+    inputs: ["qvl", "qaup", "qmv"]
+    outputs: ["dVvu"]
+    description: "Conservation of mass for upper body venous blood compartment."
+  - id: "lower_arterial_volume_derivative"
+    label: "Lower Arterial Volume Derivative"
+    latex: "\\frac{d Val(t)}{dt} = q_{al}(t) - q_{alp}(t)"
+    inputs: ["qal", "qalp"]
+    outputs: ["dVal"]
+    description: "Conservation of mass for lower body arterial blood compartment."
+  - id: "lower_venous_volume_derivative"
+    label: "Lower Venous Volume Derivative"
+    latex: "\\frac{d Vvl(t)}{dt} = q_{alp}(t) - q_{vl}(t)"
+    inputs: ["qalp", "qvl"]
+    outputs: ["dVvl"]
+    description: "Conservation of mass for lower body venous blood compartment."
+  - id: "left_ventricular_volume_derivative"
+    label: "Left Ventricular Volume Derivative"
+    latex: "\\frac{d Vlv(t)}{dt} = q_{mv}(t) - q_{av}(t)"
+    inputs: ["qmv", "qav"]
+    outputs: ["dVlv"]
+    description: "Conservation of mass for left ventricular chamber."

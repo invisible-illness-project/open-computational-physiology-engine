@@ -1,0 +1,114 @@
+version: "1.0"
+latent_variables:
+  - symbol: "T_sym"
+    name: "Sympathetic Tone"
+    category: "autonomic"
+    description: "The level of activity of the sympathetic division of the autonomic nervous system, regulating vasoconstriction and heart rate acceleration."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "T_para"
+    name: "Parasympathetic Tone"
+    category: "autonomic"
+    description: "The level of activity of the parasympathetic division of the autonomic nervous system, primarily regulating cardiac deceleration (vagal tone) and ventricular compliance."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "G_baro"
+    name: "Baroreflex Gain"
+    category: "autonomic"
+    description: "The sensitivity of the baroreflex feedback loops in responding to changes in blood pressure."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 100.0
+  - symbol: "V_total"
+    name: "Total Systemic Blood Volume"
+    category: "cardiovascular"
+    description: "The total volume of blood within the systemic circulatory system."
+    units: "ml"
+    valid_range:
+      min: 2000.0
+      max: 7000.0
+  - symbol: "C_vasc"
+    name: "Vascular Compliance"
+    category: "cardiovascular"
+    description: "The ability of blood vessels to distend and increase volume in response to pressure, particularly in the venous compartments."
+    units: "ml/mmHg"
+    valid_range:
+      min: 0.1
+      max: 200.0
+  - symbol: "E_syst"
+    name: "Cardiac Contractility"
+    category: "cardiovascular"
+    description: "The intrinsic ability of the left ventricular myocardium to contract (represented by maximum systolic elastance Es)."
+    units: "mmHg/ml"
+    valid_range:
+      min: 0.5
+      max: 10.0
+  - symbol: "R_periph"
+    name: "Peripheral Resistance"
+    category: "cardiovascular"
+    description: "The total resistance to blood flow offered by the systemic microvasculature."
+    units: "mmHg*s/ml"
+    valid_range:
+      min: 0.01
+      max: 50.0
+  - symbol: "D_circ"
+    name: "Circadian Drive"
+    category: "autonomic"
+    description: "The endogenous circadian pacemaker signal modulating autonomic function and body temperature."
+    units: "dimensionless"
+    valid_range:
+      min: -1.0
+      max: 1.0
+  - symbol: "P_sleep"
+    name: "Sleep Pressure"
+    category: "autonomic"
+    description: "The homeostatic sleep drive that accumulates during wakefulness and dissipates during sleep, influencing parasympathetic dominance."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "L_stress"
+    name: "Stress Load"
+    category: "autonomic"
+    description: "Allostatic load representing the psychological or physical stressors that elevate sympathetic tone."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "H_hydr"
+    name: "Hydration State"
+    category: "physiology"
+    description: "The relative level of body water, affecting total blood volume and vascular compliance."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "B_infl"
+    name: "Inflammatory Burden"
+    category: "physiology"
+    description: "The systemic level of inflammatory cytokines and mediators, affecting endothelial function and vascular permeability."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 10.0
+  - symbol: "R_metab"
+    name: "Metabolic Reserve"
+    category: "physiology"
+    description: "The cellular capacity for aerobic respiration and energy production, affected in metabolic conditions (e.g. ME/CFS)."
+    units: "dimensionless"
+    valid_range:
+      min: 0.0
+      max: 1.0
+  - symbol: "S_horm"
+    name: "Hormonal State"
+    category: "physiology"
+    description: "Multi-hormonal level index representing blood volume and electrolyte regulating hormones (e.g., aldosterone, renin, vasopressin)."
+    units: "dimensionless"
+    valid_range:
+      min: -1.0
+      max: 1.0

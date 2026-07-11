@@ -1,0 +1,22 @@
+version: "1.0"
+cohorts:
+  - id: "pots_clinical_cohort"
+    health_status: "POTS"
+    sample_size: 25
+    demographics:
+      age_range:
+        min: 12
+        max: 19
+      sex_distribution:
+        female_percentage: 85.0
+    clinical_criteria:
+      - "Sustained heart rate increase of >= 30 bpm (or >= 40 bpm for ages 12-19) within 10 minutes of standing/tilt without orthostatic hypotension."
+  - id: "healthy_control_cohort"
+    health_status: "Healthy Control"
+    sample_size: 25
+    demographics:
+      age_range:
+        min: 18
+        max: 45
+    clinical_criteria:
+      - "No history of orthostatic intolerance, cardiovascular disease, or autonomic neuropathies."

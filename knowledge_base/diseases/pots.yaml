@@ -1,0 +1,51 @@
+version: "1.3"
+disease:
+  id: "pots"
+  name: "Postural Orthostatic Tachycardia Syndrome"
+  abbreviation: "POTS"
+  description: "A form of orthostatic intolerance characterized by an excessive increase in heart rate upon standing, in the absence of orthostatic hypotension."
+  phenotypes:
+    - id: "neuropathic_pots"
+      name: "Neuropathic POTS"
+      description: "Characterized by distal denervation leading to impaired peripheral vasoconstriction, particularly in the lower body extremities."
+      parameters_perturbed:
+        - symbol: "RalpM"
+          normal_value: 17.88
+          perturbed_value: 6.5
+          units: "mmHg*s/ml"
+          mechanism: "Blunted or impaired vasoconstrictive reserve in the lower venous and peripheral systemic compartment."
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            evidence_level: "Level 4"
+    - id: "hyperadrenergic_pots"
+      name: "Hyperadrenergic POTS"
+      description: "Characterized by orthostatic tachycardia associated with high levels of sympathetic activity, often presenting with orthostatic hypertension."
+      parameters_perturbed:
+        - symbol: "kR"
+          normal_value: 25.0
+          perturbed_value: 40.0
+          units: "dimensionless"
+          mechanism: "Hypersensitive or elevated gain in sympathetic resistance feedback loop control."
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            evidence_level: "Level 4"
+        - symbol: "kH"
+          normal_value: 25.0
+          perturbed_value: 40.0
+          units: "dimensionless"
+          mechanism: "Elevated gain/sensitivity in heart rate sympathetic acceleration feedback loops."
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            evidence_level: "Level 4"
+    - id: "hypovolemic_pots"
+      name: "Hypovolemic POTS"
+      description: "Characterized by reduced total blood volume leading to decreased venous return, stroke volume, and compensatory tachycardia."
+      parameters_perturbed:
+        - symbol: "TotalVol"
+          normal_value: 4500.0
+          perturbed_value: 3500.0
+          units: "ml"
+          mechanism: "Reduced systemic intravascular blood volume."
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            evidence_level: "Level 4"
