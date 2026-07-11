@@ -154,25 +154,29 @@ def main():
         sys.exit(1)
 
     # 7. Load diseases
-    disease_file = os.path.join(kb_dir, "knowledge_base", "diseases", "pots.yaml")
-    if not os.path.exists(disease_file):
-        print_err(f"pots.yaml not found at {disease_file}")
+    diseases_dir = os.path.join(kb_dir, "knowledge_base", "diseases")
+    if not os.path.exists(diseases_dir):
+        print_err(f"diseases/ directory not found at {diseases_dir}")
         errors += 1
     else:
         try:
-            with open(disease_file, 'r', encoding='utf-8') as f:
-                disease_data = yaml.safe_load(f)
-            phenotypes = disease_data.get('disease', {}).get('phenotypes', [])
-            print_ok(f"Loaded disease: {disease_data.get('disease', {}).get('name')} with {len(phenotypes)} phenotypes.")
-            for pheno in phenotypes:
-                pid = pheno.get('id')
-                for pert in pheno.get('parameters_perturbed', []):
-                    psym = pert.get('symbol')
-                    if psym not in model_params and psym != 'TotalVol':
-                        print_err(f"Disease phenotype '{pid}' perturbs unregistered parameter '{psym}'")
-                        errors += 1
+            d_files = [f for f in os.listdir(diseases_dir) if f.endswith('.yaml')]
+            print_ok(f"Found {len(d_files)} disease registrations.")
+            for df in d_files:
+                dpath = os.path.join(diseases_dir, df)
+                with open(dpath, 'r', encoding='utf-8') as f:
+                    disease_data = yaml.safe_load(f)
+                phenotypes = disease_data.get('disease', {}).get('phenotypes', [])
+                print_ok(f"  Loaded disease: {disease_data.get('disease', {}).get('name')} ({df}) with {len(phenotypes)} phenotypes.")
+                for pheno in phenotypes:
+                    pid = pheno.get('id')
+                    for pert in pheno.get('parameters_perturbed', []):
+                        psym = pert.get('symbol')
+                        if psym not in model_params and psym != 'TotalVol':
+                            print_err(f"  Disease phenotype '{pid}' perturbs unregistered parameter '{psym}'")
+                            errors += 1
         except Exception as e:
-            print_err(f"Failed to parse pots.yaml: {e}")
+            print_err(f"Failed to parse disease files: {e}")
             errors += 1
 
     # 8. Load interventions

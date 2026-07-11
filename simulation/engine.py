@@ -1,16 +1,26 @@
 import numpy as np
 from scipy.integrate import solve_ivp
+from simulation.latent_physiology import LatentPhysiologyState
+from simulation.behavior import BehaviorModel
+from simulation.symptoms import SymptomFramework
+from simulation.time_engine import TimeEngine
 
 class SimulationEngine:
     """
     Simulates the closed-loop cardiovascular system beat by beat,
     reproducing the original MATLAB solver structure but with Pythonic
-    extensions, latent state extraction, and detailed telemetry logging.
+    extensions, latent state extraction, behavioral/symptom loops, and temporal tracking.
     """
     def __init__(self, model, dt=0.01, hrv_noise=0.02):
         self.model = model
         self.dt = dt
         self.hrv_noise = hrv_noise
+        
+        # Instantiate architectural subsystems
+        self.latent_state = LatentPhysiologyState()
+        self.behavior = BehaviorModel()
+        self.symptoms = SymptomFramework()
+        self.time_engine = TimeEngine()
 
     def run(self, tilt_params):
         """
@@ -20,7 +30,12 @@ class SimulationEngine:
           - tend: end of simulation (s)
           - height: hydrostatic height (cm)
           - angle: tilt angle (degrees)
+          - active_behavior: optional string trigger (e.g. 'exercise', 'meal')
         """
+        # Set up behavior if specified in tilt_params
+        active_behavior = tilt_params.get("active_behavior", "rest")
+        self.behavior.trigger_behavior(active_behavior)
+        
         # Read initial values
         y_init = list(self.model.initial_state)
         
@@ -36,22 +51,23 @@ class SimulationEngine:
         time_series = []
         state_series = []
         
-        # Latent state lists
-        latent_series = {
-            "sympathetic_tone": [],
-            "parasympathetic_tone": [],
-            "baroreflex_gain": [],
-            "blood_volume": [],
-            "left_ventricular_pressure": [],
-            "aortic_flow": [],
-            "mitral_flow": [],
-            "carotid_pressure": []
-        }
+        # Latent state and symptom series lists
+        latent_keys = [
+            "sympathetic_tone", "parasympathetic_tone", "baroreflex_gain",
+            "blood_volume", "left_ventricular_pressure", "aortic_flow",
+            "mitral_flow", "carotid_pressure", "circadian_drive",
+            "sleep_pressure", "hydration", "stress_load",
+            "inflammatory_burden", "metabolic_reserve", "hormonal_state",
+            "autonomic_recovery_capacity"
+        ]
+        symptom_keys = [
+            "fatigue", "brain_fog", "pain", "orthostatic_intolerance",
+            "palpitations", "sleepiness", "dizziness"
+        ]
+        
+        output_series = {k: [] for k in (latent_keys + symptom_keys)}
         
         current_ts = 0.0
-        
-        # Set up solver parameters
-        # Radau/BDF is suitable for stiff equations (comparable to ode15s)
         method = "Radau"
         
         # Loop beat-by-beat
@@ -92,7 +108,30 @@ class SimulationEngine:
             time_series.extend(sol.t[:cycle_len])
             state_series.extend(sol.y[:, :cycle_len].T)
             
-            # Extract latent states for each evaluated point in this beat
+            # Update temporal components for this cardiac cycle
+            # Advance simulation clock (convert cycle length T to seconds)
+            self.time_engine.step(T)
+            
+            # Update homeostatic sleep pressure
+            sleep_pres = self.time_engine.update_sleep_pressure(
+                self.latent_state.get("sleep_pressure"), 
+                is_sleeping=False, 
+                dt_seconds=T
+            )
+            self.latent_state.set("sleep_pressure", sleep_pres)
+            self.latent_state.set("circadian_drive", self.time_engine.get_circadian_drive())
+            
+            # Update recovery and PEM
+            is_mecfs = self.model.phenotype is not None and "mecfs" in self.model.phenotype
+            self.time_engine.update_recovery_and_pem(self.latent_state, T, is_sleeping=False, is_mecfs=is_mecfs)
+            
+            # Modulate latent states with current behavior
+            self.behavior.modulate_latent_states(self.latent_state, current_ts)
+            
+            # Feed current hemodynamic state back into parameters
+            self.model.params = self.behavior.modulate_parameters(self.model.params, self.latent_state)
+            
+            # Extract latent states and symptoms for each evaluated point in this beat
             for i in range(cycle_len):
                 t_val = sol.t[i]
                 y_val = sol.y[:, i]
@@ -101,7 +140,7 @@ class SimulationEngine:
                 pcm = y_val[5]
                 pau = y_val[0] / self.model.params["Cau"]
                 
-                # Compute tilt angle at this t_val
+                # Compute tilt angle at this t_val for carotid pressure height effect
                 tup = tilt_params.get("tup", 200.0)
                 tend = tilt_params.get("tend", 300.0)
                 max_angle = tilt_params.get("angle", 60.0)
@@ -116,22 +155,22 @@ class SimulationEngine:
                 else:
                     arg = 0.0
                 
-                # Carotid pressure
+                # Carotid pressure height adjustment
                 rho = 1.06
                 g = 982.0
                 conv = 1333.22
                 rhogh_tilde = rho * g * 20.0 * (np.sin(arg * np.pi / 180.0) / conv)
                 pc = pau - rhogh_tilde
                 
-                # Sympathetic Tone: derived from Hill activation function for peripheral resistance
-                kR = self.model.params["kR"]
-                p2Ru = self.model.params["p2Ru"]
-                sym_tone = (p2Ru**kR) / (pcm**kR + p2Ru**kR)
+                # Update derived autonomic states
+                self.latent_state.update_derived_states(pcm, self.model.params)
                 
-                # Parasympathetic Tone: derived from Hill activation function for ventricular elastance
-                kE = self.model.params["kE"]
-                p2E = self.model.params["p2E"]
-                para_tone = (pcm**kE) / (pcm**kE + p2E**kE)
+                # Compute symptoms probabilistically from updated state
+                current_hr = y_val[9] * 60.0  # bpm
+                symptom_scores = self.symptoms.compute_symptoms(self.latent_state, current_hr, pcm)
+                
+                # Apply feedback loops to behavior
+                self.behavior.check_behavioral_feedback(symptom_scores)
                 
                 # Ventricular Elastance and Pressure
                 Ts = 0.001 * (0.82 / 1.82) * (522.0 - 1.87 * 60.0 / T)
@@ -152,14 +191,27 @@ class SimulationEngine:
                 pvu = y_val[1] / self.model.params["Cvu"]
                 qmv = (pvu - plv) / 0.0001 if pvu > plv else 0.0
                 
-                latent_series["sympathetic_tone"].append(sym_tone)
-                latent_series["parasympathetic_tone"].append(para_tone)
-                latent_series["baroreflex_gain"].append(kR)
-                latent_series["blood_volume"].append(self.model.params["TotalVol"])
-                latent_series["left_ventricular_pressure"].append(plv)
-                latent_series["aortic_flow"].append(qav)
-                latent_series["mitral_flow"].append(qmv)
-                latent_series["carotid_pressure"].append(pc)
+                # Log all latent variable states
+                output_series["sympathetic_tone"].append(self.latent_state.get("sympathetic_tone"))
+                output_series["parasympathetic_tone"].append(self.latent_state.get("parasympathetic_tone"))
+                output_series["baroreflex_gain"].append(self.model.params["kR"])
+                output_series["blood_volume"].append(self.model.params["TotalVol"])
+                output_series["left_ventricular_pressure"].append(plv)
+                output_series["aortic_flow"].append(qav)
+                output_series["mitral_flow"].append(qmv)
+                output_series["carotid_pressure"].append(pc)
+                output_series["circadian_drive"].append(self.latent_state.get("circadian_drive"))
+                output_series["sleep_pressure"].append(self.latent_state.get("sleep_pressure"))
+                output_series["hydration"].append(self.latent_state.get("hydration"))
+                output_series["stress_load"].append(self.latent_state.get("stress_load"))
+                output_series["inflammatory_burden"].append(self.latent_state.get("inflammatory_burden"))
+                output_series["metabolic_reserve"].append(self.latent_state.get("metabolic_reserve"))
+                output_series["hormonal_state"].append(self.latent_state.get("hormonal_state"))
+                output_series["autonomic_recovery_capacity"].append(self.latent_state.get("autonomic_recovery_capacity"))
+                
+                # Log all symptom states
+                for sk in symptom_keys:
+                    output_series[sk].append(symptom_scores[sk])
                 
             # Set initial conditions for next cycle
             y_init = sol.y[:, -1]
@@ -176,16 +228,10 @@ class SimulationEngine:
         time_series.append(current_ts)
         state_series.append(y_init)
         
-        # Add last latent state point (using final values)
-        latent_series["sympathetic_tone"].append(latent_series["sympathetic_tone"][-1])
-        latent_series["parasympathetic_tone"].append(latent_series["parasympathetic_tone"][-1])
-        latent_series["baroreflex_gain"].append(latent_series["baroreflex_gain"][-1])
-        latent_series["blood_volume"].append(latent_series["blood_volume"][-1])
-        latent_series["left_ventricular_pressure"].append(latent_series["left_ventricular_pressure"][-1])
-        latent_series["aortic_flow"].append(latent_series["aortic_flow"][-1])
-        latent_series["mitral_flow"].append(latent_series["mitral_flow"][-1])
-        latent_series["carotid_pressure"].append(latent_series["carotid_pressure"][-1])
-        
+        # Carry over final states to ensure array length matches
+        for k in output_series.keys():
+            output_series[k].append(output_series[k][-1])
+            
         # Format outputs as numpy arrays
         time_arr = np.array(time_series)
         state_arr = np.array(state_series)
@@ -207,7 +253,7 @@ class SimulationEngine:
             "pvu": state_arr[:, 1] / self.model.params["Cvu"],
         }
         
-        for k, v in latent_series.items():
+        for k, v in output_series.items():
             results[k] = np.array(v)
             
         return results

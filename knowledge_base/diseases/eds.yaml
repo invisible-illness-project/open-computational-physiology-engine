@@ -1,0 +1,27 @@
+version: "1.0"
+disease:
+  id: "eds"
+  name: "Hypermobile Ehlers-Danlos Syndrome"
+  abbreviation: "hEDS"
+  description: "A heritable connective tissue disorder characterized by joint hypermobility, skin hyperextensibility, and tissue fragility, often associated with severe orthostatic intolerance and venous pooling."
+  phenotypes:
+    - id: "heds_venous_pooling"
+      name: "hEDS Vascular Laxity"
+      description: "Severe vascular compliance elevation leading to lower limb venous pooling and blunted venous return."
+      parameters_perturbed:
+        - symbol: "Cal"
+          normal_value: 0.3726
+          perturbed_value: 0.65
+          units: "ml/mmHg"
+          mechanism: "Increased distensibility of the lower body arterial-venous compartment due to collagen laxity."
+          provenance:
+            doi: "10.1016/j.amjmed.2006.10.015"
+            evidence_level: "Level 2"
+        - symbol: "VMvl"
+          normal_value: 195.075
+          perturbed_value: 275.0
+          units: "ml"
+          mechanism: "Pathological expansion of lower body venous capacity limits, accelerating pooling upon standing."
+          provenance:
+            doi: "10.1016/j.amjmed.2006.10.015"
+            evidence_level: "Level 2"

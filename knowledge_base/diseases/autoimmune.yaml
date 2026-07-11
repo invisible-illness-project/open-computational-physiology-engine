@@ -1,0 +1,27 @@
+version: "1.0"
+disease:
+  id: "autoimmune"
+  name: "Autoimmune Dysautonomia"
+  abbreviation: "AIDA"
+  description: "Autoimmune conditions (e.g., Sjogren's, Lupus) causing autoantibody-mediated receptor blockades or ganglionic neuropathy, directly impairing autonomic feedback loop gains."
+  phenotypes:
+    - id: "autoimmune_neuropathy"
+      name: "Autoimmune Autonomic Neuropathy"
+      description: "Antibody-mediated blunting of adrenergic and cholinergic autonomic gain coefficients."
+      parameters_perturbed:
+        - symbol: "kR"
+          normal_value: 25.0
+          perturbed_value: 15.0
+          units: "dimensionless"
+          mechanism: "Partial loss of baroreflex sympathetic gain due to ganglionic nicotinic receptor autoantibodies."
+          provenance:
+            doi: "10.1002/ana.10659"
+            evidence_level: "Level 2"
+        - symbol: "kH"
+          normal_value: 25.0
+          perturbed_value: 15.0
+          units: "dimensionless"
+          mechanism: "Blunted heart rate baroreflex gain due to autoimmune cholinergic receptor blockades."
+          provenance:
+            doi: "10.1002/ana.10659"
+            evidence_level: "Level 2"

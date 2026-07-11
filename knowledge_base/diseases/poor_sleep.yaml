@@ -1,0 +1,27 @@
+version: "1.0"
+disease:
+  id: "poor_sleep"
+  name: "Poor Sleep / Sleep Deprivation"
+  abbreviation: "SLEEP"
+  description: "Physiological perturbations resulting from acute or chronic sleep restriction, elevating resting sympathetic tone and blunting parasympathetic modulation."
+  phenotypes:
+    - id: "sleep_deprivation"
+      name: "Acute Sleep Deprivation"
+      description: "Restricted sleep leading to elevated resting heart rate and reduced heart rate variability (vagal withdrawal)."
+      parameters_perturbed:
+        - symbol: "Hm"
+          normal_value: 0.3
+          perturbed_value: 0.8
+          units: "bps"
+          mechanism: "Elevated resting/minimum heart rate (approx 48 bpm) due to sustained sympathetic drive and vagal withdrawal."
+          provenance:
+            doi: "10.5665/sleep.2894"
+            evidence_level: "Level 2"
+        - symbol: "kE"
+          normal_value: 7.0
+          perturbed_value: 5.0
+          units: "dimensionless"
+          mechanism: "Blunted parasympathetic/vagal modulation of cardiac elastance and compliance."
+          provenance:
+            doi: "10.5665/sleep.2894"
+            evidence_level: "Level 2"

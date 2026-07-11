@@ -1,0 +1,35 @@
+version: "1.0"
+disease:
+  id: "heat"
+  name: "Environmental Heat Stress"
+  abbreviation: "HEAT"
+  description: "Physiological shifts under elevated ambient temperatures, inducing cutaneous and systemic vasodilation, venous pooling, and orthostatic susceptibility."
+  phenotypes:
+    - id: "environmental_heat"
+      name: "Heat-Induced Vasodilation"
+      description: "Cutaneous vasodilation and increased compliance, mimicking mild volume depletion."
+      parameters_perturbed:
+        - symbol: "Raupm"
+          normal_value: 0.3019
+          perturbed_value: 0.15
+          units: "mmHg*s/ml"
+          mechanism: "Vasodilation of upper body cutaneous vasculature reduces the minimum peripheral resistance boundary."
+          provenance:
+            doi: "10.1152/japplphysiol.00693.2012"
+            evidence_level: "Level 1"
+        - symbol: "Ralpm"
+          normal_value: 1.192
+          perturbed_value: 0.6
+          units: "mmHg*s/ml"
+          mechanism: "Vasodilation of lower extremity microvasculature blunts peripheral resistance lower boundary."
+          provenance:
+            doi: "10.1152/japplphysiol.00693.2012"
+            evidence_level: "Level 1"
+        - symbol: "Cal"
+          normal_value: 0.3726
+          perturbed_value: 0.5
+          units: "ml/mmHg"
+          mechanism: "Thermal relaxation of lower body vasculature increases local compliance and pools volume."
+          provenance:
+            doi: "10.1152/japplphysiol.00693.2012"
+            evidence_level: "Level 1"

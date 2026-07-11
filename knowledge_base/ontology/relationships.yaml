@@ -1,42 +1,96 @@
-version: "2.1"
+version: "3.0"
+relationship_definitions:
+  - predicate: "CAUSES"
+    description: "A directly causal biological link where changes in subject lead to changes in object."
+  - predicate: "INCREASES"
+    description: "A positive directional modulation; increasing subject increases object."
+  - predicate: "DECREASES"
+    description: "A negative directional modulation; increasing subject decreases object."
+  - predicate: "REGULATES"
+    description: "An active feedback control loop relationship (e.g., baroreflex regulates heart rate)."
+  - predicate: "DERIVED_FROM"
+    description: "A mathematical or direct physical derivation (e.g., MAP derived from SBP/DBP)."
+  - predicate: "MEASURED_BY"
+    description: "An association where a sensor directly measures a physical variable."
+  - predicate: "ESTIMATED_BY"
+    description: "An association where a variable is estimated via proxy sensor measurements."
+  - predicate: "VALIDATED_BY"
+    description: "Links a model, relationship, or variable to a validation dataset."
+  - predicate: "PERTURBED_BY"
+    description: "Indicates that a disease, medication, or external stressor alters this variable."
+  - predicate: "MODULATED_BY"
+    description: "Indicates that a behavior or circadian state alters a physiological state."
+  - predicate: "PART_OF"
+    description: "A structural or organizational containment link (e.g., heart is part of cardiovascular system)."
+  - predicate: "ASSOCIATED_WITH"
+    description: "A statistical correlation or physiological association without direct causal proof."
+
 semantic_relationships:
-  - subject: "RMSSD"
-    predicate: "belongs_to"
-    object: "Heart Rate Variability"
-    description: "RMSSD is a time-domain metric of HRV."
-  - subject: "Heart Rate Variability"
-    predicate: "represents"
-    object: "Parasympathetic Regulation"
-    description: "Fluctuations in heart rate reflect vagal modulation of the sinoatrial node."
-  - subject: "RMSSD"
-    predicate: "derived_from"
-    object: "RR Intervals"
-    description: "RMSSD is calculated from successive differences between adjacent RR intervals."
-  - subject: "RR Intervals"
-    predicate: "measured_by"
-    object: "ECG"
-    description: "Electrocardiograms directly capture electrical cardiac depolarizations."
-  - subject: "RR Intervals"
-    predicate: "estimated_by"
-    object: "PPG"
-    description: "Photoplethysmography estimates inter-beat intervals via optical pulse arrival times."
-  - subject: "DFA_a1"
-    predicate: "belongs_to"
-    object: "Heart Rate Variability"
-    description: "Detrended fluctuation analysis is a non-linear HRV metric."
-  - subject: "DFA_a1"
-    predicate: "represents"
-    object: "Autonomic Balance"
-    description: "DFA alpha 1 indicates sympathetic-parasympathetic interaction and physiological stress."
-  - subject: "Hc"
-    predicate: "belongs_to"
-    object: "Autonomic Nervous System"
-    description: "Autonomic heart rate control is a key feedback parameter."
-  - subject: "pau"
-    predicate: "belongs_to"
-    object: "Cardiovascular System"
-    description: "Upper arterial pressure is a key hemodynamic variable."
   - subject: "pcm"
-    predicate: "represents"
-    object: "Baroreflex Feedback Loop"
-    description: "Mean carotid pressure represents the sensed pressure input to the baroreflex."
+    predicate: "REGULATES"
+    object: "Hc"
+    confidence: 10
+    evidence_level: "Level 1"
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+    known_limitations: "Assumes instantaneous baroreceptor firing which is valid under macroscopic timescales but lacks myelinated/unmyelinated fiber distinction."
+    applicable_populations:
+      - "healthy_control_cohort"
+      - "pots_clinical_cohort"
+
+  - subject: "neuropathic_pots"
+    predicate: "PERTURBED_BY"
+    object: "RalpM"
+    confidence: 9
+    evidence_level: "Level 2"
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+    known_limitations: "Severity varies based on individual autonomic neuropathy patterns."
+    applicable_populations:
+      - "pots_clinical_cohort"
+
+  - subject: "L_stress"
+    predicate: "INCREASES"
+    object: "T_sym"
+    confidence: 8
+    evidence_level: "Level 2"
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+    known_limitations: "Allostatic response is highly individualized."
+    applicable_populations:
+      - "healthy_control_cohort"
+      - "pots_clinical_cohort"
+
+  - subject: "H_hydr"
+    predicate: "INCREASES"
+    object: "V_total"
+    confidence: 9
+    evidence_level: "Level 1"
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+    known_limitations: "Varies depending on electrolyte balance and renal function."
+    applicable_populations:
+      - "healthy_control_cohort"
+      - "pots_clinical_cohort"
+
+  - subject: "D_circ"
+    predicate: "MODULATED_BY"
+    object: "T_sym"
+    confidence: 8
+    evidence_level: "Level 2"
+    supporting_publications:
+      - doi: "10.1098/rsif.2022.0220"
+    known_limitations: "Subject to jetlag, night shift schedules, and individual chronotype."
+    applicable_populations:
+      - "healthy_control_cohort"
+
+  - subject: "RMSSD"
+    predicate: "DERIVED_FROM"
+    object: "rr_intervals"
+    confidence: 10
+    evidence_level: "Level 1"
+    supporting_publications:
+      - doi: "10.3390/s22176536"
+    known_limitations: "Requires high sampling precision; sensitive to ectopic beats and motion artifacts."
+    applicable_populations:
+      - "healthy_control_cohort"

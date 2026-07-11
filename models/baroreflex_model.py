@@ -9,8 +9,9 @@ class BaroreflexPOTSModel:
     (stored in YAML) from the executable model code and applies disease phenotype
     overrides dynamically.
     """
-    def __init__(self, phenotype=None, kb_path=None):
+    def __init__(self, phenotype=None, subject=None, kb_path=None):
         self.phenotype = phenotype
+        self.subject = subject
         if kb_path is None:
             self.kb_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "knowledge_base")
         else:
@@ -34,20 +35,17 @@ class BaroreflexPOTSModel:
                 for param in model.get("parameters", []):
                     nominal_params[param["symbol"]] = param["nominal_value"]
         
-        # 2. Load phenotype overrides from pots.yaml
+        # 2. Apply Virtual Subject demographic/fitness priors
+        if self.subject:
+            nominal_params = self.subject.adjust_parameters(nominal_params)
+            print(f"[INFO] Applied Virtual Subject priors (Age={self.subject.age}, Sex={self.subject.sex}, Fitness={self.subject.fitness})")
+
+        # 3. Load phenotype overrides via Composable Perturbation Manager
         if self.phenotype:
-            disease_file = os.path.join(self.kb_path, "diseases", "pots.yaml")
-            if os.path.exists(disease_file):
-                with open(disease_file, "r") as f:
-                    disease_data = yaml.safe_load(f)
-                
-                phenotypes = disease_data.get("disease", {}).get("phenotypes", [])
-                matching_pheno = next((p for p in phenotypes if p["id"] == self.phenotype), None)
-                if matching_pheno:
-                    for pert in matching_pheno.get("parameters_perturbed", []):
-                        symbol = pert["symbol"]
-                        nominal_params[symbol] = pert["perturbed_value"]
-                        print(f"[INFO] Applied phenotype '{self.phenotype}' override: {symbol} = {pert['perturbed_value']}")
+            from simulation.perturbations import PerturbationManager
+            pm = PerturbationManager(kb_path=self.kb_path)
+            nominal_params, applied_phenos = pm.apply_perturbations(nominal_params, self.phenotype)
+            print(f"[INFO] Applied composed phenotypes: {applied_phenos}")
         
         self.params = nominal_params
 
