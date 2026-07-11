@@ -1,0 +1,16 @@
+# Python cache and compilation files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Simulation results and generated data
+results/
+*.npz
+
+# Legacy or cloned MATLAB repository code (local execution copies)
+BaroreflexPOTSmodel/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
