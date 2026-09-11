@@ -137,15 +137,18 @@ def test_initial_state_is_consistent_dynamic_state(phenotype):
     model.initialize_steady_state()
 
     y0 = model.initial_state
-    assert len(y0) == 10, "expected 10 integrator initial conditions"
+    assert len(y0) == 12, "expected 12 integrator initial conditions"
     assert np.all(np.isfinite(y0)), f"[{phenotype}] non-finite initial state: {y0}"
 
-    Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc = y0
+    Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc, Vvm, Vsr = y0
     p = model.params
 
     # Positivity and capacity constraints
     assert min(Vau, Vvu, Val, Vvl, Vlv) > 0.0
-    assert Vvl < p["VMvl"], "lower venous volume exceeds venous capacity"
+    assert Vvm >= 0.0 and Vsr >= 0.0
+    assert Vvl < p["VMvl"] - Vvm + Vsr, (
+        "lower venous volume exceeds effective venous capacity"
+    )
     # Controller states lie strictly inside their Hill operating ranges
     assert p["Raupm"] < Raup < p["RaupM"]
     assert p["Ralpm"] < Ralp < p["RalpM"]

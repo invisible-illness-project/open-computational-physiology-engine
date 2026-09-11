@@ -121,3 +121,29 @@ semantic_relationships:
     known_limitations: "Requires high sampling precision; sensitive to ectopic beats and motion artifacts. NOTE: neither 'RMSSD' nor 'rr_intervals' is a registered symbol in variables.yaml (registry gap)."
     applicable_populations:
       - "healthy_control_cohort"
+
+  - subject: "pcm"
+    predicate: "REGULATES"
+    object: "Vvm"
+    confidence: 7
+    evidence_level: "Level 3"
+    supporting_publications:
+      - doi: "10.1152/japplphysiol.00241.2001"  # Heldt et al. 2002 (PMID 11842064): baroreflex control of venous unstressed volume (venomotor reflex) in the CVSim family
+    citation_detail: "Heldt T, Shim EB, Kamm RD, Mark RG. Computational modeling of cardiovascular response to orthostatic stress. J Appl Physiol 2002;92:1239-54 - venous tone is baroreflex-controlled; first-order Hill-sigmoid formulation here is machine-proposed (tier C)."
+    known_limitations: "Venomotor gain/time-constant parameters are machine-proposed fits, not directly measured in humans."
+    applicable_populations:
+      - "healthy_control_cohort"
+      - "POTS"
+
+  - subject: "pvl"
+    predicate: "REGULATES"
+    object: "Vsr"
+    confidence: 7
+    evidence_level: "Level 2"
+    supporting_publications:
+      - doi: "10.1152/ajpheart.01268.2004"  # van Heusden et al. 2006 (PMID 16632542): venous stress-relaxation measured in humans
+    citation_detail: "van Heusden K, Gisolf J, Stok WJ, Dijkstra S, Karemaker JM. Mathematical modeling of gravitational effects on the circulation: importance of the time course of venous pooling and blood volume changes in the lungs. Am J Physiol Heart Circ Physiol 2006;291:H2152-65 - creep driven by sustained venous pressure; gain/time constant here are machine-proposed within the documented 60-300 s range (tier C)."
+    known_limitations: "Single-compartment lumped creep; does not reproduce biphasic fast/slow viscoelastic components."
+    applicable_populations:
+      - "healthy_control_cohort"
+      - "POTS"
