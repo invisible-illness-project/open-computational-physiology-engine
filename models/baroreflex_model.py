@@ -34,7 +34,13 @@ class BaroreflexPOTSModel:
             if model.get("model_id") == "pots_baroreflex_response_model":
                 for param in model.get("parameters", []):
                     nominal_params[param["symbol"]] = param["nominal_value"]
-        
+
+        # Keep a pristine copy of the KB nominal parameter set. It is used by
+        # initialize_steady_state() as the reference point for scaling the
+        # initial compartment volumes when TotalVol is perturbed; it is never
+        # written back into self.params.
+        self.kb_nominal_params = dict(nominal_params)
+
         # 2. Apply Virtual Subject demographic/fitness priors
         if self.subject:
             nominal_params = self.subject.adjust_parameters(nominal_params)
@@ -50,110 +56,75 @@ class BaroreflexPOTSModel:
         self.params = nominal_params
 
     def initialize_steady_state(self):
-        # Read parameters loaded from KB
-        kR = self.params.get("kR", 25.0)
-        kH = self.params.get("kH", 25.0)
-        TotalVol = self.params.get("TotalVol", 4500.0)
-        
-        # Cardiac output and initial heart rate
-        TotFlow = TotalVol / 60.0  # ml/s
-        HI = 0.96  # initial heart rate (beats/sec)
-        
-        # Flows
-        qaup = TotFlow * 0.80
-        qal = TotFlow * 0.20
-        qvl = qal
-        qalp = qal
-        
-        # Pressures
-        pauD = 80.0
-        pauS = 120.0
-        pau = (2.0/3.0)*pauD + (1.0/3.0)*pauS
-        pm = pau
-        pal = pau * 0.99
-        pvu = 2.75
-        pvl = 3.00
-        plvD = 2.5
-        Vd = 10.0
-        
-        Vlvm = 50.0 - Vd
-        VlvM = 110.0 - Vd
-        
-        # Initial Resistances (Ohm's law)
-        RaupI = (pau - pvu) / qaup
-        self.params["Ral"] = (pau - pal) / qal
-        self.params["Rvl"] = (pvl - pvu) / qvl
-        RalpI = (pal - pvl) / qalp
-        
-        # Volumes
-        TotalVolSV = TotalVol * 0.85
-        Vart = TotalVolSV * 0.15
-        Vven = TotalVolSV * 0.85
-        
-        Vau = Vart * 0.80 * 0.30
-        Val = Vart * 0.20 * 0.30
-        Vvu = Vven * 0.80 * 0.075
-        Vvl = Vven * 0.20 * 0.075
-        
-        # Compliances
-        self.params["Cau"] = Vau / pauD
-        self.params["Cvu"] = Vvu / pvu
-        self.params["Cal"] = Val / pal
-        
-        # Venous capacity parameter
-        self.params["VMvl"] = 4.0 * Vvl
-        self.params["mvl"] = np.log(self.params["VMvl"] / (self.params["VMvl"] - Vvl)) / pvl
-        
-        # Left ventricular parameters
-        EdI = plvD / VlvM
-        self.params["Es"] = pauS / Vlvm
-        self.params["Vd"] = Vd
-        
-        # Autonomic time constants
-        self.params["taur"] = 12.5
-        self.params["tauE"] = 12.5
-        self.params["tauH"] = 6.25
-        self.params["tauP"] = 2.5
-        
-        # Controller parameters
-        self.params["RaupM"] = 3.0 * RaupI
-        self.params["Raupm"] = 0.2 * RaupI
-        alpha_u = (RaupI - self.params["Raupm"]) / (self.params["RaupM"] - self.params["Raupm"])
-        self.params["p2Ru"] = (pm**kR * alpha_u / (1.0 - alpha_u))**(1.0 / kR)
-        
-        # Apply RalpM override if phenotype neuropathic was applied
-        # In neuropathic POTS, max peripheral resistance in lower body is blunted.
-        # RalpM is loaded from parameters (override value), so let's preserve it.
-        # But if it's healthy, we compute it as 3 * RalpI.
-        if "RalpM" not in self.params or self.params["RalpM"] == 17.88:
-            # Let's compute default
-            self.params["RalpM"] = 3.0 * RalpI
-        
-        # If the phenotype is neuropathic, self.params['RalpM'] was already set to 6.5.
-        # We compute Ralpm as 0.2 * RalpI
-        self.params["Ralpm"] = 0.2 * RalpI
-        alpha_l = (RalpI - self.params["Ralpm"]) / (self.params["RalpM"] - self.params["Ralpm"])
-        # Handle cases where alpha_l is out of bounds or negative due to phenotype override
-        alpha_l = max(0.001, min(0.999, alpha_l))
-        self.params["p2Ra"] = (pm**kR * alpha_l / (1.0 - alpha_l))**(1.0 / kR)
-        
-        # Contractility
-        self.params["EdM"] = 1.25 * EdI
-        self.params["Edm"] = 0.01 * EdI
-        self.params["kE"] = 7.0
-        alpha_E = (EdI - self.params["Edm"]) / (self.params["EdM"] - self.params["Edm"])
-        alpha_E = max(0.001, min(0.999, alpha_E))
-        self.params["p2E"] = (pm**self.params["kE"] * (1.0 - alpha_E) / alpha_E)**(1.0 / self.params["kE"])
-        
-        # Heart rate
-        self.params["HM"] = 200.0 / 60.0  # equivalent to 200 bpm
-        self.params["Hm"] = 0.3
-        alpha_H = (HI - self.params["Hm"]) / (self.params["HM"] - self.params["Hm"])
-        alpha_H = max(0.001, min(0.999, alpha_H))
-        self.params["p2H"] = (pm**kH * alpha_H / (1.0 - alpha_H))**(1.0 / kH)
-        
+        """
+        Solve for the initial dynamic state (integrator initial conditions)
+        consistent with the currently-applied parameter set.
+
+        This method NEVER writes to self.params. All parameters (gains, time
+        constants, compliances, volumes, resistances, Hill coefficients and
+        half-saturation pressures) come from the knowledge base, disease
+        perturbations and VirtualSubject priors, and are treated as sacred.
+        Only the 10 integrator initial conditions are computed here:
+
+            y0 = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc]
+
+        Initialization strategy (supine steady state):
+        - Controller states (Raup, Ralp, Ed, Hc) are placed exactly on their
+          Hill-equation targets at the supine mean carotid operating point, so
+          every first-order control loop starts with dX/dt = 0.
+        - Compartment volumes are derived from target filling pressures and the
+          (sacred) compliance/capacity parameters, so the initial pressures
+          implied by V/C are consistent with the parameter set.
+        - Total blood volume perturbations (hypovolemia, fludrocortisone,
+          demographic priors) are absorbed by scaling the compliant venous
+          reservoir compartments, leaving the baroreflex-defended arterial
+          pressures anchored at the reference operating point.
+        """
+        p = self.params
+
+        # --- Supine operating point (state-initialization heuristics, NOT
+        # parameters). Values reproduce the Geddes et al. 2022 healthy baseline.
+        pcm0 = 93.333                     # mean carotid pressure setpoint (mmHg)
+        pauD = 80.0                       # target diastolic upper arterial pressure
+        pau_mean = (2.0 / 3.0) * pauD + (1.0 / 3.0) * 120.0  # ~93.33 mmHg
+        pal0 = pau_mean * 0.99            # target lower arterial pressure
+        pvu0 = 2.75                       # target upper venous pressure
+        pvl0 = 3.00                       # target lower venous pressure
+
+        # --- Controller states: exact steady state of each control loop at the
+        # operating point (X0 = X_target(pcm0)  =>  dX/dt = 0).
+        kR = p["kR"]
+        kE = p["kE"]
+        kH = p["kH"]
+
+        Raup0 = (p["RaupM"] - p["Raupm"]) * (p["p2Ru"]**kR) / (pcm0**kR + p["p2Ru"]**kR) + p["Raupm"]
+        Ralp0 = (p["RalpM"] - p["Ralpm"]) * (p["p2Ra"]**kR) / (pcm0**kR + p["p2Ra"]**kR) + p["Ralpm"]
+        Ed0 = (p["EdM"] - p["Edm"]) * (pcm0**kE) / (pcm0**kE + p["p2E"]**kE) + p["Edm"]
+        H0 = (p["HM"] - p["Hm"]) * (p["p2H"]**kH) / (pcm0**kH + p["p2H"]**kH) + p["Hm"]
+
+        # --- Compartment volumes from target filling pressures and the sacred
+        # compliance / capacity parameters.
+        Vau0 = pauD * p["Cau"]
+        Val0 = pal0 * p["Cal"]
+        Vvu0 = pvu0 * p["Cvu"]
+        # Invert the logarithmic lower-venous pressure-volume relation:
+        #   pvl = (1/mvl) * ln(VMvl / (VMvl - Vvl))  =>  Vvl = VMvl * (1 - exp(-mvl*pvl))
+        Vvl0 = p["VMvl"] * (1.0 - np.exp(-p["mvl"] * pvl0))
+
+        # Blood-volume perturbations are absorbed by the compliant venous
+        # reservoir (the venous system holds the bulk of circulating volume and
+        # buffers filling-pressure changes); arterial volumes stay anchored to
+        # the defended pressure setpoint.
+        total_vol_ref = self.kb_nominal_params.get("TotalVol", 4500.0)
+        vol_scale = p.get("TotalVol", total_vol_ref) / total_vol_ref
+        Vvu0 *= vol_scale
+        Vvl0 *= vol_scale
+
+        # Left ventricular end-diastolic volume (start of the cardiac cycle).
+        Vlv0 = 110.0 - p["Vd"]
+
         # Initial conditions: y = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc]
-        self.initial_state = [Vau, Vvu, Val, Vvl, VlvM, pm, RaupI, RalpI, EdI, HI]
+        self.initial_state = [Vau0, Vvu0, Val0, Vvl0, Vlv0, pcm0, Raup0, Ralp0, Ed0, H0]
 
     def compute_derivatives(self, t, y, current_T, current_ts, tilt_params):
         """
