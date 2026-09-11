@@ -121,7 +121,8 @@ Healthy Physiology Engine & Latent Physiology (simulation/)
 *   [`simulation/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/simulation/): Beat-by-beat ODE numerical integration solver, time engine, behaviors, symptoms, and composable perturbations.
 *   [`sensor_models/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/sensor_models/): Wearable sensor telemetry translators ([wearable_sensors.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/sensor_models/wearable_sensors.py)).
 *   [`validation/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/validation/): Physiological boundary checks, clinical evaluators, and validation suites.
-*   [`docs/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/): Reference manuals covering architecture, ontology, latent variables, and validation.
+*   [`tools/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/tools/): Knowledge Base validation ([validate_kb.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/tools/validate_kb.py)) and sidecar review tracking ([review_tracker.py](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/tools/review_tracker.py)).
+*   [`docs/`](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/): Reference manuals and Architectural Decision Records ([docs/adr/](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/adr/)).
 
 ---
 
@@ -138,16 +139,37 @@ pip install numpy scipy PyYAML
 To run the automated schema and cross-reference check on the YAML database files:
 ```bash
 python3 tools/validate_kb.py
+
+# Optionally record L1 validation entries into sidecar manifests:
+python3 tools/validate_kb.py --record
 ```
 
-### 2. Run the Multi-Cohort Posture Simulation
+### 2. Trace & Record Review History (Sidecar Governance)
+To track and inspect who (human experts, AI models, or rule validators) reviewed target files over time:
+
+```bash
+# Record a human or AI review entry into a file's companion sidecar manifest:
+python3 tools/review_tracker.py record knowledge_base/physiology/variables.yaml \
+  --kind human \
+  --name "Dr. Jane Doe" \
+  --comments "Verified physiological baseline units." \
+  --scope "units,baseline_values"
+
+# View chronological review history & SHA-256 freshness for a file:
+python3 tools/review_tracker.py history knowledge_base/physiology/variables.yaml
+
+# View directory-wide review coverage summary:
+python3 tools/review_tracker.py summary knowledge_base/
+```
+
+### 3. Run the Multi-Cohort Posture Simulation
 To run the standard baseline simulation pipeline (Healthy Control vs. POTS phenotypes) and generate clinical evaluation reports:
 ```bash
 python3 examples/run_simulation.py
 ```
 *Simulation telemetry data is saved as `.npz` files in the `results/` directory.*
 
-### 3. Run the Advanced Scenario Simulation
+### 4. Run the Advanced Scenario Simulation
 To run the advanced multi-cohort, composed-perturbation simulation demonstrating demographics, behaviors, symptoms, and the advanced validation suite:
 ```bash
 python3 examples/run_advanced_simulation.py
@@ -155,9 +177,11 @@ python3 examples/run_advanced_simulation.py
 
 ---
 
-## Documentation
+## Documentation & Architecture Decision Records (ADRs)
 
+*   [ADR 0001: Sidecar Manifest Pattern for Tracking YAML Review and Validation](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/adr/0001-sidecar-yaml-review-validation-tracking.md) – Provenance architecture for human and AI review tracking.
 *   [architecture.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/architecture.md) – Evolution log, folder structures, and scientific rationale.
 *   [ontology.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/ontology.md) – Structural concepts and schemas.
 *   [latent_physiology.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/latent_physiology.md) – Autonomic tone and unobserved biological state mappings.
 *   [validation_strategy.md](file:///home/eddiem3/development/roeh-health/open-computational-physiology-engine/docs/validation_strategy.md) – Plausibility criteria and clinical limits.
+
