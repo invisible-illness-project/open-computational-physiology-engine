@@ -1,4 +1,27 @@
-version: "3.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial review of semantic edges.
+# Changes vs repo v3.0 (audit findings + independent verification):
+#  Edge 1 (pcm REGULATES Hc): DOI valid (Geddes 2022 IS the baroreflex model),
+#    but evidence_level "Level 1" was inflated — Geddes is Level 4 (in-silico)
+#    per the repo's own publication review. Downgraded.
+#  Edge 2: SEMANTICALLY INVERTED — was "neuropathic_pots PERTURBED_BY RalpM";
+#    corrected to "RalpM PERTURBED_BY neuropathic_pots" (disease perturbs the
+#    parameter). Evidence level corrected to Level 4 (in-silico source).
+#  Edge 3 (L_stress INCREASES T_sym): MIS-CITATION — Geddes 2022 contains no
+#    stress/allostatic content. DOI replaced with Carter & Ray 2009 (verified,
+#    human MSNA mental-stress data).
+#  Edge 4 (H_hydr INCREASES V_total): MIS-CITATION — hydration is not in Geddes
+#    2022. DOI replaced with Cheuvront & Kenefick 2014 (verified review;
+#    hydration state determines plasma/blood volume).
+#  Edge 5: INVERTED DIRECTION AND MIS-CITATION — was "D_circ MODULATED_BY
+#    T_sym"; corrected to "T_sym MODULATED_BY D_circ" (sympathetic tone is
+#    modulated BY circadian state). Geddes has no circadian content; DOI
+#    replaced with Hu et al. 2004 PNAS (verified; endogenous circadian rhythm
+#    in cardiac/autonomic indices) + Scheer et al. 2009 PNAS (secondary).
+#  Edge 6 (RMSSD DERIVED_FROM rr_intervals): DOI verified — 10.3390/s22176536
+#    is a real Sensors 2022 paper on Polar H10 HRV validity (PMID 36081005).
+#    Kept; noted as definitional identity (citation optional) and that neither
+#    symbol is registered in variables.yaml (registry gap, out of scope here).
+version: "3.1"
 relationship_definitions:
   - predicate: "CAUSES"
     description: "A directly causal biological link where changes in subject lead to changes in object."
@@ -30,7 +53,7 @@ semantic_relationships:
     predicate: "REGULATES"
     object: "Hc"
     confidence: 10
-    evidence_level: "Level 1"
+    evidence_level: "Level 4"  # CORRECTED from "Level 1": Geddes 2022 is in-silico modeling (Level 4 per its own publication review)
     supporting_publications:
       - doi: "10.1098/rsif.2022.0220"
     known_limitations: "Assumes instantaneous baroreceptor firing which is valid under macroscopic timescales but lacks myelinated/unmyelinated fiber distinction."
@@ -38,14 +61,14 @@ semantic_relationships:
       - "healthy_control_cohort"
       - "pots_clinical_cohort"
 
-  - subject: "neuropathic_pots"
+  - subject: "RalpM"               # CORRECTED: was subject "neuropathic_pots" / object "RalpM" (inverted)
     predicate: "PERTURBED_BY"
-    object: "RalpM"
+    object: "neuropathic_pots"
     confidence: 9
-    evidence_level: "Level 2"
+    evidence_level: "Level 4"  # CORRECTED from "Level 2": source is in-silico (Geddes 2022)
     supporting_publications:
       - doi: "10.1098/rsif.2022.0220"
-    known_limitations: "Severity varies based on individual autonomic neuropathy patterns."
+    known_limitations: "Severity varies based on individual autonomic neuropathy patterns. NOTE: in Geddes 2022 the RlpM/Rlpm reduction is applied AT HEAD-UP-TILT ONSET (Eq. 2.16), not as a static baseline property. NOTE: 'RalpM' and 'neuropathic_pots' are not registered symbols in variables.yaml (registry gap)."
     applicable_populations:
       - "pots_clinical_cohort"
 
@@ -55,8 +78,9 @@ semantic_relationships:
     confidence: 8
     evidence_level: "Level 2"
     supporting_publications:
-      - doi: "10.1098/rsif.2022.0220"
-    known_limitations: "Allostatic response is highly individualized."
+      - doi: "10.1152/ajpheart.01234.2008"  # CORRECTED: replaced mis-cited Geddes 2022 (no stress content) with Carter & Ray 2009
+    citation_detail: "Carter JR, Ray CA. Sympathetic neural responses to mental stress: responders, nonresponders and sex differences. Am J Physiol Heart Circ Physiol 2009;296:H847-53 (PMID 19168718) — human MSNA mental-stress data; supports direction qualitatively."
+    known_limitations: "Allostatic response is highly individualized; citation supports acute mental-stress sympathoexcitation, not the latent-state formulation or any magnitude."
     applicable_populations:
       - "healthy_control_cohort"
       - "pots_clinical_cohort"
@@ -65,22 +89,25 @@ semantic_relationships:
     predicate: "INCREASES"
     object: "V_total"
     confidence: 9
-    evidence_level: "Level 1"
+    evidence_level: "Level 2"
     supporting_publications:
-      - doi: "10.1098/rsif.2022.0220"
-    known_limitations: "Varies depending on electrolyte balance and renal function."
+      - doi: "10.1002/cphy.c130017"  # CORRECTED: replaced mis-cited Geddes 2022 (no hydration content) with Cheuvront & Kenefick 2014
+    citation_detail: "Cheuvront SN, Kenefick RW. Dehydration: physiology, assessment, and performance effects. Compr Physiol 2014;4:257-85 (PMID 24692140) — hypohydration reduces plasma/blood volume; supports the hydration-volume link directionally."
+    known_limitations: "Varies depending on electrolyte balance and renal function; citation is a review supporting direction, not a specific volume-per-hydration-index mapping."
     applicable_populations:
       - "healthy_control_cohort"
       - "pots_clinical_cohort"
 
-  - subject: "D_circ"
+  - subject: "T_sym"               # CORRECTED: was subject "D_circ" / object "T_sym" (inverted direction)
     predicate: "MODULATED_BY"
-    object: "T_sym"
+    object: "D_circ"
     confidence: 8
     evidence_level: "Level 2"
     supporting_publications:
-      - doi: "10.1098/rsif.2022.0220"
-    known_limitations: "Subject to jetlag, night shift schedules, and individual chronotype."
+      - doi: "10.1073/pnas.0408243101"  # CORRECTED: replaced mis-cited Geddes 2022 (no circadian content) with Hu et al. 2004
+      - doi: "10.1073/pnas.0808180106"  # secondary: Scheer et al. 2009, adverse CV consequences of circadian misalignment (PMID 19255424)
+    citation_detail: "Hu K, Ivanov PCh, Hilton MF, et al. Endogenous circadian rhythm in an index of cardiac vulnerability independent of changes in behavior. PNAS 2004;101:18223-7 (PMID 15611476) — endogenous circadian modulation of cardiac/autonomic indices in humans; supports circadian-state -> autonomic-tone direction qualitatively."
+    known_limitations: "Subject to jetlag, night shift schedules, and individual chronotype; citations support direction only, not the latent-state formulation or magnitude."
     applicable_populations:
       - "healthy_control_cohort"
 
@@ -90,7 +117,7 @@ semantic_relationships:
     confidence: 10
     evidence_level: "Level 1"
     supporting_publications:
-      - doi: "10.3390/s22176536"
-    known_limitations: "Requires high sampling precision; sensitive to ectopic beats and motion artifacts."
+      - doi: "10.3390/s22176536"  # VERIFIED: Sensors 2022 Polar H10 HRV-validity paper (PMID 36081005); RMSSD-from-RR is a definitional identity, citation optional
+    known_limitations: "Requires high sampling precision; sensitive to ectopic beats and motion artifacts. NOTE: neither 'RMSSD' nor 'rr_intervals' is a registered symbol in variables.yaml (registry gap)."
     applicable_populations:
       - "healthy_control_cohort"

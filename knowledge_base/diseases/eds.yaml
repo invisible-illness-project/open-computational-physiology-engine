@@ -1,4 +1,21 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# OLD citation 10.1016/j.amjmed.2006.10.015 was a WRONG PAPER: it resolves
+# (doi.org, CrossRef, Europe PMC) to "Difficult-to-control asthma in adults,"
+# Am J Med 2007 (PMID 17765041) — unrelated to Ehlers-Danlos or vasculature.
+#
+# REPLACEMENT citation: Gazit Y, Nahir AM, Grahame R, Jacob G. "Dysautonomia in
+# the joint hypermobility syndrome." Am J Med 2003;115(1):33-40.
+# DOI 10.1016/S0002-9343(03)00235-3 (PMID 12867232 — verified via Europe PMC,
+# abstract accessed). Gazit 2003 found orthostatic intolerance/OH/POTS in 78%
+# (21/27) of joint-hypermobility patients vs 10% (2/21) of controls, with
+# alpha- and beta-adrenergic HYPERresponsiveness — it supports the
+# hEDS<->dysautonomia association but contains NO vascular compliance (Cal) or
+# venous capacity (VMvl) measurements.
+#
+# MAGNITUDES: Cal 0.3726 -> 0.65 (+75%) and VMvl 195.075 -> 275.0 (+41%) have NO
+# quantitative source. Moved to a clearly-labeled unverified block
+# (evidence_tier D — machine-proposed hypotheses, require human review).
+version: "1.1"
 disease:
   id: "eds"
   name: "Hypermobile Ehlers-Danlos Syndrome"
@@ -8,20 +25,39 @@ disease:
     - id: "heds_venous_pooling"
       name: "hEDS Vascular Laxity"
       description: "Severe vascular compliance elevation leading to lower limb venous pooling and blunted venous return."
-      parameters_perturbed:
+      association_evidence:
+        # Qualitative support for hEDS -> orthostatic intolerance/dysautonomia.
+        # Does NOT support any specific compliance or capacity magnitude.
+        doi: "10.1016/S0002-9343(03)00235-3"
+        pmid: "12867232"
+        citation: "Gazit et al., Am J Med 2003;115(1):33-40 (48 JHS patients, 30 controls; orthostatic intolerance 78% vs 10%; adrenergic hyperresponsiveness)"
+        evidence_tier: "B"  # human data, qualitative association only
+      parameters_perturbed: []
+      unverified_parameters:
+        # MACHINE-PROPOSED hypotheses. No supporting source found for either
+        # magnitude; retained for modeling exploration only. REQUIRE HUMAN
+        # REVIEW before promotion to parameters_perturbed.
         - symbol: "Cal"
           normal_value: 0.3726
           perturbed_value: 0.65
           units: "ml/mmHg"
-          mechanism: "Increased distensibility of the lower body arterial-venous compartment due to collagen laxity."
+          mechanism: "Increased distensibility of the lower body arterial-venous compartment due to collagen laxity (hypothesized; no quantitative human hEDS compliance data found)."
           provenance:
-            doi: "10.1016/j.amjmed.2006.10.015"
-            evidence_level: "Level 2"
+            # NO parameter-level DOI: Gazit 2003 (phenotype-level association_evidence)
+            # contains no compliance values; attaching its DOI here would falsely
+            # imply source support for this magnitude.
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - no supporting source for magnitude +75%; requires human review"
         - symbol: "VMvl"
           normal_value: 195.075
           perturbed_value: 275.0
           units: "ml"
-          mechanism: "Pathological expansion of lower body venous capacity limits, accelerating pooling upon standing."
+          mechanism: "Pathological expansion of lower body venous capacity limits, accelerating pooling upon standing (hypothesized; no quantitative human hEDS venous-capacity data found)."
           provenance:
-            doi: "10.1016/j.amjmed.2006.10.015"
-            evidence_level: "Level 2"
+            # NO parameter-level DOI: Gazit 2003 (phenotype-level association_evidence)
+            # contains no venous-capacity values; attaching its DOI here would falsely
+            # imply source support for this magnitude.
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - no supporting source for magnitude +41%; requires human review"

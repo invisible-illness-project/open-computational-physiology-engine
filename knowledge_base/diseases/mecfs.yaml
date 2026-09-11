@@ -1,4 +1,32 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# OLD citation 10.1186/s12967-020-02575-x is FABRICATED: invalid-checksum DOI
+# (doi.org HTTP 404; absent from CrossRef/Europe PMC). The nearest REAL DOI,
+# 10.1186/s12967-020-02575-7, is the *Correction* notice to Holden et al. 2020,
+# "A systematic review of mitochondrial abnormalities in ME/CFS/SEID" (J Transl
+# Med 18:407; parent article 10.1186/s12967-020-02452-3, PMID 32727475) — a
+# mitochondrial review containing NO heart-rate ceilings and NO autonomic time
+# constants. So even the "intended" source cannot support any perturbation here.
+#
+# REPLACEMENT citation for chronotropic impairment (real, found by targeted
+# search, full text accessed): Davenport TE, VanNess JM, Stevens SR, et al.
+# "Chronotropic Intolerance: An Overlooked Determinant of Symptoms and Activity
+# Limitation in ME/CFS?" Front Pediatr 2019;7:82. DOI 10.3389/fped.2019.00082.
+# Reported values (Table 4, two-day CPET, ME/CFS n=47 vs matched controls n=35):
+# at ventilatory anaerobic threshold, ME/CFS achieved 92.4% of predicted HR on
+# CPET-1 (controls 95.0%, ns) and 90.6% on CPET-2 (controls 101.1%, p<0.01) —
+# a ~10 bpm post-exertional chronotropic decrement.
+#
+# RE-DERIVED MAGNITUDE (HM): apply the verified ~91-92% ceiling ratio to the
+# repo nominal: 3.3333 x 0.92 = 3.07 bps (~184 bpm). CAVEAT (metric mismatch):
+# the source metric is % of age-predicted HR achieved at VAT during serial CPET
+# — NOT a measured absolute HRmax — so 3.07 bps is an indirect, semi-
+# quantitative estimate (evidence_tier B, marked NEEDS REVIEW). The old value
+# 2.6 bps (156 bpm, -22%) is roughly 3x larger than any effect in the accessed
+# evidence and is replaced.
+#
+# tauH and taur doublings: NO supporting source found anywhere; moved to
+# unverified block (evidence_tier D) pending human review.
+version: "1.1"
 disease:
   id: "mecfs"
   name: "Myalgic Encephalomyelitis / Chronic Fatigue Syndrome"
@@ -11,25 +39,33 @@ disease:
       parameters_perturbed:
         - symbol: "HM"
           normal_value: 3.3333
-          perturbed_value: 2.6
+          perturbed_value: 3.07
           units: "bps"
-          mechanism: "Blunted maximum chronotropic response (chronotropic incompetence) preventing normal heart rate acceleration."
+          mechanism: "Blunted maximum chronotropic response (chronotropic incompetence / chronotropic intolerance) limiting heart rate acceleration; effect most pronounced in the post-exertional state (2-day CPET paradigm)."
           provenance:
-            doi: "10.1186/s12967-020-02575-x"
+            doi: "10.3389/fped.2019.00082"
+            citation: "Davenport et al., Front Pediatr 2019;7:82, Table 4 (ME/CFS n=47 vs controls n=35; % predicted HR at VAT 92.4% CPET-1, 90.6% CPET-2 vs 95.0%/101.1% controls; repo nominal x0.92)"
             evidence_level: "Level 2"
+            evidence_tier: "B"
+            review_status: "NEEDS REVIEW - source metric is % of predicted HR at ventilatory anaerobic threshold (serial CPET), not absolute HRmax; applied proportionally to model ceiling HM"
+      unverified_parameters:
+        # MACHINE-PROPOSED hypotheses. No supporting source found for either
+        # time-constant change; require human review.
         - symbol: "tauH"
           normal_value: 6.25
           perturbed_value: 12.0
           units: "s"
-          mechanism: "Slower autonomic heart rate adjustment rate due to parasympathetic/sympathetic sluggishness."
+          mechanism: "Slower autonomic heart rate adjustment rate due to parasympathetic/sympathetic sluggishness (hypothesized; no quantitative ME/CFS baroreflex time-constant data found)."
           provenance:
-            doi: "10.1186/s12967-020-02575-x"
-            evidence_level: "Level 3"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - no supporting source found; requires human review"
         - symbol: "taur"
           normal_value: 12.5
           perturbed_value: 25.0
           units: "s"
-          mechanism: "Delayed peripheral vasoconstriction response to posture changes, increasing transient orthostatic drop."
+          mechanism: "Delayed peripheral vasoconstriction response to posture changes (hypothesized; no quantitative ME/CFS vasoconstriction time-constant data found)."
           provenance:
-            doi: "10.1186/s12967-020-02575-x"
-            evidence_level: "Level 3"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - no supporting source found; requires human review"

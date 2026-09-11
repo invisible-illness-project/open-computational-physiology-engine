@@ -1,4 +1,40 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# Revision 2 (independent-review WARNING 2): beta_blocker tier-D magnitudes
+# (HM 2.2 bps, kH 12) moved OUT of canonical parameters_perturbed into
+# unverified_parameters; direction-level citations (Epstein 1965, Tesch 1985)
+# moved to a phenotype-level association_evidence block so no unverified
+# magnitude carries a parameter-level DOI implying source support.
+# PerturbationManager (simulation/perturbations.py:39,71) reads ONLY
+# parameters_perturbed, so the engine safely ignores these blocks.
+# fludrocortisone.TotalVol REMAINS in parameters_perturbed because its
+# acute-phase direction AND time course are source-supported (Chobanian 1979,
+# tier B); only the +500 ml magnitude is an assumption, and the entry is
+# explicitly scoped to the acute/early phase.
+#
+# BOTH old DOIs are FABRICATED (nonexistent):
+#  * 10.1161/01.CIR.94.11.2824 — doi.org 404; PubMed enumeration of the entire
+#    Circulation 94(11) Dec-1996 issue shows NO article beginning on p. 2824
+#    (sequence runs 2817-25 then 2826-30). Nearest real article: Gilbert et al.
+#    1996 (metoprolol vs carvedilol in CHF, DOI 10.1161/01.CIR.94.11.2817,
+#    PMID 8941107) — its abstract contains no HR cap or gain values.
+#  * 10.1161/01.HYP.30.5.1102 — doi.org 404; Hypertension 30(5) Nov-1997 has no
+#    article at p. 1102 and no fludrocortisone study in the issue.
+#
+# Replacement citations (verified via Europe PMC; abstracts accessed where
+# noted):
+#  * Beta-blockade direction: Epstein SE et al., J Clin Invest 1965;44:1745-53
+#    (DOI 10.1172/JCI105282, PMID 5843708 — classic primary study; full text is
+#    a page scan, numbers not machine-accessible) and Tesch PA, Sports Med
+#    1985;2:389-412 (DOI 10.2165/00007256-198502060-00002, PMID 2866577 —
+#    review). Neither yields the specific 132 bpm cap from accessible text.
+#  * Fludrocortisone: Chobanian AV et al., N Engl J Med 1979;301:68-73 (DOI
+#    10.1056/NEJM197907123010202, PMID 449947 — abstract accessed): 7 patients
+#    with orthostatic hypotension; INITIAL sodium retention + plasma-volume
+#    expansion, but "with long-term treatment, plasma volume decreased to
+#    control levels despite further blood-pressure increases"; chronic
+#    hypertension was TPR-mediated, "not volume dependent". => The old static
+#    +500 ml chronic volume perturbation is CONTRADICTED for the chronic phase.
+version: "1.1"
 disease:
   id: "medication"
   name: "Medication Perturbations"
@@ -8,32 +44,65 @@ disease:
     - id: "beta_blocker"
       name: "Beta-Adrenergic Blockade"
       description: "Blunts chronotropic and inotropic sympathetic responses, limiting maximum heart rate."
-      parameters_perturbed:
+      association_evidence:
+        # Direction-level support ONLY: beta-blockade blunts maximal/exercise
+        # heart rate. Contains no 132 bpm cap and no baroreflex gain values.
+        doi: "10.1172/JCI105282"
+        pmid: "5843708"
+        secondary_doi: "10.2165/00007256-198502060-00002"
+        citation: "Epstein et al., J Clin Invest 1965;44:1745-53 (beta-blockade blunts maximal exercise HR — direction); Tesch, Sports Med 1985;2:389-412 (review)"
+        evidence_tier: "B"  # human data, direction only
+      parameters_perturbed: []
+      unverified_parameters:
+        # MACHINE-PROPOSED hypotheses. REQUIRE HUMAN REVIEW before promotion to
+        # parameters_perturbed. Deliberately NO parameter-level DOI (the
+        # phenotype-level citations support direction, not these magnitudes).
         - symbol: "HM"
           normal_value: 3.3333
           perturbed_value: 2.2
           units: "bps"
-          mechanism: "Competitive antagonism of beta-1 adrenergic receptors, capping maximum heart rate (approx 132 bpm)."
+          mechanism: "Competitive antagonism of beta-1 adrenergic receptors caps maximum heart rate (hypothesized ceiling ~132 bpm; direction supported by phenotype-level association_evidence, magnitude is a machine-proposed assumption)."
           provenance:
-            doi: "10.1161/01.CIR.94.11.2824"
-            evidence_level: "Level 1"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - magnitude 2.2 bps (~132 bpm) has no accessible quantitative source; requires human review"
         - symbol: "kH"
           normal_value: 25.0
           perturbed_value: 12.0
           units: "dimensionless"
-          mechanism: "Reduces heart rate control gain sensitivity to pressure changes."
+          mechanism: "Intended: blunted sympathetic HR responsiveness under beta-blockade. CAVEAT: this conflates receptor blockade (blunted maximal/sympathetic limb) with baroreflex loop gain; no accessible source shows baroreflex HR-control gain halves under beta-blockade. Consider modeling beta-blockade via HM (and possibly p2H) only."
           provenance:
-            doi: "10.1161/01.CIR.94.11.2824"
-            evidence_level: "Level 1"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - gain reduction 25->12 has no supporting source found; parameter mapping questioned; requires human review"
     - id: "fludrocortisone"
       name: "Fludrocortisone Fluid Expansion"
       description: "Mineralocorticoid receptor agonist that increases blood volume and sodium retention."
+      # SCHEMA LIMITATION / EXTENSION REQUIRED: the perturbation schema cannot
+      # express TIME-VARYING (phase-dependent) drug effects. Per Chobanian 1979,
+      # fludrocortisone's volume expansion is TRANSIENT (early treatment) while
+      # the CHRONIC pressor effect is mediated by increased total peripheral
+      # resistance (and enhanced pressor responsiveness to norepinephrine),
+      # with plasma volume returning to control levels. The static TotalVol
+      # perturbation below therefore represents ONLY the acute/early phase.
+      # CHRONIC PHASE (not encodable in current schema — flagged for schema
+      # extension): TotalVol should return toward 4500 ml; the chronic effect
+      # should instead be represented as a resistance/pressor-sensitivity
+      # increase (no quantitative parameter mapping proposed here — requires
+      # human review).
       parameters_perturbed:
         - symbol: "TotalVol"
           normal_value: 4500.0
           perturbed_value: 5000.0
           units: "ml"
-          mechanism: "Expands intravascular blood volume via renal sodium reabsorption and osmotic fluid shift."
+          mechanism: "ACUTE/EARLY-PHASE intravascular volume expansion via renal sodium retention and osmotic fluid shift (Chobanian 1979: initial plasma-volume expansion with sodium retention). NOT valid as a chronic steady-state perturbation — with long-term treatment plasma volume returns to control levels and the pressor effect is TPR-mediated (Chobanian 1979)."
+          application:
+            temporal_scope: "acute_to_early_chronic_only"
+            schema_extension_required: "time-varying/phase-dependent perturbations (acute volume expansion -> chronic TPR-mediated pressor effect)"
           provenance:
-            doi: "10.1161/01.HYP.30.5.1102"
-            evidence_level: "Level 1"
+            doi: "10.1056/NEJM197907123010202"
+            pmid: "449947"
+            citation: "Chobanian et al., N Engl J Med 1979;301:68-73 (7 orthostatic-hypotension patients; transient volume expansion, chronic TPR-mediated hypertension, enhanced norepinephrine pressor responsiveness). Supports acute-phase direction AND time course; the +500 ml magnitude itself remains an assumption."
+            evidence_level: "Level 2"
+            evidence_tier: "B"  # direction/time-course from human data; +500 ml magnitude is an assumption (noted in review_status)
+            review_status: "NEEDS REVIEW - +500 ml magnitude unverified; chronic-phase representation blocked on schema extension"

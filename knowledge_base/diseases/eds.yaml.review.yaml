@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/eds.yaml
-  sha256: 32e75718d3119569faf171e535ce0257e47198d0ca4210ebedb4de085c08e609
+  sha256: 3d8ef75e5c9cfcb873b50d4f83e106f135a57c7bdc9189b899ecf08dce1a77bc
 review_history:
 - review_id: rev-e2d5e97f-af89-414c-84cd-6fe0dbde3ee8
   reviewed_at: '2026-09-11T00:45:41.633691+00:00'
@@ -15,3 +15,41 @@ review_history:
   verdict: PASSED
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+- review_id: rev-29751e52-6323-4650-afe6-fa9aaa4ba0cb
+  reviewed_at: '2026-09-11T03:32:58.393257+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: adversarial-doi-verifier
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: adversarial-doi-verifier
+  scope:
+  - literature_fidelity
+  - doi_verification
+  - parameter_extraction
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'Adversarial DOI re-review: 4/8 unique DOIs found fabricated and removed;
+    9 perturbations misstated and corrected with verified sources (Geddes 2022, Vernino
+    2000, Gazit 2003, Zhong 2005, Ganio 2012, Chobanian 1979, Davenport 2019); tier-D
+    unverified values structurally separated into unverified_parameters (engine-inert).
+    Human L3 review still required. Details: ocpe_disease_doi_review.md + CHANGESET.md
+    rev2.'
+- review_id: rev-ec6226ee-15e9-456f-8072-d3140a58e1c9
+  reviewed_at: '2026-09-11T03:32:58.471806+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: independent-changeset-reviewer
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: independent-changeset-reviewer
+  scope:
+  - schema_conformance
+  - independent_spot_check
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'Independent review (separate agent): all diffs documented in CHANGESET,
+    fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
+    values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
+    warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
