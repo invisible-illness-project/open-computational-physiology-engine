@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/wearables/polar_h10.yaml
+  sha256: f84bbbeb657b6b5bbc4d1c1b4b6e866e5da245e899e16a8494b1ad69d8d4ff33
+review_history:
+- review_id: rev-a720de3c-3ba1-4d42-80b9-7d2671178730
+  reviewed_at: '2026-09-11T00:45:41.640654+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/equations/mathematical_models.yaml
+  sha256: 10fc5372fd0122ae04e9831bfd24e812c3ee13f0f16f1a5e7c3f90b3b9cff5d4
+review_history:
+- review_id: rev-25694558-eba5-4145-8fb3-239a8a250f16
+  reviewed_at: '2026-09-11T00:45:41.630756+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/populations/cohorts.yaml
+  sha256: 10f6e1e9e89a8b2e53f8550c42bda8ff012143ba8a3c1100cebd1c70840da1f7
+review_history:
+- review_id: rev-5cc7b45f-e68d-4e92-b6a1-b82bf3344077
+  reviewed_at: '2026-09-11T00:45:41.639037+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

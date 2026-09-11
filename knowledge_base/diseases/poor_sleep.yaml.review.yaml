@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/diseases/poor_sleep.yaml
+  sha256: 21e3187b6806cd31c355a417d6a60547aa2e08db57bbafcf5ae6b5ed90c77675
+review_history:
+- review_id: rev-b6e6a6e7-b6a3-4553-ad24-0405f94f3739
+  reviewed_at: '2026-09-11T00:45:41.631693+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

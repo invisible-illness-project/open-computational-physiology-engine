@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/ontology/concepts.yaml
+  sha256: 4e41d609481085b46c7b9afd7c90eb4b4c7172afdb8f3bb31c0fc8176c566c8a
+review_history:
+- review_id: rev-e0c90b8d-ac66-4f48-90e0-800d7bbeee85
+  reviewed_at: '2026-09-11T00:45:41.627763+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

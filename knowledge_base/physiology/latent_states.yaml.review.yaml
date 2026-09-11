@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/physiology/latent_states.yaml
+  sha256: 3e8b12d2bc3df79a1488e43f1e329b44a51c78f9cac3bcce2460235d82fd527d
+review_history:
+- review_id: rev-21f9f639-f211-44e8-8446-a475f3c2a668
+  reviewed_at: '2026-09-11T00:45:41.626841+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

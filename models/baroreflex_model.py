@@ -199,14 +199,15 @@ class BaroreflexPOTSModel:
         Hm = self.params["Hm"]
         p2H = self.params["p2H"]
         
-        # 1. Pressures
-        pau = Vau / Cau
-        pal = Val / Cal
+        # 1. Pressures (enforced physical non-negativity floors)
+        pau = max(0.0, Vau) / Cau
+        pal = max(0.0, Val) / Cal
+        pvu = max(0.0, Vvu) / Cvu
         
-        # Avoid log of negative value for lower venous pressure
-        v_diff = max(1e-3, VMvl - Vvl)
+        # Avoid log of negative value or exceeding volume capacity for lower venous compartment
+        v_diff = max(1.0, VMvl - Vvl)
         pvl = (1.0 / mvl) * np.log(VMvl / v_diff)
-        pvu = Vvu / Cvu
+        pvl = max(0.0, pvl)
         
         # 2. Tilt and Hydrostatic Column
         # tilt_params: {"tup": 200, "tend": 300, "height": 25, "angle": 60}
@@ -286,11 +287,16 @@ class BaroreflexPOTSModel:
         Hf = (HM - Hm) * (p2H**kH) / (pcm**kH + p2H**kH) + Hm
         dHc = (-Hc + Hf) / tauH
         
-        # 6. Mass conservation derivatives
+        # 6. Mass conservation derivatives (with boundary non-negativity clamping)
         dVau = qav - qal - qaup
+        if Vau <= 0.0 and dVau < 0.0: dVau = 0.0
         dVvu = qvl + qaup - qmv
+        if Vvu <= 0.0 and dVvu < 0.0: dVvu = 0.0
         dVal = qal - qalp
+        if Val <= 0.0 and dVal < 0.0: dVal = 0.0
         dVvl = qalp - qvl
+        if Vvl <= 0.0 and dVvl < 0.0: dVvl = 0.0
         dVlv = qmv - qav
+        if Vlv <= 0.0 and dVlv < 0.0: dVlv = 0.0
         
         return [dVau, dVvu, dVal, dVvl, dVlv, dpcm, dRaup, dRalp, dEd, dHc]

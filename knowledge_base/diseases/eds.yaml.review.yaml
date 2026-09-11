@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/diseases/eds.yaml
+  sha256: 32e75718d3119569faf171e535ce0257e47198d0ca4210ebedb4de085c08e609
+review_history:
+- review_id: rev-e2d5e97f-af89-414c-84cd-6fe0dbde3ee8
+  reviewed_at: '2026-09-11T00:45:41.633691+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

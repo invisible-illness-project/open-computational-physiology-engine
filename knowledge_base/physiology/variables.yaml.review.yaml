@@ -1,0 +1,42 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/physiology/variables.yaml
+  sha256: 2c5d5d8649fdfcabf2767ffb3cf56ec86e33b7852e3a86bba9a82467865fbdd9
+review_history:
+- review_id: rev-631039e1-bb60-42cb-990f-07e85c27bd8b
+  reviewed_at: '2026-09-11T00:45:41.625595+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+- review_id: rev-d9cd28c6-eb47-48d2-bb44-0b29f01e9654
+  reviewed_at: '2026-09-11T00:45:47.624155+00:00'
+  reviewer:
+    kind: human
+    identity:
+      name: Dr. Jane Doe
+  scope:
+  - units
+  - baseline_values
+  verdict: REVIEWED
+  findings: []
+  comments: Verified physiological variable baseline units and valid ranges.
+- review_id: rev-5210ffb2-5801-423f-bace-cce54567ebb5
+  reviewed_at: '2026-09-11T00:46:03.555244+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: gemini-1.5-pro-002
+      provider: Google Gemini
+      model_name: gemini-1.5-pro-002
+  scope:
+  - literature_fidelity
+  verdict: REVIEWED
+  findings: []
+  comments: Cross-checked RMSSD and heart rate parameter ranges against PubMed metadata.

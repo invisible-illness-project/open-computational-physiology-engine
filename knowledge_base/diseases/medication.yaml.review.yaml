@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/diseases/medication.yaml
+  sha256: e65c24d9063792af7774ff478866a937d585613952a6eb7ae0f3e70dacf66b13
+review_history:
+- review_id: rev-d510ceeb-62f7-4332-a4bb-46844190bb8c
+  reviewed_at: '2026-09-11T00:45:41.634498+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

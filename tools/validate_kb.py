@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import re
 import sys
 import yaml
+from pathlib import Path
+
+# Ensure tools directory is in Python path for importing review_tracker
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from review_tracker import record_review
 
 def print_err(msg):
     print(f"\033[91m[ERROR]\033[0m {msg}", file=sys.stderr)
@@ -27,11 +33,17 @@ def parse_frontmatter(filepath):
     return data
 
 def main():
+    parser = argparse.ArgumentParser(description="Validate Knowledge Base YAML/Markdown assets.")
+    parser.add_argument("--record", action="store_true", help="Record validation review entries into sidecar manifest files")
+    args = parser.parse_args()
+
     kb_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     print(f"Validating Knowledge Base in: {kb_dir}")
     
     errors = 0
     warnings = 0
+    validated_files = []
+
     
     # 1. Load variable definitions
     vars_file = os.path.join(kb_dir, "knowledge_base", "physiology", "variables.yaml")
@@ -43,6 +55,7 @@ def main():
         with open(vars_file, 'r', encoding='utf-8') as f:
             vars_data = yaml.safe_load(f)
         defined_vars = {v['symbol']: v for v in vars_data.get('variables', [])}
+        validated_files.append(Path(vars_file))
         print_ok(f"Loaded {len(defined_vars)} central variable definitions from physiology/variables.yaml.")
     except Exception as e:
         print_err(f"Failed to parse variables.yaml: {e}")
@@ -58,6 +71,7 @@ def main():
         with open(latent_file, 'r', encoding='utf-8') as f:
             latent_data = yaml.safe_load(f)
         defined_latent = {v['symbol']: v for v in latent_data.get('latent_variables', [])}
+        validated_files.append(Path(latent_file))
         print_ok(f"Loaded {len(defined_latent)} latent state variables from physiology/latent_states.yaml.")
     except Exception as e:
         print_err(f"Failed to parse latent_states.yaml: {e}")
@@ -76,6 +90,7 @@ def main():
             with open(concepts_file, 'r', encoding='utf-8') as f:
                 concepts_data = yaml.safe_load(f)
             concepts = concepts_data.get('concepts', [])
+            validated_files.append(Path(concepts_file))
             print_ok(f"Loaded {len(concepts)} ontology concepts.")
         except Exception as e:
             print_err(f"Failed to parse concepts.yaml: {e}")
@@ -91,6 +106,7 @@ def main():
             with open(semantic_rel_file, 'r', encoding='utf-8') as f:
                 semantic_rel_data = yaml.safe_load(f)
             sem_rels = semantic_rel_data.get('semantic_relationships', [])
+            validated_files.append(Path(semantic_rel_file))
             print_ok(f"Loaded {len(sem_rels)} semantic relationships.")
         except Exception as e:
             print_err(f"Failed to parse relationships.yaml: {e}")
@@ -106,6 +122,7 @@ def main():
         with open(rel_file, 'r', encoding='utf-8') as f:
             rel_data = yaml.safe_load(f)
         relations = rel_data.get('relationships', [])
+        validated_files.append(Path(rel_file))
         print_ok(f"Loaded {len(relations)} central mechanistic links.")
         
         # Validate cause/effect variables exist in registry
@@ -133,6 +150,7 @@ def main():
         with open(model_file, 'r', encoding='utf-8') as f:
             model_data = yaml.safe_load(f)
         models = model_data.get('models', [])
+        validated_files.append(Path(model_file))
         print_ok(f"Loaded {len(models)} central mathematical models.")
         
         # Validate model variables/parameters
@@ -166,6 +184,7 @@ def main():
                 dpath = os.path.join(diseases_dir, df)
                 with open(dpath, 'r', encoding='utf-8') as f:
                     disease_data = yaml.safe_load(f)
+                validated_files.append(Path(dpath))
                 phenotypes = disease_data.get('disease', {}).get('phenotypes', [])
                 print_ok(f"  Loaded disease: {disease_data.get('disease', {}).get('name')} ({df}) with {len(phenotypes)} phenotypes.")
                 for pheno in phenotypes:
@@ -188,6 +207,7 @@ def main():
         try:
             with open(int_file, 'r', encoding='utf-8') as f:
                 int_data = yaml.safe_load(f)
+            validated_files.append(Path(int_file))
             print_ok(f"Loaded intervention: {int_data.get('intervention', {}).get('name')}.")
         except Exception as e:
             print_err(f"Failed to parse tilt_test.yaml: {e}")
@@ -203,6 +223,7 @@ def main():
             with open(pop_file, 'r', encoding='utf-8') as f:
                 pop_data = yaml.safe_load(f)
             cohorts = pop_data.get('cohorts', [])
+            validated_files.append(Path(pop_file))
             print_ok(f"Loaded populations: {len(cohorts)} cohorts registered.")
         except Exception as e:
             print_err(f"Failed to parse cohorts.yaml: {e}")
@@ -215,8 +236,10 @@ def main():
         print_ok(f"Found {len(w_files)} wearable sensor registrations.")
         for wf in w_files:
             try:
-                with open(os.path.join(wearables_dir, wf), 'r', encoding='utf-8') as f:
+                wpath = os.path.join(wearables_dir, wf)
+                with open(wpath, 'r', encoding='utf-8') as f:
                     w_data = yaml.safe_load(f)
+                validated_files.append(Path(wpath))
                 print_ok(f"  Validated wearable specification: {w_data.get('sensor', {}).get('name')}")
             except Exception as e:
                 print_err(f"Failed to parse wearable file {wf}: {e}")
@@ -264,7 +287,12 @@ def main():
                     print_err(f"{pub_file}: Variable '{sym}' is used but not defined in variables/latent_states registries")
                     errors += 1
                     
+            validated_files.append(Path(filepath))
             print_ok(f"Validated review: '{title}' ({pub_file})")
+            
+        except Exception as e:
+            print_err(f"Failed to parse frontmatter of {pub_file}: {e}")
+            errors += 1
             
         except Exception as e:
             print_err(f"Failed to parse frontmatter of {pub_file}: {e}")
@@ -279,7 +307,22 @@ def main():
         sys.exit(1)
     else:
         print_ok("Knowledge Base validation PASSED.")
+        if args.record:
+            print_ok(f"Recording validation reviews to sidecars for {len(validated_files)} assets...")
+            for vf in validated_files:
+                try:
+                    record_review(
+                        target_path=vf,
+                        kind="validator",
+                        name="validate_kb.py",
+                        scope=["schema_syntax", "referential_integrity"],
+                        comments="Passed rule-based validation by validate_kb.py",
+                        verdict="PASSED"
+                    )
+                except Exception as e:
+                    print_err(f"Failed to record review for {vf.name}: {e}")
         sys.exit(0)
 
 if __name__ == "__main__":
     main()
+

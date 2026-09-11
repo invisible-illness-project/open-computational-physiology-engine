@@ -1,0 +1,17 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/ontology/relationships.yaml
+  sha256: 33b63cfd8627c65bc4f8e7170502de1e4fdd37ac7704639a9df0cfe45f322e46
+review_history:
+- review_id: rev-2aeef654-41d4-45bd-bc8a-7d83ff5064a0
+  reviewed_at: '2026-09-11T00:45:41.628773+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py

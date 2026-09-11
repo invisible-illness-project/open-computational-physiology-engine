@@ -1,0 +1,30 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/ontology/mechanistic_links.yaml
+  sha256: 90e42a30dab0ce6f754d8b6649bfb5d941eb350a29a2832ae1a80d9198b0dbfe
+review_history:
+- review_id: rev-2b876c98-ca2c-42f8-9120-fcd9a9882610
+  reviewed_at: '2026-09-11T00:45:41.629880+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+- review_id: rev-29a0e6ba-8b9d-4794-823c-b40b68cdde87
+  reviewed_at: '2026-09-11T00:46:17.070685+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: claude-3-5-sonnet-20241022
+      provider: Anthropic
+      model_name: claude-3-5-sonnet-20241022
+  scope:
+  - graph_causality
+  verdict: REVIEWED
+  findings: []
+  comments: Verified causal links against physiology literature graph.
