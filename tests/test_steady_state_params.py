@@ -54,7 +54,20 @@ def _all_phenotype_ids():
     return ids
 
 
+def _canonical_active_ids():
+    """Phenotypes with at least one canonical (reviewed) parameter perturbation."""
+    pm = PerturbationManager(kb_path=KB_PATH)
+    return sorted(pid for pid, ph in pm.phenotypes.items() if ph["parameters_perturbed"])
+
+
 PHENOTYPES = _all_phenotype_ids()
+CANONICAL_ACTIVE = _canonical_active_ids()
+# Phenotypes whose entire perturbation block is tier-D/unverified: in canonical
+# (honesty) mode they must be computationally identical to healthy.
+CANONICAL_INERT = sorted(set(PHENOTYPES) - set(CANONICAL_ACTIVE))
+assert CANONICAL_ACTIVE and CANONICAL_INERT, (
+    "expected a mix of canonical-active and experimental-only phenotypes"
+)
 
 
 def _load_params_only(phenotype=None, subject=None):
@@ -156,14 +169,14 @@ _RUN_CACHE = {}
 
 
 def _run_short_tilt(phenotype):
-    """Run a short seeded tilt simulation and extract key observables."""
+    """Run a short seeded tilt simulation (canonical mode) and extract key
+    observables."""
     if phenotype in _RUN_CACHE:
         return _RUN_CACHE[phenotype]
 
-    np.random.seed(42)  # deterministic HRV noise for reproducible assertions
     with contextlib.redirect_stdout(io.StringIO()):
         model = BaroreflexPOTSModel(phenotype=phenotype, kb_path=KB_PATH)
-        engine = SimulationEngine(model)
+        engine = SimulationEngine(model, seed=42)  # deterministic HRV noise
         res = engine.run(TILT_PARAMS)
 
     t = res["time"]
@@ -194,10 +207,11 @@ def test_healthy_control_not_worse_than_known_baseline():
     )
 
 
-@pytest.mark.parametrize("phenotype", PHENOTYPES)
-def test_phenotype_produces_distinct_tilt_response(phenotype):
-    """Each disease phenotype must differ from healthy baseline in at least one
-    key observable beyond numerical noise (SPEC F1 acceptance)."""
+@pytest.mark.parametrize("phenotype", CANONICAL_ACTIVE)
+def test_canonical_phenotype_produces_distinct_tilt_response(phenotype):
+    """Each phenotype with canonical (reviewed) perturbations must differ from
+    healthy baseline in at least one key observable beyond numerical noise
+    (SPEC F1 acceptance)."""
     healthy = _run_short_tilt(None)
     obs = _run_short_tilt(phenotype)
 
@@ -206,7 +220,7 @@ def test_phenotype_produces_distinct_tilt_response(phenotype):
     d_map = abs(obs["map_tilt"] - healthy["map_tilt"])
 
     print(
-        f"\n[{phenotype}] vs healthy: "
+        f"\n[{phenotype}] vs healthy (canonical): "
         f"supineHR {obs['hr_supine']:.1f} vs {healthy['hr_supine']:.1f} bpm | "
         f"dHR {obs['delta_hr']:.1f} vs {healthy['delta_hr']:.1f} bpm | "
         f"tiltMAP {obs['map_tilt']:.1f} vs {healthy['map_tilt']:.1f} mmHg"
@@ -217,19 +231,39 @@ def test_phenotype_produces_distinct_tilt_response(phenotype):
         or d_supine_hr > HR_NOISE_FLOOR_BPM
         or d_map > MAP_NOISE_FLOOR_MMHG
     ), (
-        f"Phenotype '{phenotype}' is computationally inert: "
+        f"Canonical phenotype '{phenotype}' is computationally inert: "
         f"|delta(dHR)|={d_delta_hr:.3f} bpm, |delta(supineHR)|={d_supine_hr:.3f} bpm, "
         f"|delta(tiltMAP)|={d_map:.3f} mmHg vs healthy baseline"
     )
 
 
-def test_phenotypes_are_pairwise_distinct():
-    """Phenotypes should not collapse onto a single shared response: each pair
-    must differ in at least one key observable (guards against a 'fix' that
-    merely shifts everyone identically)."""
-    observables = {ph: _run_short_tilt(ph) for ph in PHENOTYPES}
-    for i, ph_a in enumerate(PHENOTYPES):
-        for ph_b in PHENOTYPES[i + 1:]:
+@pytest.mark.parametrize("phenotype", CANONICAL_INERT)
+def test_experimental_only_phenotype_is_inert_in_canonical_mode(phenotype):
+    """Honesty check: phenotypes whose perturbations are ALL tier-D/unverified
+    must be computationally identical to healthy in canonical (default) mode —
+    the engine must not silently apply unreviewed parameter values. Their
+    effect is exercised explicitly in tests/test_experimental_mode.py."""
+    healthy = _run_short_tilt(None)
+    obs = _run_short_tilt(phenotype)
+
+    assert obs["delta_hr"] == pytest.approx(healthy["delta_hr"], abs=1e-6), (
+        f"[{phenotype}] canonical mode unexpectedly differs from healthy: "
+        f"dHR {obs['delta_hr']} vs {healthy['delta_hr']} — unverified parameters "
+        f"may be leaking into canonical mode"
+    )
+    assert obs["hr_supine"] == pytest.approx(healthy["hr_supine"], abs=1e-6)
+    assert obs["map_tilt"] == pytest.approx(healthy["map_tilt"], abs=1e-6)
+
+
+def test_canonical_phenotypes_are_pairwise_distinct():
+    """Canonical-active phenotypes should not collapse onto a single shared
+    response: each pair must differ in at least one key observable (guards
+    against a 'fix' that merely shifts everyone identically). Experimental-only
+    phenotypes are excluded here: in canonical mode they are intentionally
+    healthy-identical (see honesty check above)."""
+    observables = {ph: _run_short_tilt(ph) for ph in CANONICAL_ACTIVE}
+    for i, ph_a in enumerate(CANONICAL_ACTIVE):
+        for ph_b in CANONICAL_ACTIVE[i + 1:]:
             a, b = observables[ph_a], observables[ph_b]
             distinct = (
                 abs(a["delta_hr"] - b["delta_hr"]) > HR_NOISE_FLOOR_BPM
@@ -237,8 +271,8 @@ def test_phenotypes_are_pairwise_distinct():
                 or abs(a["map_tilt"] - b["map_tilt"]) > MAP_NOISE_FLOOR_MMHG
             )
             assert distinct, (
-                f"Phenotypes '{ph_a}' and '{ph_b}' produce indistinguishable "
-                f"tilt responses: {a} vs {b}"
+                f"Canonical phenotypes '{ph_a}' and '{ph_b}' produce "
+                f"indistinguishable tilt responses: {a} vs {b}"
             )
 
 
