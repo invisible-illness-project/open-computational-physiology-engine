@@ -66,7 +66,7 @@ models:
         units: "ml/mmHg"
         nominal_value: 436.36
         description: "Upper body venous compliance. Cycle 2: rescaled from the Geddes 2022 toy value (70.936 ml/mmHg, Vvu0=195 ml) so the thoracic/upper venous reservoir holds ~1200 ml at the 2.75 mmHg operating point, matching physiological central venous volume and allowing 400-600 ml of orthostatic dependent translocation (MP-01 range) without thoracic collapse. Machine-proposed rescale (value 436.36 preserves the original supine pvu=2.75 mmHg operating point)."
-        doi: "10.1152/ajpheart.00886.2004"
+        doi: "10.1152/ajpheart.00086.2004"
         pmid: "15117717"
         evidence_tier: "C"
         review_status: "machine_proposed_fit"
@@ -170,7 +170,7 @@ models:
         units: "ml"
         nominal_value: 700.0
         description: "Maximum lower body venous volume capacity. Cycle 2: rescaled from the Geddes 2022 value (195.075 ml, ~112 ml pooling headroom) to physiological orthostatic pooling scale. Together with stress-relaxation creep (Vsr, up to several hundred ml of additional slow capacity) this gives ~400-500 ml pooled after 100 s of 60 deg HUT, on track for the 500-1000 ml thorax-to-dependent translocation range documented for longer tilts (MP-01; Stewart 2004 segmental volumes). Machine-proposed fit."
-        doi: "10.1152/ajpheart.00886.2004"
+        doi: "10.1152/ajpheart.00086.2004"
         pmid: "15117717"
         evidence_tier: "C"
         review_status: "machine_proposed_fit"
