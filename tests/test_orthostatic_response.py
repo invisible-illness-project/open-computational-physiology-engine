@@ -29,9 +29,11 @@ All runs use the seeded engine (seed=42) for determinism.
 
 import numpy as np
 import pytest
+from scipy.signal import find_peaks
 
 from models.baroreflex_model import BaroreflexPOTSModel
 from simulation.engine import SimulationEngine
+from simulation.perturbations import enable_experimental_mode
 
 # Standard evaluator protocol: 200 s supine settle, then 100 s of 60 deg
 # head-up tilt (tup=200, tend=300; height=25 cm). The long supine segment
@@ -44,10 +46,20 @@ SEED = 42
 POTS_PHENOTYPES = ["neuropathic_pots", "hypovolemic_pots", "hyperadrenergic_pots"]
 
 
-def _run_tilt(phenotype):
+def _run_tilt(phenotype, experimental=False):
     model = BaroreflexPOTSModel(phenotype=phenotype)
+    if experimental:
+        enable_experimental_mode(model)
     res = SimulationEngine(model, seed=SEED).run(dict(TILT))
     return res
+
+
+def _sbp(t, pau, lo, hi):
+    """Mean of beat-wise systolic peaks of aortic pressure in [lo, hi)."""
+    m = (t >= lo) & (t < hi)
+    pw = pau[m]
+    peaks, _ = find_peaks(pw, distance=40, prominence=3.0)
+    return float(pw[peaks].mean()) if len(peaks) else float("nan")
 
 
 def _metrics(res):
@@ -64,6 +76,7 @@ def _metrics(res):
         "pooling_ml": float(res["Vvl"][late].mean() - res["Vvl"][sup].mean()),
         "map_supine": float(res["pau"][sup].mean()),
         "map_late": float(res["pau"][late].mean()),
+        "dSBP": _sbp(t, res["pau"], 260.0, 300.0) - _sbp(t, res["pau"], 180.0, 200.0),
         "vvm_supine": float(res["Vvm"][sup].mean()),
         "vvm_late": float(res["Vvm"][late].mean()),
         "vsr_early": float(res["Vsr"][(t >= 205.0) & (t < 215.0)].mean()),
@@ -173,6 +186,75 @@ def test_pots_map_remains_physiological(pots_metrics):
     """POTS phenotypes must also avoid a pathological MAP collapse."""
     for ph, m in pots_metrics.items():
         assert m["map_late"] > 80.0, f"{ph}: late MAP {m['map_late']:.1f}"
+
+
+# ---------------------------------------------------------------------------
+# Cycle 3: POTS re-curation validation (knowledge_base/diseases/pots.yaml v1.5)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def neuropathic_experimental_metrics():
+    """Neuropathic POTS with the tier-D venomotor-denervation perturbation
+    (dV_veno_max 250 -> 75 mL) applied via experimental mode."""
+    return _metrics(_run_tilt("neuropathic_pots", experimental=True))
+
+
+def test_neuropathic_venomotor_denervation_worsens_tilt(pots_metrics, neuropathic_experimental_metrics):
+    """Direction check (tier A, Jacob 2000): blunting the venomotor reflex must
+    WORSEN the orthostatic response vs canonical neuropathic mode."""
+    can = pots_metrics["neuropathic_pots"]["dHR_sustained"]
+    exp = neuropathic_experimental_metrics["dHR_sustained"]
+    assert exp > can + 0.5, (
+        f"experimental (denervated) sustained dHR {exp:.1f} not above canonical {can:.1f}"
+    )
+
+
+@pytest.mark.xfail(
+    reason=("Cycle-3 simulation check: sustained dHR with dV_veno_max=75 mL is "
+            "~21 bpm; dose-response over factor 0-0.5 is flat (18.5->21.7 bpm) "
+            "because steady-state pooling is hydrostatic-gate-limited and creep "
+            "re-expands capacity. Target >=30 bpm requires a future model "
+            "revision (bounded creep and/or tilt-onset gain application)."),
+    strict=True,
+)
+def test_neuropathic_experimental_sustained_criterion(neuropathic_experimental_metrics):
+    """Target criterion from the cycle-3 re-curation evidence file: neuropathic
+    POTS with venomotor denervation should meet the sustained 30 bpm criterion.
+    Currently xfail — see reason."""
+    assert neuropathic_experimental_metrics["dHR_sustained"] >= 30.0
+
+
+def test_hyperadrenergic_sustained_criterion(pots_metrics):
+    """Hyperadrenergic POTS (canonical, now including secondary hypovolemia
+    TotalVol 4500->3900 promoted from optional_parameters after the cycle-3
+    simulation check) must meet the sustained 30 bpm criterion."""
+    d = pots_metrics["hyperadrenergic_pots"]["dHR_sustained"]
+    assert d >= 30.0, f"hyperadrenergic sustained dHR = {d:.1f} bpm"
+
+
+def test_hyperadrenergic_pressor_map_signature(pots_metrics, healthy_metrics):
+    """Model-level surrogate for the Okamoto 2024 pressor signature: upright
+    mean arterial pressure must RISE (vs flat/falling in other phenotypes)."""
+    m = pots_metrics["hyperadrenergic_pots"]
+    assert m["map_late"] >= m["map_supine"] + 3.0, (
+        f"MAP pressor response {m['map_late'] - m['map_supine']:+.1f} mmHg"
+    )
+    # Contrast: healthy MAP must not show a pressor rise.
+    assert healthy_metrics["map_late"] <= healthy_metrics["map_supine"] + 3.0
+
+
+@pytest.mark.xfail(
+    reason=("0-D model limitation: arterial pulse pressure narrows on tilt "
+            "(stroke volume falls), so beat-peak SBP stays flat even though "
+            "the MAP pressor response is present (+5 mmHg). The Okamoto 2024 "
+            "upright delta-SBP >= +10 mmHg criterion is not reproducible in "
+            "the current 0-D arterial windkessel."),
+    strict=True,
+)
+def test_hyperadrenergic_sbp_pressor_criterion(pots_metrics):
+    """Clinical validation criterion (Okamoto 2024, tier A): upright delta-SBP
+    >= +10 mmHg. Currently xfail — see reason."""
+    assert pots_metrics["hyperadrenergic_pots"]["dSBP"] >= 10.0
 
 
 # ---------------------------------------------------------------------------
