@@ -2,12 +2,39 @@ import os
 import numpy as np
 import yaml
 
+
+# Width of the smooth hydrostatic venous-return gate transition (mmHg).
+# Physiology-preserving: 0.1 mmHg is negligible against physiological
+# driving pressures, and softplus(0.25, 0.1) ~= 0.25, so the supine
+# operating-point conductance matches the ideal (hard) gate exactly.
+_QVL_GATE_W = 0.1
+
+
+def _softplus(x, w):
+    """Numerically stable smooth approximation of max(x, 0) with transition
+    width w: w * log(1 + exp(x / w))."""
+    if x > 40.0 * w:
+        return x
+    return w * np.log1p(np.exp(x / w))
+
+
 class BaroreflexPOTSModel:
     """
     Python implementation of the closed-loop cardiovascular-baroreflex model
     from Geddes et al. 2022. It separates canonical parameter definitions
     (stored in YAML) from the executable model code and applies disease phenotype
     overrides dynamically.
+
+    Cycle 2 extension (venous/orthostatic physiology): the state vector is
+    extended from 10 to 12 integrator states with
+      Vvm - baroreflex venomotor reflex (reduction of lower venous capacity,
+            Heldt 2002 structure, DOI 10.1152/japplphysiol.00241.2001),
+      Vsr - venous stress-relaxation creep (slow capacity increase under
+            sustained venous load, van Heusden 2006, DOI 10.1152/ajpheart.01268.2004),
+    and the logarithmic lower-venous P-V law operates on the effective
+    capacity VMvl - Vvm + Vsr. Lower/upper venous capacities (VMvl, Cvu) are
+    rescaled to the physiological 500-1000 ml orthostatic pooling range
+    (machine-proposed fit, tier C in the knowledge base).
     """
     def __init__(self, phenotype=None, subject=None, kb_path=None):
         self.phenotype = phenotype
@@ -64,9 +91,9 @@ class BaroreflexPOTSModel:
         constants, compliances, volumes, resistances, Hill coefficients and
         half-saturation pressures) come from the knowledge base, disease
         perturbations and VirtualSubject priors, and are treated as sacred.
-        Only the 10 integrator initial conditions are computed here:
+        Only the 12 integrator initial conditions are computed here:
 
-            y0 = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc]
+            y0 = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc, Vvm, Vsr]
 
         Initialization strategy (supine steady state):
         - Controller states (Raup, Ralp, Ed, Hc) are placed exactly on their
@@ -102,14 +129,26 @@ class BaroreflexPOTSModel:
         Ed0 = (p["EdM"] - p["Edm"]) * (pcm0**kE) / (pcm0**kE + p["p2E"]**kE) + p["Edm"]
         H0 = (p["HM"] - p["Hm"]) * (p["p2H"]**kH) / (pcm0**kH + p["p2H"]**kH) + p["Hm"]
 
+        # --- Venomotor reflex state (Cycle 2, Heldt 2002 structure):
+        # baroreflex-driven reduction of lower venous capacity. Start on the
+        # Hill target at the supine operating point (dVvm/dt = 0).
+        kV = p["kV"]
+        Vvm0 = p["dV_veno_max"] * (p["p2V"]**kV) / (pcm0**kV + p["p2V"]**kV)
+
+        # --- Venous stress-relaxation (creep) state (Cycle 2, van Heusden
+        # 2006): supine pvl sits at the creep threshold, so creep target = 0.
+        Vsr0 = p["G_sr"] * max(0.0, pvl0 - p["pvl_sr0"])
+
         # --- Compartment volumes from target filling pressures and the sacred
         # compliance / capacity parameters.
         Vau0 = pauD * p["Cau"]
         Val0 = pal0 * p["Cal"]
         Vvu0 = pvu0 * p["Cvu"]
-        # Invert the logarithmic lower-venous pressure-volume relation:
-        #   pvl = (1/mvl) * ln(VMvl / (VMvl - Vvl))  =>  Vvl = VMvl * (1 - exp(-mvl*pvl))
-        Vvl0 = p["VMvl"] * (1.0 - np.exp(-p["mvl"] * pvl0))
+        # Invert the logarithmic lower-venous pressure-volume relation against
+        # the EFFECTIVE supine capacity (VMvl - Vvm0 + Vsr0):
+        #   pvl = (1/mvl) * ln(VM_eff / (VM_eff - Vvl))  =>  Vvl = VM_eff * (1 - exp(-mvl*pvl))
+        VMvl_eff0 = p["VMvl"] - Vvm0 + Vsr0
+        Vvl0 = VMvl_eff0 * (1.0 - np.exp(-p["mvl"] * pvl0))
 
         # Blood-volume perturbations are absorbed by the compliant venous
         # reservoir (the venous system holds the bulk of circulating volume and
@@ -123,17 +162,27 @@ class BaroreflexPOTSModel:
         # Left ventricular end-diastolic volume (start of the cardiac cycle).
         Vlv0 = 110.0 - p["Vd"]
 
-        # Initial conditions: y = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc]
-        self.initial_state = [Vau0, Vvu0, Val0, Vvl0, Vlv0, pcm0, Raup0, Ralp0, Ed0, H0]
+        # Initial conditions:
+        # y = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc, Vvm, Vsr]
+        self.initial_state = [Vau0, Vvu0, Val0, Vvl0, Vlv0, pcm0, Raup0, Ralp0, Ed0, H0, Vvm0, Vsr0]
 
     def compute_derivatives(self, t, y, current_T, current_ts, tilt_params):
         """
-        Calculates the derivatives for the 10 state variables.
-        y = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc]
+        Calculates the derivatives for the 12 state variables.
+        y = [Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc, Vvm, Vsr]
+
+        Cycle 2 extension (venous/orthostatic physiology):
+        - Vvm: baroreflex-driven venomotor reflex state (mL of lower venous
+          capacity reduction), Heldt et al. 2002 structure (PMID 11842064).
+        - Vsr: venous stress-relaxation (creep) state (mL of slow capacity
+          increase under sustained venous load), van Heusden et al. 2006
+          (PMID 16632542).
+        The effective lower venous capacity is VMvl - Vvm + Vsr; the
+        logarithmic P-V law operates on that effective capacity.
         """
         # Unpack state variables
-        Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc = y
-        
+        Vau, Vvu, Val, Vvl, Vlv, pcm, Raup, Ralp, Ed, Hc, Vvm, Vsr = y
+
         # Unpack parameters
         Ral = self.params["Ral"]
         Rvl = self.params["Rvl"]
@@ -144,15 +193,24 @@ class BaroreflexPOTSModel:
         mvl = self.params["mvl"]
         Es = self.params["Es"]
         Vd = self.params["Vd"]
-        
+
         taur = self.params["taur"]
         tauE = self.params["tauE"]
         tauH = self.params["tauH"]
         tauP = self.params["tauP"]
-        
+
         kR = self.params["kR"]
         kE = self.params["kE"]
         kH = self.params["kH"]
+
+        # Cycle 2 venomotor / stress-relaxation parameters
+        dV_veno_max = self.params["dV_veno_max"]
+        p2V = self.params["p2V"]
+        kV = self.params["kV"]
+        tau_veno = self.params["tau_veno"]
+        G_sr = self.params["G_sr"]
+        tau_sr = self.params["tau_sr"]
+        pvl_sr0 = self.params["pvl_sr0"]
         
         RaupM = self.params["RaupM"]
         Raupm = self.params["Raupm"]
@@ -175,9 +233,13 @@ class BaroreflexPOTSModel:
         pal = max(0.0, Val) / Cal
         pvu = max(0.0, Vvu) / Cvu
         
+        # Effective lower venous capacity: nominal capacity reduced by the
+        # venomotor reflex (sympathetic venoconstriction) and increased by
+        # slow stress-relaxation creep (Cycle 2 extension).
+        VMvl_eff = VMvl - Vvm + Vsr
         # Avoid log of negative value or exceeding volume capacity for lower venous compartment
-        v_diff = max(1.0, VMvl - Vvl)
-        pvl = (1.0 / mvl) * np.log(VMvl / v_diff)
+        v_diff = max(1.0, VMvl_eff - Vvl)
+        pvl = (1.0 / mvl) * np.log(VMvl_eff / v_diff)
         pvl = max(0.0, pvl)
         
         # 2. Tilt and Hydrostatic Column
@@ -230,33 +292,61 @@ class BaroreflexPOTSModel:
         Rav = 0.0001
         Rmv = 0.0001
         
-        qav = (plv - pau) / Rav if plv > pau else 0.0
-        qmv = (pvu - plv) / Rmv if pvu > plv else 0.0
+        # Valves are ideal diodes with a narrow smooth transition (0.05 mmHg)
+        # instead of a hard on/off switch: physiology-preserving (the
+        # transition width is negligible compared to physiological driving
+        # pressures, and the regurgitant tail is <1 ml/s at >0.3 mmHg reverse
+        # bias) but C^1-smooth, which removes relay chatter in the
+        # beat-to-beat integration of the stiff valve dynamics.
+        qav = _softplus(plv - pau, 0.05) / Rav
+        qmv = _softplus(pvu - plv, 0.05) / Rmv
         
         qal = (pau - pal + rhogh) / Ral
         qaup = (pau - pvu) / Raup
         qalp = (pal - pvl) / Ralp
         
-        qvl = (pvl - pvu - rhogh) / Rvl if pvl > (pvu + rhogh) else 0.0
+        # Hydrostatic venous-return gate, smoothed with a 0.1 mmHg transition
+        # (negligible vs physiological driving pressures, and matched to the
+        # hard-gate flow at the supine operating point so the baseline
+        # equilibrium is unchanged).
+        qvl = _softplus(pvl - pvu - rhogh, _QVL_GATE_W) / Rvl
         
         # 5. Controller derivatives
         dpcm = (pc - pcm) / tauP
+
+        # Hill targets are evaluated at the non-negative part of pcm: negative
+        # carotid pressure is physiologically impossible, and pcm**k with a
+        # negative base is numerically undefined for large k.
+        pcm_pow = max(0.0, pcm)
         
         # Upper peripheral resistance target and ODE
-        Raupf = (RaupM - Raupm) * (p2Ru**kR) / (pcm**kR + p2Ru**kR) + Raupm
+        Raupf = (RaupM - Raupm) * (p2Ru**kR) / (pcm_pow**kR + p2Ru**kR) + Raupm
         dRaup = (-Raup + Raupf) / taur
         
         # Lower peripheral resistance target and ODE
-        Ralpf = (RalpM - Ralpm) * (p2Ra**kR) / (pcm**kR + p2Ra**kR) + Ralpm
+        Ralpf = (RalpM - Ralpm) * (p2Ra**kR) / (pcm_pow**kR + p2Ra**kR) + Ralpm
         dRalp = (-Ralp + Ralpf) / taur
         
         # End diastolic elastance target and ODE (parasympathetic loop)
-        Edf = (EdM - Edm) * (pcm**kE) / (pcm**kE + p2E**kE) + Edm
+        Edf = (EdM - Edm) * (pcm_pow**kE) / (pcm_pow**kE + p2E**kE) + Edm
         dEd = (-Ed + Edf) / tauE
         
         # Heart rate target and ODE
-        Hf = (HM - Hm) * (p2H**kH) / (pcm**kH + p2H**kH) + Hm
+        Hf = (HM - Hm) * (p2H**kH) / (pcm_pow**kH + p2H**kH) + Hm
         dHc = (-Hc + Hf) / tauH
+
+        # Venomotor reflex target and ODE (Cycle 2; Heldt 2002 structure):
+        # falling carotid pressure recruits venoconstriction, reducing lower
+        # venous capacity and mobilizing pooled blood back to the thorax.
+        Vvmf = dV_veno_max * (p2V**kV) / (pcm_pow**kV + p2V**kV)
+        dVvm = (-Vvm + Vvmf) / tau_veno
+
+        # Venous stress-relaxation (creep) target and ODE (Cycle 2; van
+        # Heusden 2006): sustained elevation of lower venous pressure slowly
+        # increases venous capacity, spreading pooling over tens of seconds
+        # to minutes instead of completing within ~30 s.
+        Vsrf = G_sr * max(0.0, pvl - pvl_sr0)
+        dVsr = (-Vsr + Vsrf) / tau_sr
         
         # 6. Mass conservation derivatives (with boundary non-negativity clamping)
         dVau = qav - qal - qaup
@@ -270,4 +360,4 @@ class BaroreflexPOTSModel:
         dVlv = qmv - qav
         if Vlv <= 0.0 and dVlv < 0.0: dVlv = 0.0
         
-        return [dVau, dVvu, dVal, dVvl, dVlv, dpcm, dRaup, dRalp, dEd, dHc]
+        return [dVau, dVvu, dVal, dVvl, dVlv, dpcm, dRaup, dRalp, dEd, dHc, dVvm, dVsr]

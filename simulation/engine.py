@@ -259,6 +259,18 @@ class SimulationEngine:
             "pal": state_arr[:, 2] / self.model.params["Cal"],
             "pvu": state_arr[:, 1] / self.model.params["Cvu"],
         }
+
+        # Cycle 2 venomotor / stress-relaxation states and the resulting lower
+        # venous pressure (effective capacity = VMvl - Vvm + Vsr).
+        if state_arr.shape[1] >= 12:
+            Vvm_arr = state_arr[:, 10]
+            Vsr_arr = state_arr[:, 11]
+            VMvl_eff = (self.model.params["VMvl"] - Vvm_arr + Vsr_arr)
+            results["Vvm"] = Vvm_arr
+            results["Vsr"] = Vsr_arr
+            results["pvl"] = (1.0 / self.model.params["mvl"]) * np.log(
+                VMvl_eff / np.maximum(1.0, VMvl_eff - state_arr[:, 3])
+            )
         
         for k, v in output_series.items():
             results[k] = np.array(v)
