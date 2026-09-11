@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/eds.yaml
-  sha256: 3d8ef75e5c9cfcb873b50d4f83e106f135a57c7bdc9189b899ecf08dce1a77bc
+  sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
 review_history:
 - review_id: rev-e2d5e97f-af89-414c-84cd-6fe0dbde3ee8
   reviewed_at: '2026-09-11T00:45:41.633691+00:00'
@@ -53,3 +53,18 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-8c2f0e76-d931-488b-8a43-c472f3937fe0
+  reviewed_at: '2026-09-11T10:54:23.363907+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: adversarial-doi-verifier
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: adversarial-doi-verifier
+  scope:
+  - consistency
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: Tier-D unverified VMvl re-referenced to rescaled canonical 700 mL (x1.41
+    ratio preserved). Engine-inert block; no DOI on unverified values.

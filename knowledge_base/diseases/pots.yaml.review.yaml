@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/pots.yaml
-  sha256: 041eabe72aed291ca46092b8156050795e248ad675c987ee0dc76c900168d0f2
+  sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
 review_history:
 - review_id: rev-d0a780ae-22a5-47f3-9759-6f0a3a387147
   reviewed_at: '2026-09-11T00:45:41.632839+00:00'
@@ -53,3 +53,21 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-3b661276-3211-409d-ac06-09c29ca78376
+  reviewed_at: '2026-09-11T10:54:23.283671+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: simulation-verification-coder
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: simulation-verification-coder
+  scope:
+  - simulation_verification
+  - phenotype_validity
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: "Re-curation verified by seeded simulation: hypovolemic 34.6 and hyperadrenergic\
+    \ 34.2 sustained dHR >=30 bpm (canonical); neuropathic restored only to 21.2 (experimental\
+    \ dV_veno_max=75) \u2014 flat dose-response documented, strict-xfail, requires\
+    \ model-structure revision (bounded stress-relaxation or tilt-onset gain application).\
+    \ Human L3 pending."

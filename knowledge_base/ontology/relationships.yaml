@@ -21,7 +21,20 @@
 #    is a real Sensors 2022 paper on Polar H10 HRV validity (PMID 36081005).
 #    Kept; noted as definitional identity (citation optional) and that neither
 #    symbol is registered in variables.yaml (registry gap, out of scope here).
-version: "3.1"
+#
+# CYCLE-3 REVISION (proposed, not yet merged):
+#  pcm REGULATES Vvm: evidence_level Level 3 -> Level 4. Heldt et al. 2002 is an
+#    IN-SILICO modeling paper (CVSim-family computational model); per the
+#    Cycle-1 convention, in-silico evidence is Level 4.
+#  pvl REGULATES Vsr: evidence_level Level 2 -> Level 4. van Heusden et al. 2006
+#    ("Mathematical modeling of gravitational effects on the circulation",
+#    verified abstract, PMID 16632542) is likewise a computational modeling
+#    study; its stress-relaxation time course is only COMPARED to measured
+#    human impedance data, and the OCPE gain/time constants are machine-proposed
+#    fits (per its own citation_detail). Level 4 conservatively applied.
+#  mechanistic_links.yaml was checked for the same issue: it contains NO
+#  Vvm/Vsr links (v1.0, 7 sensor/model links only) — nothing to downgrade there.
+version: "3.2"
 relationship_definitions:
   - predicate: "CAUSES"
     description: "A directly causal biological link where changes in subject lead to changes in object."
@@ -126,7 +139,7 @@ semantic_relationships:
     predicate: "REGULATES"
     object: "Vvm"
     confidence: 7
-    evidence_level: "Level 3"
+    evidence_level: "Level 4"  # CYCLE-3 CORRECTED from "Level 3": Heldt 2002 is in-silico modeling (Cycle-1 convention)
     supporting_publications:
       - doi: "10.1152/japplphysiol.00241.2001"  # Heldt et al. 2002 (PMID 11842064): baroreflex control of venous unstressed volume (venomotor reflex) in the CVSim family
     citation_detail: "Heldt T, Shim EB, Kamm RD, Mark RG. Computational modeling of cardiovascular response to orthostatic stress. J Appl Physiol 2002;92:1239-54 - venous tone is baroreflex-controlled; first-order Hill-sigmoid formulation here is machine-proposed (tier C)."
@@ -139,7 +152,7 @@ semantic_relationships:
     predicate: "REGULATES"
     object: "Vsr"
     confidence: 7
-    evidence_level: "Level 2"
+    evidence_level: "Level 4"  # CYCLE-3 CORRECTED from "Level 2": van Heusden 2006 is a mathematical-modeling study (abstract verified); human-data comparison only, OCPE gains machine-proposed
     supporting_publications:
       - doi: "10.1152/ajpheart.01268.2004"  # van Heusden et al. 2006 (PMID 16632542): venous stress-relaxation measured in humans
     citation_detail: "van Heusden K, Gisolf J, Stok WJ, Dijkstra S, Karemaker JM. Mathematical modeling of gravitational effects on the circulation: importance of the time course of venous pooling and blood volume changes in the lungs. Am J Physiol Heart Circ Physiol 2006;291:H2152-65 - creep driven by sustained venous pressure; gain/time constant here are machine-proposed within the documented 60-300 s range (tier C)."

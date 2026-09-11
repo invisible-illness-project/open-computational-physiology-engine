@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/ontology/relationships.yaml
-  sha256: a2015c12bf6ec168632031f6145125373dc86e6de2c364c0f797ceb2dcd64be8
+  sha256: d377efdc2c956f81d08981c410b1050b17a821330ffebd1a079c274f1547455c
 review_history:
 - review_id: rev-2aeef654-41d4-45bd-bc8a-7d83ff5064a0
   reviewed_at: '2026-09-11T00:45:41.628773+00:00'
@@ -53,3 +53,18 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-11f064db-b2a7-47be-b1e7-fa5e44bfa83b
+  reviewed_at: '2026-09-11T10:54:23.187747+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: adversarial-doi-verifier
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: adversarial-doi-verifier
+  scope:
+  - evidence_level_audit
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'Cycle 3 micro-fix: pcm->Vvm downgraded Level 3->4 and pvl->Vsr Level
+    2->4 (in-silico sources per convention). YAML verified parsing; symbols registered.'
