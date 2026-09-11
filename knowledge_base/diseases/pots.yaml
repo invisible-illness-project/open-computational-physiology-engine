@@ -1,4 +1,24 @@
-version: "1.3"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# Source: Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. "Postural orthostatic
+# tachycardia syndrome explained using a baroreflex response model."
+# J R Soc Interface 2022;19:20220220. DOI 10.1098/rsif.2022.0220 (PMID 36069002,
+# PMC9399868 — full text accessed).
+#
+# Key corrections vs repo v1.3 (all traceable to Geddes 2022 Table 3 / Table 6):
+#  * kR normal 25.0 -> 23.0 (Table 6), perturbed 40.0 -> 32.0 (Table 3).
+#  * kH normal 25.0 -> 27.0 (Table 6), perturbed 40.0 -> 34.0 (Table 3).
+#  * RalpM perturbed 6.5 -> 11.5 (Geddes reduces RlpM 4.5 -> 2.9, i.e. x0.644;
+#    scaled to this repo's nominal RalpM = 17.88: 17.88 x 0.644 = 11.5).
+#  * ADDED Ralpm perturbation (Geddes reduces Rlpm 0.30 -> 0.19, x0.633;
+#    repo nominal 1.192 x 0.633 = 0.76) — previously omitted.
+#  * ADDED kE 7 -> 10 and p2H 88.5 -> 89.8 for hyperadrenergic fidelity
+#    (Table 3) — previously omitted.
+#  * TEMPORAL CONTEXT: Geddes applies ALL phenotype parameter changes AT
+#    HEAD-UP-TILT ONSET via a 10-s delayed smooth transition (Eq. 2.16), NOT as
+#    static baseline overrides. The current PerturbationManager applies static
+#    multiplicative overrides; `application:` blocks below encode the required
+#    temporal semantics and require engine support.
+version: "1.4"
 disease:
   id: "pots"
   name: "Postural Orthostatic Tachycardia Syndrome"
@@ -11,32 +31,92 @@ disease:
       parameters_perturbed:
         - symbol: "RalpM"
           normal_value: 17.88
-          perturbed_value: 6.5
+          perturbed_value: 11.5
           units: "mmHg*s/ml"
           mechanism: "Blunted or impaired vasoconstrictive reserve in the lower venous and peripheral systemic compartment."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
           provenance:
             doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (neuropathic: RlpM 4.5 -> 2.9, factor 0.644; scaled to repo nominal 17.88)"
             evidence_level: "Level 4"
+            evidence_tier: "C"  # in-silico source, value directly traceable
+        - symbol: "Ralpm"
+          normal_value: 1.192
+          perturbed_value: 0.76
+          units: "mmHg*s/ml"
+          mechanism: "Reduced lower-bound lower-body peripheral resistance; added for fidelity to Geddes 2022 Table 3, which reduces BOTH RlpM and Rlpm in neuropathic POTS."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (neuropathic: Rlpm 0.30 -> 0.19, factor 0.633; scaled to repo nominal 1.192)"
+            evidence_level: "Level 4"
+            evidence_tier: "C"
     - id: "hyperadrenergic_pots"
       name: "Hyperadrenergic POTS"
       description: "Characterized by orthostatic tachycardia associated with high levels of sympathetic activity, often presenting with orthostatic hypertension."
       parameters_perturbed:
         - symbol: "kR"
-          normal_value: 25.0
-          perturbed_value: 40.0
+          normal_value: 23.0
+          perturbed_value: 32.0
           units: "dimensionless"
           mechanism: "Hypersensitive or elevated gain in sympathetic resistance feedback loop control."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
           provenance:
             doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 6 (nominal kR=23), Table 3 (hyperadrenergic kR 23 -> 32)"
             evidence_level: "Level 4"
+            evidence_tier: "C"
         - symbol: "kH"
-          normal_value: 25.0
-          perturbed_value: 40.0
+          normal_value: 27.0
+          perturbed_value: 34.0
           units: "dimensionless"
           mechanism: "Elevated gain/sensitivity in heart rate sympathetic acceleration feedback loops."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
           provenance:
             doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 6 (nominal kH=27), Table 3 (hyperadrenergic kH 24 -> 34; Table 3's pre-tilt 24 vs Table 6 nominal 27 is a minor internal inconsistency in the source)"
             evidence_level: "Level 4"
+            evidence_tier: "C"
+        - symbol: "kE"
+          normal_value: 7.0
+          perturbed_value: 10.0
+          units: "dimensionless"
+          mechanism: "Elevated gain in cardiac contractility (end-diastolic elastance) control; added for fidelity to Geddes 2022 Table 3 (hyperadrenergic raises kE alongside kH and kR)."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (hyperadrenergic kE 7 -> 10)"
+            evidence_level: "Level 4"
+            evidence_tier: "C"
+        - symbol: "p2H"
+          normal_value: 88.5
+          perturbed_value: 89.8
+          units: "mmHg"
+          mechanism: "Shifted half-saturation of heart-rate baroreflex control; added for fidelity to Geddes 2022 Table 3 (hyperadrenergic also shifts P2H)."
+          application:
+            trigger: "head_up_tilt_onset"
+            transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+          provenance:
+            doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (hyperadrenergic P2H 88.5 -> 89.8 mmHg)"
+            evidence_level: "Level 4"
+            evidence_tier: "C"
     - id: "hypovolemic_pots"
       name: "Hypovolemic POTS"
       description: "Characterized by reduced total blood volume leading to decreased venous return, stroke volume, and compensatory tachycardia."
@@ -45,7 +125,22 @@ disease:
           normal_value: 4500.0
           perturbed_value: 3500.0
           units: "ml"
-          mechanism: "Reduced systemic intravascular blood volume."
+          # VERIFIED against source (values match exactly). Interpretation caveats
+          # from Geddes 2022 section 2.9, quoted from accessed full text:
+          #  (a) 4500 ml = BV of an OVERWEIGHT (BMI 28) young female and
+          #      3500 ml = BV of an UNDERWEIGHT (BMI 19) young female, both via
+          #      Nadler's equation (Eq. 2.15) — i.e. normal-range volumes, not a
+          #      measured pathological fluid loss;
+          #  (b) "A low BV alone does not compromise the BR and therefore only
+          #      represents a POTS phenotype if the patient is experiencing POTS
+          #      symptoms" — low BV alone does NOT reproduce POTS dynamics in the
+          #      source model.
+          # Population: young females (model parameterized to a healthy young
+          # Danish female, h=167 cm).
+          mechanism: "Low (BMI-19-equivalent) systemic blood volume per Geddes 2022 hypovolaemic phenotype; see interpretation caveats in file header comment above."
           provenance:
             doi: "10.1098/rsif.2022.0220"
+            pmid: "36069002"
+            citation: "Geddes et al., J R Soc Interface 2022;19:20220220, section 2.9 + Table 5 (BV 4500 ml at BMI 28 -> 3500 ml at BMI 19)"
             evidence_level: "Level 4"
+            evidence_tier: "C"

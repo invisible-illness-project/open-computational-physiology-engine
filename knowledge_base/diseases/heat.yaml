@@ -1,4 +1,31 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# OLD citation 10.1152/japplphysiol.00693.2012 is FABRICATED: it does not exist
+# (doi.org HTTP 404; absent from CrossRef and Europe PMC; the .2013 variant is
+# also absent; no near-miss identified). The old evidence_level "Level 1" was
+# indefensible.
+#
+# REPLACEMENT citation (real, found by targeted search): Ganio MS, Overgaard M,
+# Seifert T, Secher NH, Johansson PI, Meyer MA, Crandall CG. "Effect of heat
+# stress on cardiac output and systemic vascular conductance during simulated
+# hemorrhage to presyncope in young men." Am J Physiol Heart Circ Physiol
+# 2012;302(8):H1756-61. DOI 10.1152/ajpheart.00941.2011 (PMID 22367508,
+# PMC3330796 — abstract accessed, quantitative values below from abstract).
+#
+# RE-DERIVED MAGNITUDE (resistance): Ganio reports passive heat stress
+# (+1.2 +/- 0.2 degC core) increased systemic vascular conductance from
+# 0.094 +/- 0.018 to 0.163 +/- 0.032 l/min/mmHg (+73%), i.e. systemic vascular
+# RESISTANCE falls to 0.094/0.163 = 0.58 of normothermic (~ -42%). The
+# perturbed minimum-resistance bounds below apply this verified factor (x0.58)
+# to the repo nominals. Applicability limits: whole-body SYSTEMIC conductance
+# (not compartmental upper/lower), 11 healthy young men, passive heating,
+# supine LBNP protocol. The old -50% guess was directionally right and is now
+# replaced by the source-derived factor.
+#
+# Cal compliance increase: NO supporting source found; moved to unverified
+# block (whole-body heating characteristically causes cutaneous
+# VENOconstriction/reduced venous capacitance, so the direction of a compliance
+# INCREASE is additionally questionable).
+version: "1.1"
 disease:
   id: "heat"
   name: "Environmental Heat Stress"
@@ -11,25 +38,38 @@ disease:
       parameters_perturbed:
         - symbol: "Raupm"
           normal_value: 0.3019
-          perturbed_value: 0.15
+          perturbed_value: 0.174
           units: "mmHg*s/ml"
-          mechanism: "Vasodilation of upper body cutaneous vasculature reduces the minimum peripheral resistance boundary."
+          mechanism: "Heat-stress systemic vasodilation reduces the minimum peripheral resistance boundary (factor x0.58, from SVC +73% in Ganio 2012)."
           provenance:
-            doi: "10.1152/japplphysiol.00693.2012"
-            evidence_level: "Level 1"
+            doi: "10.1152/ajpheart.00941.2011"
+            pmid: "22367508"
+            citation: "Ganio et al., Am J Physiol Heart Circ Physiol 2012;302:H1756-61 (heat stress +1.2C core: SVC 0.094->0.163 l/min/mmHg => resistance x0.58; 11 healthy young men, whole-body systemic measure applied to compartmental bound)"
+            evidence_level: "Level 2"
+            evidence_tier: "B"  # human data, semi-quantitative; compartment mapping is an approximation
+            review_status: "NEEDS REVIEW - whole-body SVC applied to upper-compartment bound"
         - symbol: "Ralpm"
           normal_value: 1.192
-          perturbed_value: 0.6
+          perturbed_value: 0.688
           units: "mmHg*s/ml"
-          mechanism: "Vasodilation of lower extremity microvasculature blunts peripheral resistance lower boundary."
+          mechanism: "Heat-stress systemic vasodilation reduces the lower-extremity minimum peripheral resistance boundary (factor x0.58, from SVC +73% in Ganio 2012)."
           provenance:
-            doi: "10.1152/japplphysiol.00693.2012"
-            evidence_level: "Level 1"
+            doi: "10.1152/ajpheart.00941.2011"
+            pmid: "22367508"
+            citation: "Ganio et al., Am J Physiol Heart Circ Physiol 2012;302:H1756-61 (resistance factor x0.58 derived as above)"
+            evidence_level: "Level 2"
+            evidence_tier: "B"
+            review_status: "NEEDS REVIEW - whole-body SVC applied to lower-compartment bound"
+      unverified_parameters:
+        # MACHINE-PROPOSED hypothesis. No supporting source found; direction
+        # additionally questionable (heating causes cutaneous venoconstriction,
+        # i.e. reduced venous capacitance). Requires human review.
         - symbol: "Cal"
           normal_value: 0.3726
           perturbed_value: 0.5
           units: "ml/mmHg"
-          mechanism: "Thermal relaxation of lower body vasculature increases local compliance and pools volume."
+          mechanism: "Thermal relaxation of lower body vasculature increases local compliance and pools volume (hypothesized; no quantitative source; direction disputed — see header comment)."
           provenance:
-            doi: "10.1152/japplphysiol.00693.2012"
-            evidence_level: "Level 1"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - no supporting source found; requires human review; direction of compliance change under heat not established"

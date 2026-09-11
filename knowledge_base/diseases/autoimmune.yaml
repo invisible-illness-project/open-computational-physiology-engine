@@ -1,4 +1,30 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# Revision 2 (independent-review WARNING 2): tier-D magnitudes moved OUT of
+# canonical parameters_perturbed into unverified_parameters; the real citation
+# (Vernino 2000) now lives in a phenotype-level association_evidence block so
+# no unverified magnitude carries a parameter-level DOI implying source
+# support. PerturbationManager (simulation/perturbations.py:39,71) reads ONLY
+# parameters_perturbed, so the engine safely ignores these blocks — unverified
+# values will NOT be applied until human review promotes them.
+#
+# OLD citation 10.1002/ana.10659 was a WRONG PAPER: it resolves (doi.org,
+# CrossRef, Europe PMC) to Ginsberg et al. 2003, "Stilbazulenyl nitrone, a novel
+# antioxidant, is highly neuroprotective in focal ischemia," Ann Neurol
+# (PMID 12953265) — unrelated to autonomic autoimmunity.
+#
+# REPLACEMENT citation: Vernino S, Low PA, Fealey RD, Stewart JD, Farrugia G,
+# Lennon VA. "Autoantibodies to ganglionic acetylcholine receptors in autoimmune
+# autonomic neuropathies." N Engl J Med 2000;343:847-855.
+# DOI 10.1056/NEJM200009213431204 (PMID 10995864 — verified via Europe PMC).
+# Vernino 2000 supports the MECHANISM (ganglionic nicotinic AChR autoantibodies
+# cause autoimmune autonomic failure) but contains NO baroreflex gain numbers.
+# Sjogren's-associated autoimmune autonomic ganglionopathy is additionally
+# supported by PMID 19097826 (Auton Neurosci 2009).
+#
+# MAGNITUDES: kR/kH 25 -> 15 (a 40% gain reduction) has NO quantitative source.
+# Retained ONLY as explicitly-labeled machine-proposed modeling assumptions
+# (evidence_tier D, UNRESOLVED — requires human review).
+version: "1.1"
 disease:
   id: "autoimmune"
   name: "Autoimmune Dysautonomia"
@@ -8,20 +34,35 @@ disease:
     - id: "autoimmune_neuropathy"
       name: "Autoimmune Autonomic Neuropathy"
       description: "Antibody-mediated blunting of adrenergic and cholinergic autonomic gain coefficients."
-      parameters_perturbed:
+      association_evidence:
+        # Mechanism-level support ONLY: ganglionic alpha3-AChR autoantibodies
+        # cause autoimmune autonomic failure (incl. Sjogren's-associated AAG).
+        # Contains NO baroreflex gain coefficients or magnitudes.
+        doi: "10.1056/NEJM200009213431204"
+        pmid: "10995864"
+        citation: "Vernino et al., N Engl J Med 2000;343:847-855 (ganglionic AChR autoantibodies -> autoimmune autonomic neuropathy); see also Sjogren's-AAG, Auton Neurosci 2009, PMID 19097826"
+        evidence_tier: "B"  # human data, qualitative mechanism only
+      parameters_perturbed: []
+      unverified_parameters:
+        # MACHINE-PROPOSED hypotheses. No quantitative gain data in any
+        # accessible source; REQUIRE HUMAN REVIEW before promotion to
+        # parameters_perturbed. Deliberately NO parameter-level DOI (the
+        # phenotype-level citation supports mechanism, not these magnitudes).
         - symbol: "kR"
           normal_value: 25.0
           perturbed_value: 15.0
           units: "dimensionless"
-          mechanism: "Partial loss of baroreflex sympathetic gain due to ganglionic nicotinic receptor autoantibodies."
+          mechanism: "Partial loss of baroreflex sympathetic gain due to ganglionic nicotinic receptor autoantibodies (hypothesized magnitude; mechanism supported by phenotype-level association_evidence)."
           provenance:
-            doi: "10.1002/ana.10659"
-            evidence_level: "Level 2"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
         - symbol: "kH"
           normal_value: 25.0
           perturbed_value: 15.0
           units: "dimensionless"
-          mechanism: "Blunted heart rate baroreflex gain due to autoimmune cholinergic receptor blockades."
+          mechanism: "Blunted heart rate baroreflex gain due to autoimmune cholinergic receptor blockades (hypothesized magnitude; mechanism supported by phenotype-level association_evidence)."
           provenance:
-            doi: "10.1002/ana.10659"
-            evidence_level: "Level 2"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
