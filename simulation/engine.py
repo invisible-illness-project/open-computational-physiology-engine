@@ -11,10 +11,13 @@ class SimulationEngine:
     reproducing the original MATLAB solver structure but with Pythonic
     extensions, latent state extraction, behavioral/symptom loops, and temporal tracking.
     """
-    def __init__(self, model, dt=0.01, hrv_noise=0.02):
+    def __init__(self, model, dt=0.01, hrv_noise=0.02, seed=None):
         self.model = model
         self.dt = dt
         self.hrv_noise = hrv_noise
+        # Optional RNG seed for reproducible HRV noise. seed=None (default)
+        # preserves the previous non-deterministic behavior.
+        self.seed = seed
         
         # Instantiate architectural subsystems
         self.latent_state = LatentPhysiologyState()
@@ -32,6 +35,10 @@ class SimulationEngine:
           - angle: tilt angle (degrees)
           - active_behavior: optional string trigger (e.g. 'exercise', 'meal')
         """
+        # Seed the RNG for reproducible HRV noise if requested
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
         # Set up behavior if specified in tilt_params
         active_behavior = tilt_params.get("active_behavior", "rest")
         self.behavior.trigger_behavior(active_behavior)
