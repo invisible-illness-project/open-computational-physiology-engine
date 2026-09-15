@@ -1,0 +1,272 @@
+version: "1.0"
+sensor:
+  id: "empatica_e4"
+  name: "Research wristband (Empatica-E4-like class: EDA + PPG + IMU + TEMP)"
+  type: "multimodal_wristband"
+  manufacturer: "Empatica (class)"
+  eda:
+    sampling_frequency_hz:
+      value: 4.0
+      units: Hz
+      distribution: point
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.3/3.4 (4 Hz sufficient; SCR rise >=1 s)"
+      canonical_status: canonical
+      uncertainty: "4-25 Hz typical research range"
+      provisional: false
+    measurement_range_us:
+      value: [0.01, 100.0]
+      units: uS
+      distribution: front-end range
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.3 (E4 range 0.01-100 uS)"
+      canonical_status: canonical
+      uncertainty: "exosomatic, 8 Hz AC excitation, <=100 uA pp"
+      provisional: false
+    resolution_us:
+      value: 0.0009
+      units: uS
+      distribution: quantization
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.3 (~900 pS)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    scl_range_us:
+      value: [2.0, 20.0]
+      units: uS
+      distribution: tonic band; stress can push toward 20-30 uS
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2 (BIOPAC/standard references)"
+      canonical_status: canonical
+      uncertainty: "textbook range"
+      provisional: false
+    scl_random_walk_sigma_us:
+      value: 0.005
+      units: uS per sample (4 Hz)
+      distribution: Gaussian increments, mean-reverting random walk
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3 (recommended simulator defaults)"
+      canonical_status: experimental
+      uncertainty: "random-walk increment size is a modelling choice"
+      provisional: true
+    scr_amplitude_us_range:
+      value: [0.05, 5.0]
+      units: uS
+      distribution: log-normal, median sqrt(0.05*5)=0.5 uS, clipped to band
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2 (detection threshold 0.05 uS)"
+      canonical_status: canonical
+      uncertainty: "0.01-0.02 uS thresholds for some protocols"
+      provisional: false
+    scr_latency_s_range:
+      value: [1.0, 3.0]
+      units: s
+      distribution: uniform (simulator); N(1.8, 0.4) alternative in dossier defaults
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2 (Dawson 2016; 1-5 s reported)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    scr_rise_s_range:
+      value: [1.0, 3.0]
+      units: s
+      distribution: uniform; onset to peak (peak 3-5 s post-stimulus)
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    scr_half_recovery_s_range:
+      value: [2.0, 10.0]
+      units: s
+      distribution: uniform; full resolution 10-20 s
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    ns_scr_rate_per_min_rest:
+      value: 2.0
+      range: [1.0, 3.0]
+      units: 1/min
+      distribution: Poisson, rate interpolated by eda_drive
+      evidence_tier: E2
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2"
+      canonical_status: canonical
+      uncertainty: "relaxed state"
+      provisional: false
+    ns_scr_rate_per_min_stress:
+      value: 7.5
+      range: [5.0, 10.0]
+      units: 1/min
+      distribution: Poisson, rate interpolated by eda_drive
+      evidence_tier: E2
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.2"
+      canonical_status: canonical
+      uncertainty: "stressed state 5-10+/min"
+      provisional: false
+    temperature_reference_c:
+      value: 25.0
+      units: deg C ambient
+      distribution: point
+      evidence_tier: E2
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.5 (ambient temperature/humidity raise SCL)"
+      canonical_status: experimental
+      uncertainty: "reference point for thermal SCL offset; modelling choice"
+      provisional: true
+    temperature_gain_us_per_c:
+      value: 0.3
+      units: uS per deg C above reference
+      distribution: linear offset
+      evidence_tier: E2
+      source:
+        claim_id: EVD-SENS-006
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.5 (Boucsein; Okamoto-Mizuno 2010 seasonal effects)"
+      canonical_status: experimental
+      uncertainty: "quantitative gain not published; direction documented"
+      provisional: true
+  ppg:
+    sampling_frequency_hz:
+      value: 64.0
+      units: Hz
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.2 (E4: 2 green + 2 red LEDs, 2 photodiodes, 64 Hz, 8-bit)"
+      canonical_status: canonical
+      uncertainty: "0.9 nW/digit"
+      provisional: false
+    adc_bits:
+      value: 8
+      units: bits
+      distribution: quantization
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.2"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    pulse_ac_amplitude:
+      value: 1.0
+      units: arbitrary (normalized pulse AC)
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: experimental
+      uncertainty: "simulation normalization"
+      provisional: true
+    dc_level:
+      value: 2.0
+      units: arbitrary
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: experimental
+      uncertainty: "simulation normalization"
+      provisional: true
+    adc_full_scale:
+      value: 4.0
+      units: arbitrary front-end units
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2"
+      canonical_status: experimental
+      uncertainty: "modelling choice"
+      provisional: true
+  imu:
+    sampling_frequency_hz:
+      value: 32.0
+      units: Hz
+      distribution: point
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 5.2 (E4 32 Hz)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    full_scale_range_g:
+      value: 2.0
+      units: g (+/-)
+      distribution: saturation threshold (clips during running heel-strike transients)
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md sections 5.1/7 (Accelerometer clipping)"
+      canonical_status: canonical
+      uncertainty: "best resolution among wearable classes"
+      provisional: false
+    noise_density_ug_per_sqrt_hz:
+      value: 290.0
+      units: ug/sqrt(Hz)
+      distribution: white + 1/f
+      evidence_tier: E5
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 5.1 (ADXL345 consumer-class datasheet)"
+      canonical_status: canonical
+      uncertainty: "13x noise spread across device classes (22.5-290 ug/sqrtHz)"
+      provisional: false
+  temperature:
+    sampling_frequency_hz:
+      value: 4.0
+      units: Hz
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4 (E4 TEMP channel; physiological band 0.02-0.4 Hz)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    noise_sigma_c:
+      value: 0.05
+      range: [0.03, 0.1]
+      units: deg C
+      distribution: Gaussian
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4 (recommended simulator defaults)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    quantization_c:
+      value: 0.02
+      range: [0.02, 0.07]
+      units: deg C
+      distribution: quantization
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+  communication:
+    protocol: "Bluetooth LE streaming + onboard flash"
+    loss_model: "artifact_models.dropout; E4 deployment: streaming up to 49% vs <=9% on-device (EVD-SENS-003)"
+  failure_modes:
+    - "EDA electrode lift -> step drop to zero-line; partial contact -> abrupt level jumps"
+    - "EDA corrupted by motion at wrist (>20%/2 s steps flagged)"
+    - "Accelerometer saturation at +/-2 g during vigorous impacts"
+    - "Coverage (blanket/jacket) warms skin -> spurious EDA rise"

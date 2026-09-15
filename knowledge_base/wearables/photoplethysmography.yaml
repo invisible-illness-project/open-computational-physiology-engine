@@ -1,8 +1,39 @@
-version: "1.0"
+version: "1.1"
 sensor:
   id: "photoplethysmography"
   name: "Wearable Optical Photoplethysmography (PPG)"
   type: "optical_ppg"
+  ppg:
+    sampling_frequency_hz:
+      value: 50.0
+      units: Hz
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.3 (fs 25 Hz sufficient for HR; 64-128 Hz default for waveform/IBI)"
+      canonical_status: canonical
+      uncertainty: "cardiac band 0.7-3.5 Hz; performance degrades <20 Hz"
+      provisional: false
+    cardiac_band_hz:
+      value: [0.7, 3.5]
+      units: Hz
+      distribution: passband
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.3"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    perfusion_index_percent:
+      value: [0.5, 5.0]
+      units: percent (AC/DC ratio)
+      distribution: range (finger site; wrist lower)
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: canonical
+      uncertainty: "drops <0.3% with cold fingers"
+      provisional: false
   specifications:
     sampling_frequency: 50.0 # Hz
     wavelengths: ["green", "red", "infrared"]

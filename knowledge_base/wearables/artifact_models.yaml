@@ -1,0 +1,367 @@
+version: "1.0"
+artifact_models:
+  description: >
+    Cross-device, state-dependent artifact model parameters for the OCPE
+    sensor layer (SENSOR_MODEL_EVIDENCE.md section 7 artifact table and
+    section 8 state-dependent degradation table). Artifacts are conditional
+    on physiological/activity state (motion intensity, cadence, day/night,
+    wear state, temperature), never i.i.d. Every block carries value/units/
+    distribution/evidence tier/source/canonical status/uncertainty per
+    SWARM_SPEC global rule 6.
+
+  # ---- BLE / storage missingness ------------------------------------------
+  dropout:
+    streaming_loss_fraction_max:
+      value: 0.49
+      units: fraction
+      distribution: deployment-level ceiling
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Data loss, streaming vs on-device)"
+      canonical_status: canonical
+      uncertainty: "E4-device deployment; other devices differ"
+      provisional: false
+    on_device_loss_fraction_max:
+      value: 0.09
+      units: fraction
+      distribution: deployment-level ceiling
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7"
+      canonical_status: canonical
+      uncertainty: "<=9% onboard-memory loss"
+      provisional: false
+    motion_loss_gain:
+      value: 1.0
+      units: dimensionless
+      distribution: point
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (mechanism: motion/contact stress on link)"
+      canonical_status: experimental
+      uncertainty: "gain multiplier of loss fraction at full activity intensity; not directly published"
+      provisional: true
+
+  # ---- Day/night usability (missingness diurnal profile) ------------------
+  day_night_usability:
+    ppg_day_good_fraction:
+      value: 0.45
+      range: [0.30, 0.60]
+      units: fraction of on-body time
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x; 10.3389/fphys.2021.778775"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.8"
+      canonical_status: canonical
+      uncertainty: "Bottcher BVP day 49.9%; Valiaho day 30.5+/-19.4%"
+      provisional: false
+    ppg_night_good_fraction:
+      value: 0.70
+      range: [0.65, 0.75]
+      units: fraction of on-body time
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x; 10.3389/fphys.2021.778775"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.8"
+      canonical_status: canonical
+      uncertainty: "Bottcher BVP night 70.7%; Valiaho night 67.3+/-22.4%"
+      provisional: false
+    eda_day_good_fraction:
+      value: 0.656
+      units: fraction
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.5"
+      canonical_status: canonical
+      uncertainty: "EDA good-quality 65.6% day"
+      provisional: false
+    eda_night_good_fraction:
+      value: 0.751
+      units: fraction
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.5"
+      canonical_status: canonical
+      uncertainty: "EDA good-quality 75.1% night"
+      provisional: false
+    temp_day_good_fraction:
+      value: 0.961
+      units: fraction
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.6"
+      canonical_status: canonical
+      uncertainty: "TEMP highest-quality modality, 96.1% of on-body time"
+      provisional: false
+    temp_night_good_fraction:
+      value: 0.961
+      units: fraction
+      distribution: state-conditional Markov stationary fraction
+      evidence_tier: E4
+      source:
+        claim_id: EVD-SENS-003
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.6"
+      canonical_status: canonical
+      uncertainty: "single overall fraction published; day/night split unresolved"
+      provisional: true
+
+  # ---- Motion artifact, PPG (cadence-lock) --------------------------------
+  motion_ppg:
+    amplitude_vs_pulse_ac:
+      value: 3.0
+      range: [1.0, 10.0]
+      units: ratio of motion-artifact amplitude to pulse AC amplitude
+      distribution: uniform within range
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-004
+        doi: "10.1186/s13634-020-00714-2"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.5"
+      canonical_status: canonical
+      uncertainty: "MA can exceed pulse AC by an order of magnitude"
+      provisional: false
+    naive_hr_mae_running_bpm:
+      value: 26.0
+      units: bpm
+      distribution: MAE of naive spectral estimator during treadmill running
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-004
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4 (IEEE SPCup 2015)"
+      canonical_status: canonical
+      uncertainty: "algorithm-dependent; SOTA motion-compensated MAE 0.73-1.86 bpm"
+      provisional: false
+    sota_hr_mae_walking_bpm:
+      value: 1.3
+      range: [0.73, 1.86]
+      units: bpm
+      distribution: MAE of motion-compensated estimators
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-004
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4"
+      canonical_status: canonical
+      uncertainty: "HSUM/TROIKA-class algorithms"
+      provisional: false
+    cadence_lock_strength:
+      value: 0.8
+      range: [0.5, 1.0]
+      units: fraction of (cadence - HR) pulled into the naive estimate
+      distribution: uniform within range
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-004
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Cadence-lock)"
+      canonical_status: experimental
+      uncertainty: "lock strength not directly published; calibrated so running MAE ~26 bpm"
+      provisional: true
+
+  # ---- Motion artifact, ECG strap -----------------------------------------
+  motion_ecg:
+    burst_duration_s:
+      range: [0.3, 0.5]
+      units: s
+      distribution: uniform within range
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Electrode motion artifact, MIT-BIH NSTDB)"
+      canonical_status: canonical
+      uncertainty: "transient baseline shifts 300-500 ms"
+      provisional: false
+    burst_amplitude_vs_qrs:
+      range: [1.0, 3.0]
+      units: ratio to QRS amplitude
+      distribution: uniform within range
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md sections 1.6/7; amplitude can exceed peak-to-peak ECG"
+      canonical_status: canonical
+      uncertainty: "simulator default 1-3x QRS (dossier section 1 recommended defaults)"
+      provisional: false
+    burst_rate_per_s_at_full_intensity:
+      value: 0.5
+      units: Hz
+      distribution: Poisson burst onsets, rate scaled by activity intensity
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 1.6 (frequency of occurrence not published)"
+      canonical_status: experimental
+      uncertainty: "occurrence rate is a modelling choice"
+      provisional: true
+    emg_sigma_vs_qrs:
+      value: 0.1
+      units: ratio of EMG noise sigma to QRS amplitude
+      distribution: broadband Gaussian
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md sections 1.6/7 (EMG ~10% of ECG amplitude)"
+      canonical_status: canonical
+      uncertainty: "bandwidth 0.02-10 kHz, cannot be filtered cleanly"
+      provisional: false
+
+  # ---- Baseline wander -----------------------------------------------------
+  baseline_wander:
+    band_hz:
+      range: [0.05, 1.0]
+      units: Hz
+      distribution: colored content, ~1/f weighting
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Baseline wander, NSTDB)"
+      canonical_status: canonical
+      uncertainty: "respiration/movement origin"
+      provisional: false
+    amplitude_vs_qrs:
+      value: 0.15
+      units: ratio of wander amplitude to QRS amplitude
+      distribution: point
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 1.6 (up to ~15% of QRS)"
+      canonical_status: canonical
+      uncertainty: "upper-bound characterization"
+      provisional: false
+
+  # ---- Contact loss -> zero-lines ------------------------------------------
+  contact_loss:
+    onset_prob_at_exercise_start:
+      value: 0.3
+      range: [0.1, 0.5]
+      units: probability per motion-onset event
+      distribution: Bernoulli gated by positive activity-intensity derivative
+      evidence_tier: E2
+      source:
+        doi: "10.1186/s12938-025-01353-0"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Dry/contact loss)"
+      canonical_status: experimental
+      uncertainty: "dry-strap contact loss at exercise onset documented qualitatively; rate unpublished"
+      provisional: true
+
+  # ---- Ambient light leakage (PPG) -----------------------------------------
+  ambient_light:
+    leak_amplitude:
+      value: 3.0
+      units: ratio to pulse AC amplitude
+      distribution: uniform 0.5-1.0 x value per spike
+      evidence_tier: E2
+      source:
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Ambient light leak)"
+      canonical_status: experimental
+      uncertainty: "large artifact, undefined signal range in source"
+      provisional: true
+    spike_prob_per_s:
+      value: 0.01
+      units: Hz
+      distribution: Bernoulli, gated by loose fit AND daytime
+      evidence_tier: E2
+      source:
+        doi: "10.1038/s41598-022-25949-x"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7"
+      canonical_status: experimental
+      uncertainty: "rate is a modelling choice"
+      provisional: true
+
+  # ---- Clock drift / timing jitter ------------------------------------------
+  clock:
+    drift_s_per_hour:
+      value: 1.0
+      units: s/hour
+      distribution: linear drift, random sign per device
+      evidence_tier: E3
+      source:
+        doi: "10.1111/epi.17044"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (Clock drift, E4-class, Bottcher 2022 citing Bruno 2021)"
+      canonical_status: canonical
+      uncertainty: "up to ~1 s per hour"
+      provisional: false
+    jitter_std_ms:
+      value: 5.0
+      units: ms
+      distribution: Gaussian per-sample timestamp jitter
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 7 (BLE packet loss/jitter: CI 7.5 ms-4 s, ms-scale jitter; PMC8533907)"
+      canonical_status: canonical
+      uncertainty: "BLE jitter strongly environment-dependent (sigma 29-280x TDMA)"
+      provisional: false
+
+  # ---- Temperature effects on optical front-end ------------------------------
+  temperature_optical:
+    neutral_skin_temp_c:
+      value: 33.0
+      units: deg C
+      distribution: point
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.3 (wrist/hand mesor ~33 C)"
+      canonical_status: canonical
+      uncertainty: "inter-individual resting differences up to ~0.5 C"
+      provisional: false
+    cold_skin_temp_c:
+      value: 25.0
+      units: deg C
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.7 (0-4 C hand immersion degrades PPG; PI <0.3%)"
+      canonical_status: experimental
+      uncertainty: "onset skin temperature of the vasoconstriction collapse not published; modelling choice"
+      provisional: true
+    cold_amplitude_floor:
+      value: 0.05
+      units: fraction of thermoneutral pulse AC amplitude
+      distribution: logistic decay toward floor
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md sections 2.7/8 (perfusion index drops <0.3% with cold fingers)"
+      canonical_status: experimental
+      uncertainty: "floor calibrated to near-signal-loss at PI <0.3%"
+      provisional: true
+
+  # ---- Ectopy hook (W2 HRV module interface) ---------------------------------
+  ectopy:
+    rr_error_widen_factor:
+      value: 2.0
+      range: [1.0, 5.0]
+      units: multiplier on RR noise sigma for ectopic beats
+      distribution: point
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-002
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 1.5 (Vermunicht 2025: arrhythmic cohorts MAPE ~5%, ~5x healthy error)"
+      canonical_status: experimental
+      uncertainty: "per-beat widening factor not published; cohort-level degradation documented"
+      provisional: true
+
+  # ---- EDA motion step artifacts ----------------------------------------------
+  eda_steps:
+    step_prob_per_s_at_full_intensity:
+      value: 0.02
+      units: Hz
+      distribution: Bernoulli, rate scaled by activity intensity
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 3.5 (>20% change in 2 s flagged bad quality, E4 pipeline)"
+      canonical_status: experimental
+      uncertainty: "occurrence rate not published; flagging criterion is"
+      provisional: true

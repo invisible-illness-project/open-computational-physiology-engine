@@ -1,0 +1,148 @@
+version: "1.0"
+sensor:
+  id: "apple_watch_ppg"
+  name: "Consumer wrist PPG (Apple-Watch-like class)"
+  type: "optical_ppg"
+  manufacturer: "generic consumer smartwatch class"
+  ppg:
+    sampling_frequency_hz:
+      value: 64.0
+      units: Hz
+      distribution: point (duty-cycled/variable in background mode)
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.2/2.3 (device specs; default 64-128 Hz for waveform/IBI)"
+      canonical_status: canonical
+      uncertainty: "green PPG with IR during background; duty-cycled sampling"
+      provisional: false
+    wavelengths:
+      value: ["green_525nm", "infrared"]
+      units: nm
+      distribution: point
+      evidence_tier: E3
+      source:
+        doi: "10.1109/EMBC.2013.6609852"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.2"
+      canonical_status: canonical
+      uncertainty: "green less motion-susceptible during activity; melanin attenuation (contested, EVD-SENS-005)"
+      provisional: false
+    pulse_ac_amplitude:
+      value: 1.0
+      units: arbitrary (normalized pulse AC)
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1 (AC/DC perfusion index 0.5-5% finger, lower at wrist)"
+      canonical_status: experimental
+      uncertainty: "simulation normalization, not a physical unit"
+      provisional: true
+    dc_level:
+      value: 2.0
+      units: arbitrary (non-pulsatile component)
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: experimental
+      uncertainty: "simulation normalization"
+      provisional: true
+    adc_full_scale:
+      value: 4.0
+      units: arbitrary front-end units
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2 (front-end saturation; exact FSR not in dossier)"
+      canonical_status: experimental
+      uncertainty: "modelling choice"
+      provisional: true
+    adc_bits: null # not published for this device class; no quantization modelled
+  derived_hr:
+    bias_bpm:
+      value: -0.27
+      range: [-0.72, 0.17]
+      units: bpm
+      distribution: pooled bias, 95% CI as range
+      evidence_tier: E5
+      source:
+        claim_id: EVD-SENS-001
+        doi: "10.1038/s41746-025-02238-1"
+        pmid: "41513748"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4 (Lambe 2026 living meta-analysis)"
+      canonical_status: canonical
+      uncertainty: "82 studies, 430,052 participants"
+      provisional: false
+    loa_bpm:
+      value: [-7.19, 6.64]
+      units: bpm
+      distribution: Bland-Altman limits of agreement; sigma derived as width/3.92
+      evidence_tier: E5
+      source:
+        claim_id: EVD-SENS-001
+        doi: "10.1038/s41746-025-02238-1"
+        pmid: "41513748"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4"
+      canonical_status: canonical
+      uncertainty: "pooled LoA dominated by rest/moderate activity"
+      provisional: false
+    motion_loa_widen_factor:
+      value: 2.7
+      range: [1.0, 4.0]
+      units: multiplier on rest sigma at full activity intensity
+      distribution: scales linearly with activity intensity
+      evidence_tier: E2
+      source:
+        claim_id: EVD-SENS-001
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4 (pediatric/ambulatory tails widen to +/-19 bpm)"
+      canonical_status: canonical
+      uncertainty: "2.7x sigma reproduces ~+/-19 bpm tails (19/7 ~= 2.7)"
+      provisional: false
+    exercise_mape_percent:
+      value: 10.0
+      units: percent
+      distribution: MAPE ceiling for 10/11 exercise studies
+      evidence_tier: E5
+      source:
+        claim_id: EVD-SENS-001
+        doi: "10.1038/s41746-025-02238-1"
+        pmid: "41513748"
+      canonical_status: canonical
+      uncertainty: "10/11 exercise studies MAPE <10%"
+      provisional: false
+    hrv_mape_percent:
+      value: 28.9
+      units: percent
+      distribution: MAPE of watch HRV vs Polar H10 (negative finding)
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-002
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4 (O'Grady 2024; fails +/-10 ms equivalence)"
+      canonical_status: canonical
+      uncertainty: "HRV underestimated by 8.31 ms, MAE 20.5 ms"
+      provisional: false
+    nocturnal_rhr_mape_percent:
+      value: 2.3
+      range: [1.67, 3.00]
+      units: percent
+      distribution: range over 5 devices, 536 nights
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-002
+        pmid: "40834291"
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.4"
+      canonical_status: canonical
+      uncertainty: "nocturnal HRV MAPE 5.96-16.32%"
+      provisional: false
+  usability:
+    day_night_model: "artifact_models.day_night_usability (ppg_*_good_fraction)"
+    skin_tone_note: >
+      Skin-tone effect on HR accuracy is CONTESTED (EVD-SENS-005: Shcherbina
+      positive vs Bent null, n=9 FST-VI caveat). No magnitude is baked into
+      this profile; skin tone may only be applied as an optional sensitivity
+      covariate with wide uncertainty by the caller.
+  failure_modes:
+    - "Motion artifact / cadence-lock during rhythmic locomotion (raw-signal level, EVD-SENS-004)"
+    - "Cold-induced vasoconstriction collapsing pulse amplitude (PI <0.3%)"
+    - "Ambient light leakage when fit is loose in daylight"
+    - "Contact loss / off-wrist zero-lines"
+    - "Streaming (BLE) data loss up to 49% vs <=9% on-device (EVD-SENS-003)"
