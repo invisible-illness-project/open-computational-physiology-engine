@@ -40,6 +40,27 @@ class SimulationEngine:
     Wave-2 contract (W2-E HRV module): :meth:`get_hrv_inputs` exposes the
     mean-HR trajectory plus autonomic state (vagal/sympathetic drive,
     respiration rate) -- see the method docstring for the API.
+
+    G-P0-05 (structured HRV): ``hrv_model="structured"`` (default) replaces
+    the legacy uniform +/-hrv_noise beat perturbation with the mechanistic
+    IPFM generator of :mod:`simulation.hrv` (RSA + Mayer 0.1 Hz + 1/f
+    fractal + Bernoulli ectopy), generated from the noise-free mean-HR
+    trajectory after the run and attached to the results as
+    ``beat_times_s`` / ``rr_intervals_ms`` / ``beat_types`` /
+    ``hrv_provenance``.  ``hrv_model="legacy"`` keeps the old uniform-noise
+    path for regression comparison (no structured outputs attached).
+
+    NOTE (noise-sensitivity finding, reported to orchestrator): the legacy
+    uniform +/-2% cycle-length noise is NOT benign -- it feeds back through
+    the stiff baroreflex loop and depresses the healthy 100-s-tilt
+    sustained dHR from ~27.6 to ~18.5 bpm (frozen HUT reference direction:
+    passive tilt > active stand ~+25).  The noise-free structured
+    trajectory is the more physiological one; two noise-sensitive
+    orthostatic sanity tests that previously passed on a lucky noise draw
+    (neuropathic-POTS and hyperadrenergic-pressor comparisons, both
+    already documented engine-falsified regimes per G-P0-03) now expose
+    those documented limitations.  Re-baselining those fixtures is W1-C
+    scope (tests/test_orthostatic_response.py is outside W2-E ownership).
     """
 
     def __init__(self, model, dt=0.01, hrv_noise=0.02, seed=None,
@@ -48,10 +69,16 @@ class SimulationEngine:
                  circadian_gain_modulation=0.0,
                  sleep_start_hour=23.0, wake_hour=7.0,
                  fragmentation_prob_per_hour=0.0, osa_enabled=False,
-                 pem_enabled=None, pem_second_wave_E0=False):
+                 pem_enabled=None, pem_second_wave_E0=False,
+                 hrv_model="structured", hrv_config=None):
         self.model = model
         self.dt = dt
         self.hrv_noise = hrv_noise
+        if hrv_model not in ("structured", "legacy"):
+            raise ValueError(
+                f"hrv_model must be 'structured' or 'legacy', got {hrv_model!r}")
+        self.hrv_model = hrv_model
+        self.hrv_config = hrv_config
         # Optional RNG seed for reproducible HRV noise. seed=None (default)
         # preserves the previous non-deterministic behavior.
         self.seed = seed
@@ -473,10 +500,17 @@ class SimulationEngine:
             current_ts = sol.t[-1]
 
             # Determine next cycle length T from the heart rate Hc at the end of the beat
-            # Add random HRV noise
+            # Legacy mode: uniform +/-hrv_noise beat noise (kept for
+            # regression comparison).  Structured mode (G-P0-05): the ODE
+            # trajectory stays noise-free so mean_hr_bpm is the clean IPFM
+            # baseline; structured beats are generated post-run by
+            # simulation.hrv (see below).
             H_end = y_init[9] # Hc
             base_T = 1.0 / H_end
-            noise = np.random.uniform(-1.0, 1.0) * self.hrv_noise
+            if self.hrv_model == "legacy":
+                noise = np.random.uniform(-1.0, 1.0) * self.hrv_noise
+            else:
+                noise = 0.0
             T = round((base_T * (1.0 + noise)) / self.dt) * self.dt
 
         # Add last point
@@ -540,6 +574,17 @@ class SimulationEngine:
             "source": "ode_beat_loop",
             "honesty_flags": list(results["honesty_flags"]),
         }
+
+        # G-P0-05: structured beat generation from the noise-free mean-HR
+        # trajectory (W2-E output contract; deterministic under self.seed).
+        if self.hrv_model == "structured":
+            from simulation.hrv import generate_rr_series
+            rr_out = generate_rr_series(
+                self._hrv_inputs, seed=self.seed, config=self.hrv_config)
+            results["beat_times_s"] = rr_out["beat_times_s"]
+            results["rr_intervals_ms"] = rr_out["rr_intervals_ms"]
+            results["beat_types"] = rr_out["beat_types"]
+            results["hrv_provenance"] = rr_out["provenance"]
 
         # Restore the sacred parameter set: after the run, model.params is
         # bit-identical to the pre-run (KB + perturbation + prior) values,
