@@ -528,17 +528,17 @@ models:
         canonical_status: "canonical"  # de-facto canonical model core, formalized (G-P0-08); pending human L3
       - symbol: "tauP"
         units: "s"
-        nominal_value: 2.5
-        description: "Carotid baroreceptor pressure tracking time constant"
+        nominal_value: 0.25
+        description: "Carotid baroreceptor pressure tracking time constant (afferent limb). CORRECTED 2.5 -> 0.25 s (W4-1 limit-cycle stabilization, fix/limit-cycle): the Geddes 2022 in-silico afferent lag is a tier-C provenance-gap value, and at 2.5 s the closed baroreflex loop exceeds unity gain at its ~0.08 Hz phase crossover, producing a non-physiological supine limit cycle (mean-HR std ~15 bpm, range 43-95 bpm). Human evidence places the full vagal baroreflex cardiac arc latency at 200-600 ms (EVD-TEMP-005: 'vagal chronotropic effect < ~1 beat (sub-second)'; AUTONOMIC_PHYSIOLOGY_EVIDENCE.md Claim 3.1 / summary-table item 23, dossier-E4, La Rovere review PMC6931942), and baroreceptor transduction itself encodes within the same cardiac cycle - so the shared afferent filter must be fast (<1 s), not 2.5 s. Statics-preserving: tauP enters no steady state (pcm = pc at every equilibrium), so baselines, sustained dHR, circadian and meal responses are unchanged in character; supine std drops to ~0.9 bpm. Stability region tauP ~0.2-0.3 s healthy (not a knife-edge); dt-invariant (0.01/0.02 s)."
         provenance:
           doi: "10.1098/rsif.2022.0220"
           pmid: "36069002"
-          citation: "Geddes et al., J R Soc Interface 2022;19:20220220 (in-silico base model; per-parameter human citation absent)"
+          citation: "Geddes et al., J R Soc Interface 2022;19:20220220 (in-silico base model; per-parameter human citation absent). Value corrected to the human E4-cited vagal-arc latency band per EVD-TEMP-005 + AUTONOMIC dossier Claim 3.1 (PMC6931942)"
           evidence_level: "Level 4"
           evidence_tier: "C"  # in-silico nominal scaled into documented human ranges (EVIDENCE_AUDIT_NOTES (e))
           evidence_e_level: "E0-E1"
-          source_claim_ids: null  # FLAG: Geddes 2022 in-silico base has no EVIDENCE_REGISTRY claim
-          review_status: "PROVENANCE_GAP - in-silico nominal functioning as canonical (EVIDENCE_AUDIT_NOTES (e) defect 1); requires human L3 review"
+          source_claim_ids: ["EVD-TEMP-005"]  # corrected toward cited human vagal baroreflex latency (200-600 ms)
+          review_status: "CORRECTED (W4-1): 2.5 -> 0.25 s, human E4 latency evidence supersedes in-silico nominal; resolves F1 supine limit cycle; requires human L3 review"
         canonical_status: "canonical"  # de-facto canonical model core, formalized (G-P0-08); pending human L3
     sources:
       - "10.1098/rsif.2022.0220"

@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/equations/mathematical_models.yaml
-  sha256: 98e502748d50b9c054f9b5d30de361ff1b5077b8006cbbce7e72f77f48a5ea0f
+  sha256: 10dd89fb7bdced247916ff338340ef641513d3df63ffc772a82a57a36c25dd85
 review_history:
 - review_id: rev-25694558-eba5-4145-8fb3-239a8a250f16
   reviewed_at: '2026-09-11T00:45:41.630756+00:00'
@@ -55,3 +55,20 @@ review_history:
     for all 36 params (in-silico sources), canonical_status canonical (de-facto formalization,
     EVIDENCE_AUDIT_NOTES (e) defect 1), source_claim_ids null+FLAG. No nominal values
     changed (verified by diff). Human L3 pending.'
+- review_id: rev-7dcb6d58-e9a7-417a-b2e8-858c063a22df
+  reviewed_at: '2026-09-15T21:37:24.155599+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: W4-1-cardiovascular-stabilization
+      provider: Moonshot Kimi (subagent)
+      model_name: W4-1-cardiovascular-stabilization
+  scope:
+  - model_correctness
+  - literature_fidelity
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'tauP 2.5->0.25 s: corrected tier-C in-silico afferent lag to human E4
+    vagal-arc latency band (EVD-TEMP-005; AUTONOMIC Claim 3.1, PMC6931942). Resolves
+    F1 supine limit cycle (std 15->0.9 bpm); statics unchanged; stability region 0.2-0.3
+    s; dt-robust. Human L3 pending.'

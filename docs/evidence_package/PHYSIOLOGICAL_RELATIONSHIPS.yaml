@@ -210,7 +210,7 @@ relationships:
     equation: HR = A4 + A1/(1+exp(A2*(P-A3)))  [A1 range, A2 slope, A3 midpoint, A4 minimum]; Gmax = -A1*A2/4 at P=A3; use EXACT 5% Thr/Sat =
       A3 +/- 2.0/A2 (the common +/-2/A2 approximation underestimates operating range ~32%)
     notes: 'carotid-cardiac arc ~90% vagal at this timescale: muscarinic blockade collapses Gmax_HR -0.58 -> -0.06 bpm/mmHg. Repo mapping: Hill
-      loops with kR/kE/kH, p2Ru/p2Ra/p2E/p2H, tauR/tauE/tauH, tauP=2.5 s pressure filter.'
+      loops with kR/kE/kH, p2Ru/p2Ra/p2E/p2H, tauR/tauE/tauH, tauP=0.25 s pressure filter (corrected from the 2.5 s tier-C in-silico nominal to the E4-cited vagal arc latency band, W4-1 fix/limit-cycle).'
   quantitative_parameters:
   - name: CBR_HR_range_A1
     distribution:
