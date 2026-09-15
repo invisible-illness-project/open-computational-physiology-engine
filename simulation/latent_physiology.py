@@ -38,6 +38,13 @@ class LatentPhysiologyState:
         Dynamically calculates active states that emerge from pressure feedback
         and model parameters (e.g., Sympathetic and Parasympathetic Tone).
         """
+        # Fallback defaults duplicate KB nominals from
+        # knowledge_base/equations/mathematical_models.yaml (kR=25.0,
+        # p2Ru=89.97, kE=7.0, p2E=76.62).  They are only used if the caller
+        # fails to pass the sacred parameter set; the engine always passes
+        # model.params.  A consistency guard test
+        # (tests/test_steady_state_params.py) asserts these defaults stay
+        # equal to the KB nominals (G-P0-04).
         kR = model_params.get("kR", 25.0)
         p2Ru = model_params.get("p2Ru", 89.97)
         kE = model_params.get("kE", 7.0)

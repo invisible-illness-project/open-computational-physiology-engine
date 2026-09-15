@@ -279,6 +279,119 @@ def test_canonical_phenotypes_are_pairwise_distinct():
             )
 
 
+# ---------------------------------------------------------------------------
+# 3. Engine/KB consistency guard (G-P0-04)
+# ---------------------------------------------------------------------------
+
+def _kb_nominal_params():
+    """Nominal parameter values straight from
+    knowledge_base/equations/mathematical_models.yaml (the single
+    authoritative parameter source)."""
+    import yaml
+    models_file = os.path.join(KB_PATH, "equations", "mathematical_models.yaml")
+    with open(models_file, "r") as f:
+        model_data = yaml.safe_load(f)
+    nominal = {}
+    for model in model_data.get("models", []):
+        if model.get("model_id") == "pots_baroreflex_response_model":
+            for param in model.get("parameters", []):
+                nominal[param["symbol"]] = param["nominal_value"]
+    return nominal
+
+
+def test_perturbation_normal_values_match_kb_nominals_where_consistent():
+    """Guard against the 34.78-vs-32 class of bug: when a phenotype block's
+    `normal_value` equals the KB nominal, the applied value must equal the
+    documented `perturbed_value` exactly (ratio-scaling is then the identity
+    on the baseline).  Entries whose `normal_value` contradicts the KB
+    nominal are tracked separately (xfail guard below)."""
+    nominal = _kb_nominal_params()
+    pm = PerturbationManager(kb_path=KB_PATH)
+    checked = 0
+    for pid, ph in pm.phenotypes.items():
+        for pert in ph["parameters_perturbed"]:
+            sym = pert["symbol"]
+            if not np.isclose(float(pert["normal_value"]), nominal[sym]):
+                continue  # known conflict class -- see xfail guard below
+            params, _ = pm.apply_perturbations(dict(nominal), [pid])
+            assert np.isclose(params[sym], float(pert["perturbed_value"])), (
+                f"[{pid}] applied {sym}={params[sym]} != documented "
+                f"perturbed_value {pert['perturbed_value']}"
+            )
+            checked += 1
+    assert checked > 0, "guard is vacuous: no consistent entries found"
+
+
+# KNOWN CONFLICT (W1-A report -> W1-B owns knowledge_base/**): the
+# hyperadrenergic_pots block in knowledge_base/diseases/pots.yaml declares
+# normal_value kR=23 / kH=27 / p2H=88.5, but the KB nominals in
+# equations/mathematical_models.yaml are kR=25 / kH=25 / p2H=88.66.  The
+# PerturbationManager's ratio-scaling then APPLIES 34.78/31.48/89.96 instead
+# of the documented 32/34/89.8.  This xfail is the load-time assertion of
+# G-P0-04: it XPASSes (strict -> failure) as soon as the KB is reconciled,
+# forcing removal of this guard and regeneration of acceptance numbers.
+@pytest.mark.xfail(
+    reason=("Engine-vs-KB conflict (G-P0-04, reported to orchestrator/W1-B): "
+            "hyperadrenergic_pots normal_value kR=23/kH=27/p2H=88.5 contradict "
+            "KB nominals 25/25/88.66 -> applied 34.78/31.48/89.96 instead of "
+            "documented 32/34/89.8. KB files are W1-B territory; this guard "
+            "xfails until the KB is reconciled."),
+    strict=True,
+)
+def test_all_perturbation_normal_values_equal_kb_nominals():
+    nominal = _kb_nominal_params()
+    pm = PerturbationManager(kb_path=KB_PATH)
+    conflicts = []
+    for pid, ph in pm.phenotypes.items():
+        for pert in ph["parameters_perturbed"] + ph["unverified_parameters"]:
+            sym = pert["symbol"]
+            if sym in nominal and not np.isclose(float(pert["normal_value"]), nominal[sym]):
+                conflicts.append(
+                    f"{pid}:{sym} normal_value={pert['normal_value']} vs KB nominal {nominal[sym]}"
+                )
+    assert not conflicts, "engine-vs-KB normal_value conflicts: " + "; ".join(conflicts)
+
+
+def test_dead_inline_phenotype_blocks_are_not_applied():
+    """The stale inline `phenotypes:` blocks in mathematical_models.yaml
+    (kR->40, kH->40, RalpM->6.5) contradict diseases/pots.yaml and must stay
+    DEAD: the model's applied values must come from the disease files, never
+    from those inline blocks.  (W1-B removes the dead blocks; this guards
+    against anyone wiring them in.)"""
+    for pid in ("hyperadrenergic_pots", "neuropathic_pots"):
+        model = _load_params_only(phenotype=pid)
+        assert model.params["kR"] != 40.0, "dead inline kR=40 block became live"
+        assert model.params["kH"] != 40.0, "dead inline kH=40 block became live"
+        assert model.params["RalpM"] != 6.5, "dead inline RalpM=6.5 block became live"
+
+
+def test_latent_fallback_defaults_match_kb_nominals():
+    """The fallback defaults in latent_physiology.update_derived_states
+    duplicate KB nominals; guard them against silent divergence (G-P0-04)."""
+    nominal = _kb_nominal_params()
+    from simulation.latent_physiology import LatentPhysiologyState
+    state = LatentPhysiologyState()
+    pcm0 = 93.333
+    state.update_derived_states(pcm0, {})  # empty params -> fallback defaults
+    # Recompute with explicit KB nominals: must be identical
+    state2 = LatentPhysiologyState()
+    state2.update_derived_states(pcm0, nominal)
+    assert state.get("sympathetic_tone") == pytest.approx(state2.get("sympathetic_tone"))
+    assert state.get("parasympathetic_tone") == pytest.approx(state2.get("parasympathetic_tone"))
+
+
+def test_hrmax_prior_is_tanaka_not_fox():
+    """G-P0-04: HRmax must use Tanaka 208-0.7*age (E5, EVD-HLTH-005), not the
+    superseded Fox 220-age equation."""
+    # NB: at age 40 Tanaka and Fox coincide (180 bpm); use an age where
+    # they differ (25: Tanaka 190.5 vs Fox 195).
+    subject = VirtualSubject(age=25, sex="male", bmi=22.0, fitness="average")
+    assert subject.tanaka_hrmax_bpm() == pytest.approx(208.0 - 0.7 * 25.0)
+    params = subject.adjust_parameters(dict(_kb_nominal_params()))
+    assert params["HM"] == pytest.approx((208.0 - 0.7 * 25.0) / 60.0)
+    assert params["HM"] != pytest.approx((220.0 - 25.0) / 60.0)
+
+
 if __name__ == "__main__":
     # Convenience: print the quantified phenotype table when run directly.
     healthy = _run_short_tilt(None)
