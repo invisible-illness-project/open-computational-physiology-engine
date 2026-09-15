@@ -1,15 +1,43 @@
-version: "1.0"
+version: "1.1"
 intervention:
   id: "head_up_tilt_test"
   name: "Head-Up Tilt (HUT) Test"
   type: "orthostatic_challenge"
   protocol:
+    # Repo bench protocol implemented by simulation/engine.py.
     supine_rest_seconds: 200.0
     tilt_transition_seconds: 14.0
     tilt_duration_seconds: 100.0
     tilt_angle_degrees: 60.0
     height_cm: 25.0
     tilt_down_seconds: 14.0
+    method: "passive_head_up_tilt"   # muscle pump removed; NOT interchangeable with active stand (EVD-HLTH-004)
+    sampling:
+      engine_dt_seconds: 0.01        # continuous 0-D integration step
+      hr_channel: "Hc (heart cycle rate, bps; x60 for bpm)"
+      metric_windows:
+        baseline: "final 5 min supine before onset (bench: all available supine, flagged)"
+        initial_transient: "first 30 s post-onset"
+        sustained: "minutes 5-10 post-onset; bench 100-s tilt falls back to the final-40-s stabilized proxy (flagged short_protocol_proxy)"
+  diagnostic_protocol_10min:
+    # Evidence-licensed diagnostic configuration (Plash 2013 / POTS-lab):
+    # required for any clinical >=30 bpm claim. NOT the bench default.
+    supine_rest_seconds: 600.0       # >=10 min (POTS-lab >=1 h: record exactly)
+    tilt_transition_seconds: 14.0
+    tilt_duration_seconds: 600.0
+    tilt_angle_degrees: [60, 70]
+    fasting: true
+    time_of_day: "morning"
+  metric_semantics:
+    # FROZEN canonical semantics (G-P0-09) - single definition used by model,
+    # tests, evaluator and the dataset generator. NEVER conflate the initial
+    # transient (seconds) with the sustained response (minutes).
+    sustained_delta_HR: "mean(HR, minutes 5-10 of tilt) - mean(HR, final 5 min supine)"
+    initial_transient: "max(HR, first 30 s post-onset) - mean(HR, final 5 min supine); recorded separately"
+    implementation: "validation/evaluator.py::compute_orthostatic_metrics"
+    healthy_reference: "validation/healthy_reference.yaml (protocol-conditioned; tilt != stand != NASA lean)"
+    documentation: "docs/orthostatic_reference.md"
+    criterion_licensing: "the >=30 bpm POTS criterion is licensed only for standardized 10-min active-stand or 10-min tilt protocols (CONTRADICTION_AUDIT Target 1); on the 100-s bench protocol it is a continuity proxy, not a validated clinical claim"
   purpose: "Assess autonomic cardiovascular regulation and diagnose orthostatic intolerance syndromes such as POTS."
   # --- Evidence governance (G-P0-08/G-P0-10, metadata only; protocol values unchanged) ---
   canonical_status: "canonical"     # protocol mirrors the Geddes 2022 in-silico protocol
@@ -19,3 +47,4 @@ intervention:
   provenance:
     doi: "10.1098/rsif.2022.0220"
     evidence_level: "Level 4"
+    registry_claims: ["EVD-HLTH-004", "EVD-POTS-001", "EVD-POTS-005"]

@@ -1,22 +1,42 @@
 import numpy as np
 
+from validation.evaluator import (POTS_SUSTAINED_CRITERION_BPM,
+                                  compute_orthostatic_metrics,
+                                  load_healthy_reference,
+                                  match_reference_protocol)
+
 class AdvancedValidationSuite:
     """
     Advanced validation framework for evaluating the physiological plausibility,
     symptom emergence, circadian rhythms, and intervention efficacy in virtual patient cohorts.
+
+    Orthostatic delta-HR uses the FROZEN canonical metric semantics from
+    validation/evaluator.py (G-P0-09): sustained_delta_HR (minutes 5-10 of
+    tilt, or the flagged short-protocol proxy) is the clinical metric; the
+    initial transient (first 30 s) is recorded separately and never
+    conflated with it.
     """
     def __init__(self):
         pass
 
-    def run_suite(self, sim_results, subject_info, phenotype_name):
+    def run_suite(self, sim_results, subject_info, phenotype_name,
+                  orthostatic_protocol=None):
         """
         Executes a comprehensive validation suite.
         Returns a dictionary of results.
+
+        ``orthostatic_protocol`` (optional): dict with keys ``onset_s``,
+        ``tilt_duration_s``, ``method``, ``angle_degrees`` describing the
+        orthostatic challenge contained in ``sim_results``. When given, the
+        suite reports the canonical orthostatic metrics (sustained vs
+        transient, never conflated) and, when the protocol window matches a
+        frozen healthy-reference entry, the protocol-conditioned reference
+        comparison status.
         """
         time = sim_results["time"]
         hr = sim_results["Hc"] * 60.0  # bpm
         pau = sim_results["pau"]       # mmHg
-        
+
         checks = {}
         
         # 1. Hemodynamic Bounds Check
@@ -71,12 +91,68 @@ class AdvancedValidationSuite:
                 "details": f"Blood volume variation: {vol_range:.1f} ml based on hydration state."
             }
             
+        # 6. Canonical orthostatic metrics (only when a protocol is declared;
+        # sustained vs transient reported separately - G-P0-09 semantics).
+        orthostatic_metrics = None
+        reference_comparison = {"status": "not_applicable"}
+        if orthostatic_protocol is not None:
+            om = compute_orthostatic_metrics(
+                time=time, hr_bpm=hr,
+                onset_s=orthostatic_protocol["onset_s"],
+                tilt_duration_s=orthostatic_protocol["tilt_duration_s"])
+            orthostatic_metrics = om
+            is_healthy = phenotype_name is None or "healthy" in str(
+                phenotype_name).lower()
+            if om["sustained_window_kind"] == "unresolved":
+                checks["orthostatic_sustained_metric"] = {
+                    "pass": False,
+                    "details": ("tilt phase too short for any sustained window "
+                                "(transient reserved to first 30 s) - metric "
+                                "unresolved"),
+                }
+            elif is_healthy:
+                checks["orthostatic_sustained_metric"] = {
+                    "pass": bool(om["sustained_delta_HR_bpm"]
+                                 < POTS_SUSTAINED_CRITERION_BPM),
+                    "details": (f"healthy sustained delta-HR "
+                                f"{om['sustained_delta_HR_bpm']:.1f} bpm "
+                                f"[{om['sustained_window_kind']}]; initial "
+                                f"transient (separate) "
+                                f"{om['initial_transient_bpm']:.1f} bpm"),
+                }
+            else:
+                checks["orthostatic_sustained_metric"] = {
+                    "pass": bool(om["sustained_delta_HR_bpm"]
+                                 >= POTS_SUSTAINED_CRITERION_BPM),
+                    "details": (f"sustained delta-HR "
+                                f"{om['sustained_delta_HR_bpm']:.1f} bpm "
+                                f"[{om['sustained_window_kind']}]; initial "
+                                f"transient (separate) "
+                                f"{om['initial_transient_bpm']:.1f} bpm"),
+                }
+            try:
+                reference = load_healthy_reference()
+                pid = match_reference_protocol(
+                    reference, orthostatic_protocol.get("method"),
+                    orthostatic_protocol.get("angle_degrees"),
+                    orthostatic_protocol["tilt_duration_s"],
+                    supine_rest_s=orthostatic_protocol.get("supine_rest_s"))
+                reference_comparison = {
+                    "status": "matched" if pid else "not_applicable",
+                    "protocol_id": pid,
+                }
+            except Exception as exc:  # reference unavailable: disclose, don't fail
+                reference_comparison = {"status": "unavailable",
+                                        "reason": str(exc)}
+
         all_passed = all(chk["pass"] for chk in checks.values())
-        
+
         return {
             "phenotype": phenotype_name,
             "subject": subject_info,
             "checks": checks,
+            "orthostatic_metrics": orthostatic_metrics,
+            "reference_comparison": reference_comparison,
             "passed": all_passed
         }
 
@@ -86,6 +162,13 @@ class AdvancedValidationSuite:
         print(f"  Subject: Age {report['subject']['age']}, Sex {report['subject']['sex']}, Fitness {report['subject']['fitness']}")
         print(f"  Perturbations: {report['phenotype'].upper()}")
         print(f"==========================================")
+        om = report.get("orthostatic_metrics")
+        if om is not None:
+            print(f"Sustained delta-HR (canonical, minutes 5-10 or flagged proxy): "
+                  f"{om['sustained_delta_HR_bpm']:.1f} bpm [{om['sustained_window_kind']}]")
+            print(f"Initial transient delta-HR (first 30 s, separate): "
+                  f"{om['initial_transient_bpm']:.1f} bpm")
+            print(f"------------------------------------------")
         for name, chk in report["checks"].items():
             status = "\033[92m[PASS]\033[0m" if chk["pass"] else "\033[91m[FAIL]\033[0m"
             print(f"  {status} {name}: {chk['details']}")

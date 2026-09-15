@@ -14,15 +14,22 @@ The Cycle 2 extension adds three physiology mechanisms to the Geddes 2022
    viscoelastic capacity increase under sustained venous load, spreading
    pooling over minutes instead of seconds.
 
-Metric convention (documented, clinically grounded):
-  * dHR_sustained = mean HR late in tilt - mean supine HR. The clinical
-    POTS criterion is a *sustained* HR rise of >= 30 bpm (not a transient
-    peak), so the sustained metric is the primary acceptance metric.
-  * dHR_peak = max HR in the first 60 s of tilt - mean supine HR. This is
-    the metric used by the pre-Cycle-2 evaluation harness; it is reported
-    for continuity ("POTS preserved") but is known to be inflated by an
-    intrinsic limit cycle of the steep Geddes Hill controllers (kH=kR=25)
-    once hemodynamics operate mid-curve. See the Cycle 2 report.
+Metric convention (FROZEN, G-P0-09; validation/healthy_reference.yaml +
+docs/orthostatic_reference.md; implemented once in
+validation/evaluator.py::compute_orthostatic_metrics and reused here):
+  * sustained_delta_HR = mean(HR, minutes 5-10 of tilt) - mean(HR, final
+    5 min supine). The clinical POTS criterion is a *sustained* HR rise of
+    >= 30 bpm (not a transient peak), so the sustained metric is the
+    primary acceptance metric. The bench protocol (100 s tilt) cannot reach
+    minutes 5-10, so the flagged short-protocol proxy (final 40 s of tilt)
+    is used - a continuity check, not a licensed 10-min clinical claim.
+  * initial_transient = max(HR, first 30 s post-onset) - mean supine HR.
+    Recorded separately; NEVER conflated with the sustained phase.
+  * dHR_peak = max HR in the first 60 s of tilt - mean supine HR. Legacy
+    pre-Cycle-2 harness metric, reported for continuity ("POTS preserved")
+    but known to be inflated by an intrinsic limit cycle of the steep
+    Geddes Hill controllers (kH=kR=25) once hemodynamics operate mid-curve.
+    It is NOT an acceptance metric. See the Cycle 2 report.
 
 All runs use the seeded engine (seed=42) for determinism.
 """
@@ -34,6 +41,10 @@ from scipy.signal import find_peaks
 from models.baroreflex_model import BaroreflexPOTSModel
 from simulation.engine import SimulationEngine
 from simulation.perturbations import enable_experimental_mode
+from validation.evaluator import (PhysiologicalEvaluator,
+                                  compare_distribution_to_reference,
+                                  compute_orthostatic_metrics,
+                                  load_healthy_reference)
 
 # Standard evaluator protocol: 200 s supine settle, then 100 s of 60 deg
 # head-up tilt (tup=200, tend=300; height=25 cm). The long supine segment
@@ -68,10 +79,19 @@ def _metrics(res):
     sup = (t >= 180.0) & (t < 200.0)
     early = (t >= 200.0) & (t <= 260.0)
     late = (t >= 260.0) & (t <= 300.0)
-    base = float(hr[sup].mean())
+    # Canonical frozen semantics (G-P0-09): sustained delta-HR via the shared
+    # implementation. baseline_window_s=20 reproduces the historical bench
+    # baseline [180,200) s; the 100-s bench tilt uses the flagged
+    # short-protocol proxy window (final 40 s = [260,300) s).
+    om = compute_orthostatic_metrics(t, hr, onset_s=TILT["tup"],
+                                     tilt_duration_s=TILT["tend"] - TILT["tup"],
+                                     baseline_window_s=20.0)
+    base = om["baseline_hr_bpm"]
     out = {
         "base_hr": base,
-        "dHR_sustained": float(hr[late].mean() - base),
+        "dHR_sustained": om["sustained_delta_HR_bpm"],
+        "sustained_window_kind": om["sustained_window_kind"],
+        "initial_transient": om["initial_transient_bpm"],
         "dHR_peak": float(hr[early].max() - base),
         "pooling_ml": float(res["Vvl"][late].mean() - res["Vvl"][sup].mean()),
         "map_supine": float(res["pau"][sup].mean()),
@@ -218,9 +238,27 @@ def test_neuropathic_venomotor_denervation_worsens_tilt(pots_metrics, neuropathi
     strict=True,
 )
 def test_neuropathic_experimental_sustained_criterion(neuropathic_experimental_metrics):
-    """Target criterion from the cycle-3 re-curation evidence file: neuropathic
-    POTS with venomotor denervation should meet the sustained 30 bpm criterion.
-    Currently xfail — see reason."""
+    """FORMAL SCOPING (G-P0-03): neuropathic POTS is experimental-xfail.
+
+    Scientific justification (do NOT "fix" by tuning to pass):
+      * Engine-falsified: sustained delta-HR is 21.2 bpm vs the >=30 bpm
+        clinical criterion, even with maximal venomotor denervation
+        (dV_veno_max 250 -> 75 mL, factor 0.30).
+      * Flat dose-response: 18.5 -> 21.7 bpm over denervation factor 0-0.5,
+        because steady-state pooling is hydrostatic-gate-limited and
+        stress-relaxation creep re-expands the capacity the denervation
+        removes. This is a MODEL-ADEQUACY failure, not an evidence failure:
+        the human denervation evidence is tier A direction (Jacob 2000,
+        91-99% blunted leg reflex NE spillover).
+      * Remediation paths (future model revision, per GAP register G-P0-03):
+        (a) bounded stress-relaxation creep per van Heusden 2006, and/or
+        (b) Geddes 2022 Eq. 2.16 tilt-onset application semantics (10-s
+        delayed smooth transition) instead of static baseline overrides.
+      * Until then: canonical dataset generation MUST reject neuropathic
+        POTS (dataset-level exclusion marker proposed to W1-B's provenance
+        gate; see annotation comments in knowledge_base/diseases/pots.yaml).
+        This strict xfail is the acceptance gate for any future fix.
+    """
     assert neuropathic_experimental_metrics["dHR_sustained"] >= 30.0
 
 
@@ -269,3 +307,145 @@ def test_seeded_engine_is_deterministic():
     r1 = SimulationEngine(m1, seed=SEED).run(short)
     r2 = SimulationEngine(m2, seed=SEED).run(short)
     assert np.array_equal(r1["Hc"], r2["Hc"])
+
+
+# ---------------------------------------------------------------------------
+# G-P0-09: frozen metric semantics + protocol-conditioned healthy reference
+# (fast unit tests on synthetic traces - no engine runs)
+# ---------------------------------------------------------------------------
+
+def _synthetic_tilt_trace(tilt_duration_s=600.0, supine_s=600.0, base_hr=70.0,
+                          transient_peak_hr=120.0, sustained_hr=85.0, dt=1.0):
+    """Synthetic supine->tilt HR trace with a sharp 30-s transient spike and a
+    lower sustained plateau - built to catch transient/sustained conflation."""
+    onset = supine_s
+    t = np.arange(0.0, supine_s + tilt_duration_s, dt)
+    hr = np.full_like(t, base_hr)
+    tr = (t >= onset) & (t < onset + 30.0)
+    sus = t >= onset + 30.0
+    hr[tr] = transient_peak_hr
+    hr[sus] = sustained_hr
+    return t, hr, onset
+
+
+def test_metric_semantics_transient_never_conflated_with_sustained():
+    """A large first-30-s transient spike must NOT inflate the sustained
+    metric; the two phases are recorded separately (G-P0-09 semantics)."""
+    t, hr, onset = _synthetic_tilt_trace()
+    om = compute_orthostatic_metrics(t, hr, onset_s=onset, tilt_duration_s=600.0)
+    assert om["sustained_window_kind"] == "minutes_5_10"
+    assert om["sustained_window_s"] == (onset + 300.0, onset + 600.0)
+    assert abs(om["sustained_delta_HR_bpm"] - 15.0) < 1.0   # 85 - 70
+    assert abs(om["initial_transient_bpm"] - 50.0) < 1.0    # 120 - 70
+    # Conflation guard: sustained must not see the 120-bpm spike.
+    assert om["sustained_delta_HR_bpm"] < om["initial_transient_bpm"] - 20.0
+
+
+def test_metric_semantics_bench_protocol_uses_flagged_proxy():
+    """The 100-s bench tilt cannot reach minutes 5-10: the metric must fall
+    back to the final-40-s stabilized proxy, explicitly flagged."""
+    t, hr, onset = _synthetic_tilt_trace(tilt_duration_s=100.0, supine_s=200.0)
+    om = compute_orthostatic_metrics(t, hr, onset_s=onset, tilt_duration_s=100.0)
+    assert om["sustained_window_kind"] == "short_protocol_proxy"
+    assert om["sustained_window_s"] == (onset + 60.0, onset + 100.0)
+    assert abs(om["sustained_delta_HR_bpm"] - 15.0) < 1.0
+
+
+def test_healthy_reference_is_frozen_and_protocol_conditioned():
+    """The frozen reference must carry, per protocol: distribution, protocol
+    (angle/duration/method), source claim_id, evidence level, and PRESERVED
+    false-positive tails (never collapsed to one threshold)."""
+    ref = load_healthy_reference()
+    protocols = ref["protocols"]
+    for pid in ("active_stand_casual_10min", "active_stand_lab_10min",
+                "hut_60_70_10min", "hut_60_70_30min", "nasa_lean_10min"):
+        assert pid in protocols, f"missing frozen protocol {pid}"
+    for pid, entry in protocols.items():
+        assert entry["sustained_delta_HR_bpm"]["mean"] is not None
+        assert entry["method"] in ("active_stand", "head_up_tilt", "nasa_lean")
+        assert entry["fraction_exceeding_30bpm"] is not None
+        assert entry["evidence_level"] in ("E2", "E3", "E4", "E5")
+        assert any(s.get("claim_id") for s in entry["sources"])
+    # Preserved tails: the protocol ordering of the healthy false-positive
+    # rate is the core of CONTRADICTION_AUDIT Target 1.
+    casual = protocols["active_stand_casual_10min"]["fraction_exceeding_30bpm"]
+    tilt10 = protocols["hut_60_70_10min"]["fraction_exceeding_30bpm"]
+    lean = protocols["nasa_lean_10min"]["fraction_exceeding_30bpm"]
+    tilt30 = protocols["hut_60_70_30min"]["fraction_exceeding_30bpm"]
+    assert casual["max"] <= 0.05                      # <5% casual stand
+    assert tilt10["min"] >= 0.40 and tilt10["max"] >= 0.60   # ~40-60% 10-min tilt
+    assert lean["point"] == pytest.approx(0.33)       # 33% NASA lean (Lee 2020)
+    assert tilt30["point"] == pytest.approx(0.80)     # Plash tilt-30min specificity 20%
+    # Metric semantics are frozen in the file.
+    ms = ref["metadata"]["metric_semantics"]
+    assert "minutes 5-10" in ms["sustained_delta_HR"]
+    assert "first 30 s" in ms["initial_transient"]
+
+
+def test_reference_comparison_is_protocol_conditioned():
+    """Identical simulated samples must be judged differently per protocol:
+    tilt != stand != lean (no protocol-free comparison)."""
+    # Tilt-10min-like healthy cohort: mean 34 bpm AND ~60% above 30 bpm
+    # (Plash 2013 reports mean +/- SEM; the between-subject spread is wide -
+    # the tail fraction is the binding calibration target).
+    samples = np.concatenate([np.full(80, 28.0), np.full(120, 38.0)])
+    tilt_cmp = compare_distribution_to_reference(samples, "hut_60_70_10min")
+    stand_cmp = compare_distribution_to_reference(samples,
+                                                  "active_stand_casual_10min")
+    assert tilt_cmp["consistent_with_healthy_reference"]
+    assert not stand_cmp["consistent_with_healthy_reference"]
+    # Tail is compared, not just the mean: a lean cohort must reproduce ~33%.
+    lean_samples = np.concatenate([np.full(134, 26.0), np.full(66, 44.0)])
+    lean_cmp = compare_distribution_to_reference(lean_samples, "nasa_lean_10min")
+    assert lean_cmp["tail_within_reference"]
+    assert lean_cmp["sample_fraction_ge_30bpm"] == pytest.approx(0.33, abs=0.03)
+    # Non-canonical reference windows are guarded against silent conflation.
+    with pytest.raises(ValueError):
+        compare_distribution_to_reference(samples, "hut_60_70_30min")
+
+
+def _synthetic_sim_results(onset=200.0, tilt_duration=100.0, base_hr=70.0,
+                           transient_hr=115.0, sustained_hr=88.0):
+    """Minimal sim_results-like dict (time/Hc/pau) for evaluator unit tests."""
+    t = np.arange(0.0, onset + tilt_duration, 0.5)
+    hr = np.full_like(t, base_hr)
+    hr[(t >= onset) & (t < onset + 30.0)] = transient_hr
+    hr[t >= onset + 30.0] = sustained_hr
+    # Pulsatile pressure surrogate: 100 mmHg mean + 20 mmHg pulse at HR.
+    phase = np.cumsum(hr / 60.0) * 0.5 * 2.0 * np.pi
+    pau = 100.0 + 20.0 * np.sin(phase)
+    pau[t >= onset] -= 8.0  # small initial orthostatic drop
+    return {"time": t, "Hc": hr / 60.0, "pau": pau}
+
+
+def test_evaluator_uses_sustained_metric_not_peak():
+    """The evaluator's clinical check and hr_increase_bpm must be the
+    SUSTAINED delta-HR (canonical semantics); the transient peak is reported
+    separately and must not drive the diagnostic check."""
+    res = _synthetic_sim_results()  # transient 115, sustained 88, base 70
+    ev = PhysiologicalEvaluator()
+    rep = ev.evaluate(res, phenotype="hypovolemic_pots")
+    assert rep["sustained_delta_HR_bpm"] == pytest.approx(18.0, abs=1.0)
+    assert rep["hr_increase_bpm"] == rep["sustained_delta_HR_bpm"]
+    assert rep["initial_transient_bpm"] == pytest.approx(45.0, abs=1.0)
+    assert rep["sustained_window_kind"] == "short_protocol_proxy"
+    # Bench protocol matches no 10-min reference entry: no unlicensed claim.
+    assert rep["reference_comparison"]["status"] == "not_applicable"
+
+
+def test_evaluator_discloses_hyperadrenergic_pressor_limitation():
+    """The hyperadrenergic upright delta-SBP >= +10 mmHg pressor criterion
+    failure (Okamoto 2024, tier A; simulated ~-4.0 mmHg) must be DISCLOSED as
+    a limitation - never silently passed (GAP register G-P1-01)."""
+    res = _synthetic_sim_results()
+    ev = PhysiologicalEvaluator()
+    rep = ev.evaluate(res, phenotype="hyperadrenergic_pots")
+    assert rep["limitations"], "pressor criterion failure not disclosed"
+    assert any("delta-SBP" in lim and "+10" in lim for lim in rep["limitations"])
+    # Disclosed limitations are visible but not pass/fail gated; and no check
+    # may claim the pressor criterion passes.
+    for name, chk in rep["checks"].items():
+        assert "pressor" not in name or not chk["pass"]
+    # Other phenotypes carry no such limitation.
+    rep_h = ev.evaluate(res, phenotype=None)
+    assert rep_h["limitations"] == []
