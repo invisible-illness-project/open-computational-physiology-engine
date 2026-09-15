@@ -268,6 +268,12 @@ class SimulationEngine:
           - active_behavior: optional string trigger (e.g. 'exercise', 'meal')
           - exercise_duration_s: optional exercise-bout duration (s)
           - exertion_intensity: optional exercise intensity in [0, 1]
+          - tsim_end: optional total simulation horizon (s). ADDITIVE API
+            (W2-F dataset builder, G-P0-07): defaults to ``tend``, so every
+            legacy call site is bit-identical. When ``tsim_end > tend`` the
+            integration continues through the model's tilt-recovery schedule
+            (angle ramps down over 14 s after ``tend``), yielding the supine
+            recovery phase of the tilt-first protocol family.
         """
         # Seed the RNG for reproducible HRV noise if requested
         if self.seed is not None:
@@ -288,9 +294,11 @@ class SimulationEngine:
         # Read initial values
         y_init = list(self.model.initial_state)
 
-        # Start time and initial cycle length
+        # Start time and initial cycle length.  ``tsim_end`` (additive,
+        # W2-F): total horizon incl. post-tilt recovery; defaults to
+        # ``tend`` (legacy behavior unchanged when the key is absent).
         t_start = 0.0
-        t_end = tilt_params.get("tend", 300.0)
+        t_end = tilt_params.get("tsim_end", tilt_params.get("tend", 300.0))
 
         # Initial heart rate from state variables
         H = y_init[9]  # Hc is index 9
