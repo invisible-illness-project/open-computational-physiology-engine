@@ -1,0 +1,429 @@
+release_gates_version: 1.0.0
+governing_statement: OCPE synthetic data are candidate research artifacts whose utility for any task is unestablished
+  pending the Level-5 benchmark.
+level5_status: NOT EXECUTED - the Level-5 benchmark matrix does not exist yet; no synthetic-utility claim is made
+context:
+  gate_seed: 20260915
+  licensed_tilt:
+    tup: 300.0
+    tend: 900.0
+    height: 25.0
+    angle: 60.0
+    tsim_end: 960.0
+  bench_tilt:
+    tup: 150.0
+    tend: 250.0
+    height: 25.0
+    angle: 60.0
+    tsim_end: 310.0
+  n_healthy: 4
+  n_pots: 4
+  started: '2026-09-16T02:59:38'
+  ocpe_commit: efcffb70914b96b74f6b09b08231e00876517afc
+results:
+- gate: L1
+  check: 1.5_determinism
+  target: same seed -> bit-identical engine output (time/state/RR)
+  measured:
+    keys_compared:
+    - Hc
+    - Vau
+    - pau
+    - rr_intervals_ms
+    - time
+    mismatches: {}
+  status: pass
+  evidence: SYNTHETIC_TO_REAL_BENCHMARK L1.5; engine seeded-determinism precedent
+  note: ''
+- gate: L1
+  check: 1.2_volume_conservation
+  target: 'ODE mass conservation: sum(stressed V_i) drift < 1e-6*TotalVol over a full tilt run; unstressed offset
+    constant'
+  measured:
+    max_sumV_drift_ml: 0.0
+    drift_rel_totalvol: 0.0
+    unstressed_offset_ml: 3097.41767
+    offset_drift_rel: 0.0
+    n_steps: 15139
+    rtol: 1.0e-06
+    convention: state compartments are STRESSED volumes (p=V/C); unstressed remainder implicit and constant (Geddes-scale
+      ODE)
+  status: pass
+  evidence: L1.2; Geddes-scale ODE (EVD-TEMP-003 context)
+  note: 'state convention: compartments hold STRESSED volumes; benchmark 1.2 invariant applied to the conserved
+    quantity'
+- gate: L1
+  check: kernel_restoration_ralpm
+  target: 'meal_postprandial_pooling: plateau RalpM = baseline x0.75; EXACT baseline after recovery'
+  measured:
+    symbol: RalpM
+    baseline: 17.88
+    plateau: 13.41
+    expected_plateau: 13.41
+    final: 17.88
+    plateau_ok: true
+    restored_exactly: true
+  status: pass
+  evidence: G-P0-01 compounding fix; EVD-HLTH-006 timing
+  note: ''
+- gate: L1
+  check: kernel_restoration_es
+  target: 'exercise_bout: plateau Es = baseline x1.3; EXACT baseline after recovery'
+  measured:
+    symbol: Es
+    baseline: 3.0
+    plateau: 3.9
+    expected_plateau: 3.9
+    final: 3.0
+    plateau_ok: true
+    restored_exactly: true
+  status: pass
+  evidence: G-P0-01 compounding fix; EVD-HLTH-006 timing
+  note: ''
+- gate: L1
+  check: 1.4_identifiability
+  target: all ODE params carry E-level governance metadata; +/-20% kH perturbation below PPG LoA +/-7 bpm -> non_identifiable
+  measured:
+    structural:
+      n_parameters: 36
+      missing_e_level: []
+      semantics: population priors with documented uncertainty; never per-subject estimates (EVD-TEMP-010)
+    practical_demo:
+      delta_hr_bpm_from_param_perturbation: 2.918992
+      observation_noise_loa_bpm: 7.0
+      label: non_identifiable
+    parameter_semantics: population priors, never per-subject estimates
+  status: pass
+  evidence: L1.4; EVD-TEMP-010 (structural unidentifiability, E4)
+  note: ODE parameters are population priors with documented uncertainty, never per-subject estimates
+- gate: L1
+  check: 1.6_honesty_gating
+  target: tier-D inert in canonical mode; perturbations carry E-level + claim ids; provenance gate refuses hash-tampered
+    KB
+  measured:
+    experimental_inert: true
+    experimental_phenotype: autoimmune_neuropathy
+    perturbations_tagged: true
+    tamper_refused: true
+    tamper_detail: "refused as required: provenance gate REFUSED dataset build (1 refusal(s), mode=canonical):\n\
+      \  - /tmp/tmppqjraeaz/kb/diseases/pots.yaml: file modified after last recorded review (reco"
+  status: pass
+  evidence: "L1.6; EVIDENCE_AUDIT_NOTES \xA7e; ADR 0001"
+  note: ''
+- gate: L1
+  check: 1.7_scale_harmonization
+  target: consumed KB tiers map to E0-E5; unrecognized tier -> EXPERIMENTAL (fail-closed)
+  measured:
+    all_tiers_standard: true
+    offenders: []
+    unknown_scale_fails_closed: true
+  status: pass
+  evidence: "L1.7; EVIDENCE_AUDIT_NOTES \xA70 action item"
+  note: ''
+- gate: L1
+  check: schema_provenance_contract_hooks
+  target: dataset/schema.py hooks (schema + provenance + scientific contract incl. latent-boundary guard) pass on
+    all records
+  measured:
+    n_records: 2
+    errors: []
+  status: pass
+  evidence: "dataset/schema.py; master prompt \xA718/\xA721; rule 3"
+  note: ''
+- gate: L1
+  check: 1.5_record_determinism
+  target: same dataset_seed -> byte-identical record.yaml/derived.json
+  measured:
+    identical: true
+    record: hut60_short
+  status: pass
+  evidence: L1.5; dataset/schema.py deterministic_build_timestamp
+  note: ''
+- gate: L2
+  check: 2.1_tilt_trajectory_battery
+  target: 'healthy bench tilt: baseline 55-75 bpm; sustained proxy +15..+40; transient 3-35; recovery residual within
+    +/-10 bpm at ~45 s'
+  measured:
+    phases:
+      supine_baseline_hr_bpm:
+        value: 62.241028
+        band:
+        - 55.0
+        - 75.0
+        pass: true
+      bench_sustained_proxy_dhr_bpm:
+        value: 26.998896
+        band:
+        - 15.0
+        - 40.0
+        pass: true
+      initial_transient_peak_bpm:
+        value: 51.206731
+        band:
+        - 3.0
+        - 35.0
+        pass: false
+      recovery_residual_bpm_45s:
+        value: 2.934393
+        band:
+        - -10.0
+        - 10.0
+        pass: true
+    sustained_window_kind: short_protocol_proxy
+    supine_hr_std_bpm: 14.474501
+    band_sources:
+      supine_baseline_hr_bpm: EV-supine-rest (EVD-HLTH-001/002)
+      bench_sustained_proxy_dhr_bpm: EV-head-up-tilt (bench proxy, G-P0-09 flagged)
+      initial_transient_peak_bpm: EV-head-up-tilt initial_0_30s
+      recovery_residual_bpm_45s: EV-active-stand recovery
+  status: fail
+  evidence: EVENT_PROTOCOLS EV-supine-rest / EV-head-up-tilt / EV-active-stand (EVD-HLTH-004)
+  note: bench protocol = short_protocol_proxy (G-P0-09 flagged); licensed 10-min claims live in L3. Supine mean-HR
+    std 14.5 bpm documents the engine baseline oscillation affecting transient/recovery morphology (see 2.2 gates).
+- gate: L2
+  check: 2.1_meal_response
+  target: postprandial HR elevation within (2.0, 15.0) bpm (mixed meal +6+/-3; EVD-HLTH-006)
+  measured:
+    plateau_dhr_bpm: 10.175424
+    time_scale: 0.03
+    plateau_window_s:
+    - 64.0
+    - 152.0
+  status: pass
+  evidence: EV-meal (EVD-HLTH-006, EVD-METB-005)
+  note: kernel timing compressed (time_scale) for ODE feasibility; magnitudes untouched
+- gate: L2
+  check: 2.1_exercise_response
+  target: bout HR elevation within (5.0, 70.0) bpm; recovery below bout plateau (EV-exercise-constant-load / EV-recovery)
+  measured:
+    bout_dhr_bpm: 6.318207
+    late_recovery_dhr_bpm: 7.057323
+    es_plateau_bounded: true
+  status: fail
+  evidence: EV-exercise-constant-load (EVD-TEMP-004/EVD-HLTH-005)
+  note: the Es x1.30 contractility kernel couples only weakly to HR in the ODE (+~6 bpm), and the window comparisons
+    are dominated by the engine baseline oscillation (see 2.2 gates); reported, not tuned
+- gate: L2
+  check: 2.2_dfa_alpha1
+  target: DFA-alpha1 (4-16 beats) in (0.8, 1.2) healthy awake
+  measured:
+    dfa_alpha1: 1.515317
+  status: fail
+  evidence: EVD-TEMP-001 (E4)
+  note: ''
+- gate: L2
+  check: 2.2_rsa_peak
+  target: RSA/HF spectral peak tracks respiration rate (|f_peak - f_resp| <= 0.05 Hz)
+  measured:
+    hf_peak_hz: 0.160535
+    respiration_hz: 0.258605
+    lf_hf_ratio: 12.647855
+  status: fail
+  evidence: "EVD-TEMP-003; TEMPORAL \xA71 (RSA confound built-in)"
+  note: ''
+- gate: L2
+  check: 2.2_circadian_amplitude
+  target: circadian HR amplitude within (11.0, 16.0) bpm (~13.5; acrophase ~14:40)
+  measured:
+    amplitude_bpm: 13.500987
+    mesor_bpm: 58.065886
+    acrophase_h: 9.398113
+    days: 2
+  status: pass
+  evidence: EVD-HLTH-003 (E2/E4 cosinor anchor)
+  note: ''
+- gate: L3
+  check: 3.1_healthy_hut_distribution
+  target: healthy HUT sustained dHR mean 34+/-tol and >=30 bpm fraction in [0.40, 0.60] (frozen reference, tails
+    preserved)
+  measured:
+    comparison:
+      protocol_id: hut_60_70_10min
+      n_samples: 4
+      sample_mean_bpm: 34.850586
+      sample_sd_bpm: 4.520102
+      sample_fraction_ge_30bpm: 1.0
+      reference_mean_bpm: 34.0
+      reference_sd_bpm: 3.0
+      reference_fraction_ge_30bpm:
+        min: 0.4
+        max: 0.6
+        point: 0.6
+        note: ~60% of healthy controls exceed 30 bpm at 10-min tilt (Plash 2013 specificity tilt-10min = 40%). Optimal
+          tilt-10min cutoff ~37-38 bpm.
+      mean_within_reference: true
+      tail_within_reference: false
+      consistent_with_healthy_reference: false
+      evidence_level: E3
+      sources:
+      - claim_id: EVD-HLTH-004
+        ref: Plash et al. 2013 (tilt 27+/-3 / 34+/-3 / 40+/-4 at 5/10/30 min; 60% of controls >30 bpm at 10 min)
+        pmc: PMC3478101
+      - claim_id: EVD-POTS-001
+        ref: EVIDENCE_REGISTRY.yaml (in controls, 60% met >=30 bpm at 10-min tilt)
+        pmc: PMC3478101
+    n: 4
+    ci95_fraction_ge_30bpm:
+    - 0.397635
+    - 1.0
+  status: unresolved
+  evidence: healthy_reference.yaml hut_60_70_10min; Plash 2013 (EVD-HLTH-004); CONTRADICTION Target 1
+  note: 'n=4 < 8: tail band (0.40-0.60) not resolvable at this Monte-Carlo size; measured fraction 1.00 95% CI [0.40,
+    1.00]; mean check PASS'
+- gate: L3
+  check: 3.1_hypovolemic_pots_rate
+  target: hypovolemic-POTS >=30 bpm sustained rate >= 0.5 (severity mixture, tails reported) AND patient-minus-control
+    +19.88 bpm within CI [15.24, 24.52]
+  measured:
+    n_pots: 4
+    rate_ge_30bpm: 0.75
+    rate_ci95:
+    - 0.19412
+    - 0.993691
+    pots_samples_bpm:
+    - 29.934924
+    - 48.86654
+    - 62.932814
+    - 71.811576
+    contrast_bpm: 18.535878
+    contrast_ci95_target:
+    - 15.24
+    - 24.52
+  status: pass
+  evidence: EVD-POTS-011 (E4, meta +19.88 [15.24-24.52]); EVD-POTS-004 (Raj 2005 severity mixture); CONTRADICTION
+    Target 1/3
+  note: 'severity-mixture branch: mild deficits overlap the healthy high-normal tail BY CONSTRUCTION (pilot design);
+    rate is reported, never tuned'
+- gate: L3
+  check: 3.1_hyperadrenergic_dsbp_limitation
+  target: evaluator surfaces the delta-SBP pressor-criterion failure as a DISCLOSED LIMITATION (not a pass)
+  measured:
+    limitations:
+    - 'hyperadrenergic_pots: upright delta-SBP pressor criterion (Okamoto 2024, tier A, required >= +10 mmHg) NOT
+      met - simulated delta-SBP +0.6 mmHg (cycle-3 documented value -4.0 mmHg). 0-D windkessel limitation: pulse
+      pressure narrows on tilt (SV falls); the MAP pressor surrogate (~+5 mmHg) is present but is NOT the clinical
+      criterion. See tests/test_orthostatic_response.py strict-xfail test_hyperadrenergic_sbp_pressor_criterion.'
+    delta_SBP_beatwise_mmHg: 0.569633
+    limitation_surfaced: true
+  status: disclosed_limitation
+  evidence: G-P0-03 companion; GAP G-P1-01; tests/test_orthostatic_response.py strict-xfail
+  note: '0-D windkessel limitation: pulse pressure narrows on tilt (SV falls); disclosed per W1-C, never silently
+    passed'
+- gate: L4
+  check: 4_prcp_orthostatic_wasserstein
+  target: Wasserstein(sim healthy tilt dHR, PRCP real dHR) <= 3.0 bpm
+  measured:
+    wasserstein_bpm: 14.178108
+    n_real_episodes: 11
+    n_sim_subjects: 4
+    real_delta_hr_bpm:
+    - 15.255837
+    - 18.89208
+    - 16.632171
+    - 16.243052
+    - 25.029669
+    - 11.480412
+    - 10.534008
+    - 2.270063
+    - 6.127171
+    - 16.960278
+    - 18.509539
+    sim_delta_hr_bpm:
+    - 24.235356
+    - 29.238471
+    - 31.936208
+    - 28.733042
+    window_semantics: final 60 s of tilt hold vs final 120 s supine; simulated window minutes 2-3 post-ramp (PRCP
+      hold ~3 min)
+  status: fail
+  evidence: "PRCP (PhysioNet, OPEN, Heldt et al.); benchmark \xA7L4"
+  note: '11 slow-tilt episodes from 10 PRCP records; fetch warnings: None'
+- gate: L4
+  check: 4_eurobavar_reflex_gain
+  target: EUROBAVAR supine->standing reflex-gain comparison
+  measured:
+    fetch_error: 'URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed
+      certificate (_ssl.c:1010)>'
+  status: unresolved
+  evidence: "VALIDATION_DATASETS \xA71.2"
+  note: download/parse failed (exact reason recorded)
+- gate: L4
+  check: 4_resting_hrv_norms
+  target: healthy resting RMSSD median within (19.0, 60.0) ms (ln-normal median ~35-42 ms young; EV-supine-rest)
+  measured:
+    rmssd_median_ms: 179.057015
+    rmssd_values_ms:
+    - 147.618122
+    - 210.495908
+    - 78.105779
+    - 226.474985
+    sdnn_median_ms: 301.031132
+    n: 4
+  status: fail
+  evidence: EV-supine-rest (EVD-HLTH-001/002); published norms (literature-constraint tier, no download)
+  note: ''
+- gate: NC
+  check: NC_parity_nuisance_channels
+  target: group-conditional nuisance channels forbidden (sampling rate, noise, missingness, record length, device
+    distribution)
+  measured:
+    channels_checked:
+    - device_profile
+    - engine_dt
+    - hrv_model
+    - hrv_noise
+    - licensed_protocol
+    - missingness_model
+    - record_devices
+    - record_length_samples
+    - seed_policy
+    mismatches: {}
+  status: pass
+  evidence: "master prompt \xA714; SWARM_SPEC rule 5 (anti-laundering)"
+  note: ''
+- gate: NC
+  check: NC2_trivial_separability_auc
+  target: healthy-vs-hypovolemic-POTS LOOCV logistic AUC < 0.95; honest band (0.75, 0.85) reported (NC2)
+  measured:
+    auc_full_features: 0.625
+    auc_resting_features_only: 0.6875
+    features:
+    - baseline_hr_bpm
+    - sustained_dhr_bpm
+    - initial_transient_bpm
+    - rmssd_ms
+    - sdnn_ms
+    - dfa_alpha1
+    - lf_hf_ratio
+    n_healthy: 4
+    n_disease: 4
+    n_features: 7
+    ceiling: 0.95
+    honest_band_NC2:
+    - 0.75
+    - 0.85
+  status: pass
+  evidence: benchmark NC2 (EVD-LCOV-013 overfit counter-example); reviewer Criterion 1; rule 5
+  note: AUC is REPORTED, never tuned to pass; >0.95 = release failure regardless of cause. Resting-only view excludes
+    the orthostatic diagnostic features.
+- gate: NC
+  check: NC_demographics_disclosure
+  target: demographic differences are evidence-based (POTS 85-94% female, young onset; EVD-POP-006) and disclosed;
+    not nuisance parity
+  measured:
+    healthy:
+      n: 4
+      age_mean: 35.911746
+      female_fraction: 0.5
+    hypovolemic_pots:
+      n: 4
+      age_mean: 26.375222
+      female_fraction: 0.75
+  status: pass
+  evidence: EVD-POP-006; dataset/cohort.py recipes
+  note: 'informational: POTS demographics differ BY EVIDENCE; classifier uses signal features only'
+summary:
+  pass: 15
+  fail: 6
+  unresolved: 2
+  disclosed_limitation: 1
