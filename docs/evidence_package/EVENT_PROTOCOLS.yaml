@@ -1,0 +1,517 @@
+metadata:
+  name: OCPE Event Protocols (Model Translation, Pass 3)
+  generated_by: Model Translation Scientist
+  scale_note: 'All evidence_level values use the NORMALIZED standard scale from EVIDENCE_REGISTRY.yaml: E0=hypothesis, E1=mechanistic, E2=observational
+    human, E3=controlled human experimental, E4=replicated quantitative, E5=meta-analysis/consensus. TEMPORAL_MODEL_EVIDENCE.md and WEARABLE_OBSERVABILITY_EVIDENCE.md
+    use INVERTED scales; only registry-normalized values are used here. Auditor downgrades (EVIDENCE_AUDIT_NOTES.md, CONTRADICTION_AUDIT.md, INDEPENDENT_REVIEW_PASS2.md)
+    are applied and are BINDING.'
+  protocol_dependence_policy: 'MANDATORY (CONTRADICTION_AUDIT Target 1): the orthostatic delta-HR response is encoded PER PROTOCOL (tilt angle/duration
+    vs active stand vs NASA lean, supine-rest duration, fasting, time of day). Healthy 10-min delta-HR distributions differ by >10 bpm across
+    protocols and the 30-bpm false-positive rate ranges ~2-5% (casual stand) to ~33% (NASA lean) to ~40-60% (10-min tilt). Every orthostatic event
+    record MUST carry protocol covariates. The POTS >=30 bpm criterion applies only under standardized 10-min active-stand or tilt protocols;
+    it is not a physiological boundary.'
+  conventions: 'expected_response phases: latency / initial / peak / steady_state / recovery; healthy values carry distributions; condition deltas
+    are perturbations on the healthy phase model (never duplicate models).'
+events:
+- id: EV-supine-rest
+  name: Supine rest (baseline reference)
+  protocol: quiet supine rest, eyes open or closed, no talking; laboratory standard >=10 min (POTS-lab protocols use >=1 h supine, fasting, morning
+    - a dominant protocol covariate)
+  duration: 10-60 min
+  baseline: IS the baseline for all orthostatic protocols; record >=5 min stable
+  stimulus: none
+  expected_response:
+    steady_state_healthy:
+      HR: supine ECG lab ~55-70 bpm (lower than free-living 'rest'); device/definition offsets +/-4-8 bpm
+      RMSSD: ln-normal, median ~35-42 ms young; BRS sequence 10-15 ms/mmHg
+      BP: SBP ~112-118, DBP ~70-76 mmHg (20-40 y)
+      MSNA_latent: 24+/-6 bursts/min, 4-fold interindividual range
+      RR: 15.5+/-2.3 brpm; RSA visible in RR series
+    condition_deltas:
+      pots: resting HR +10-20 bpm clinic frame / +~3 bpm self-report frame; time-domain HRV reduced
+      mecfs: +3-5 bpm severity-scaled; RMSSD -10-20% relative
+      heds: +~8-12 bpm, RMSSD -30-35% (borderline E4)
+  affected_systems:
+  - cardiovascular
+  - autonomic
+  wearable_signals:
+  - PPG HR
+  - RR intervals (strap)
+  - RMSSD
+  - EDA tonic
+  - skin temperature
+  evidence:
+  - claims:
+    - EVD-HLTH-001
+    - EVD-HLTH-002
+    - EVD-HLTH-003
+    - EVD-POP-001
+    - EVD-AUTN-001
+    - EVD-AUTN-002
+    E: E2-E4
+- id: EV-active-stand
+  name: Active stand (supine -> standing, muscle pump engaged)
+  protocol: supine baseline (duration is a MANDATORY recorded covariate; >=1 h Vanderbilt-style vs short-notice free-living produce >10 bpm different
+    means), then stand unaided within ~3 s, remain motionless 10 min; record fasting state and time of day
+  duration: 10 min standing (5-min variant reported separately)
+  baseline: supine 5-60 min (record exact)
+  stimulus: posture transition; 300-800 mL venous pooling
+  expected_response:
+    latency: HR rise begins ~3 s (vagal withdrawal + exercise reflex)
+    initial_0_30s_healthy: BP dip nadir ~10 s (abnormal if SBP -40 / DBP -25 mmHg), recovery by 20-30 s with overshoot; HR peak ~10-15 s
+    early_1_2min_healthy: stabilization; SV -23%, CO -14-20%, SVR +~25%, DBP +8+/-4, SBP 0+/-6 mmHg
+    steady_state_10min_healthy: 'delta-HR protocol-conditioned: casual stand N(+12,5) (<5% >30 bpm); lab long-supine fasting-morning stand +23-26
+      bpm (~10-33% exceed 30 bpm); Seeley review 15 [IQR 9-20]'
+    recovery: 'on lying: HR/BP baseline within 30-60 s with bradycardic overshoot; ~10 bpm of baseline by 2 min'
+    condition_deltas:
+      pots: delta-HR rises over 2-5 min, stand 44+/-4 (5 min) / 50+/-4 (10 min); >=30 bpm sustained (>=40 ages 12-19); 1-min values overlap controls;
+        AM +8-10 bpm bias
+      mecfs: standing delta-HR SMD +0.86+/-0.46; phenotypes 58% normal/14% delayed OH/28% POTS
+      heds: 25-50% of cohort above +30 bpm (sampled from 7-49% prevalence range)
+      dehydration_heat_fasting: all increase stand delta-HR (overlap-matrix item 3)
+  affected_systems:
+  - cardiovascular
+  - autonomic
+  - venous pooling
+  wearable_signals:
+  - PPG HR (motion artifact at transition)
+  - RR intervals
+  - IMU posture (wrist posture MAPE >44% - unreliable)
+  evidence:
+  - claims:
+    - EVD-HLTH-004
+    - EVD-AUTN-005
+    - EVD-POTS-001
+    - EVD-POTS-005
+    - EVD-POTS-012
+    - EVD-MECFS-006
+    - EVD-POTS-002
+    E: E3-E4
+  - note: 'MANDATORY protocol-dependence: stand != tilt != NASA lean; false-positive rate at 30-bpm boundary is protocol property (CONTRADICTION_AUDIT
+      Target 1)'
+- id: EV-head-up-tilt
+  name: Head-up tilt (HUT, passive, muscle pump removed)
+  protocol: supine baseline, motorized tilt to 60-70 deg over ~14 s (repo hardcoded ramp), remain 10-45 min; NO voluntary muscle contraction;
+    fasting, morning typical
+  duration: 10 min (diagnostic) to 30-45 min (VVS provocation)
+  baseline: supine >=10 min (POTS-lab >=1 h)
+  stimulus: hydrostatic gradient without muscle-pump compensation; maximal hydrostatic stress
+  expected_response:
+    latency: pooling <10 s; HR rise within seconds
+    initial_0_30s_healthy: smaller initial transient than active stand (no exercise reflex)
+    steady_state_10min_healthy: 'delta-HR tilt-60: +27+/-3 (5 min), +34+/-3 (10 min), +40+/-4 (30 min); ~40-60% of healthy controls exceed 30
+      bpm at 10 min, ~80% at 30 min - the 30-bpm criterion is largely meaningless on prolonged tilt in young adults'
+    steady_state_condition_deltas:
+      pots: HUT delta-HR 49+/-4 (5 min), 55+/-5 (10 min), 62+/-4 (30 min); amplified ~0.1 Hz oscillations; tilt > stand at every time point
+      mecfs: 'CBF -26% vs -7% controls (single-group method, treat with caution); severe: -27% at 20-deg tilt'
+      vasovagal: SV-fall-first sequence; symptoms ~155 s before measurable change; CBFv leads MAP ~67 s; cardioinhibition late
+    recovery: 'tilt-down: -23% delta-HR at 20 s, -28% 1 min, -29% 2 min; baseline 1-3 min'
+  affected_systems:
+  - cardiovascular
+  - autonomic
+  - cerebral perfusion (latent)
+  - venomotor reflex
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - EDA (presyncope)
+  - NOT beat-to-beat BP (cuffless BP cannot certify absence of OH)
+  evidence:
+  - claims:
+    - EVD-POTS-005
+    - EVD-HLTH-004
+    - EVD-TEMP-003
+    - EVD-MECFS-006
+    - EVD-POTS-017
+    - EVD-POTS-012
+    E: E3-E4
+  - note: repo implements only this intervention (60 deg, 14-s ramp, 200 s supine / 100 s tilt); registry tilt_test.yaml is data-only and unparsed
+      - wire protocols into engine
+- id: EV-nasa-lean
+  name: NASA lean test (aggressive passive stand variant)
+  protocol: supine baseline, then stand with back against wall, feet ~15 cm from wall, shoulders touching, no muscle activity; 10 min
+  duration: 10 min
+  baseline: supine (fasting inflates response - record)
+  stimulus: passive-muscle-pump-removed standing - the most aggressive stand variant
+  expected_response:
+    steady_state_10min_healthy: 33% of healthy controls meet delta-HR >30 bpm by 10 min; 49% show POTS OR OH pattern (Lee 2020); free-living stand-test
+      delta-HR overlaps groups (8.15-27.71 hEDS vs 6.60-27.02 controls)
+    condition_deltas:
+      pots: high sensitivity, poor specificity protocol
+      healthy: use for specificity stress-testing of synthetic cohorts
+    recovery: rapid on supine
+  affected_systems:
+  - cardiovascular
+  - autonomic
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  evidence:
+  - claims:
+    - EVD-POTS-018
+    - EVD-POTS-001
+    E: E2
+  - note: MANDATORY as separate modality from active stand and tilt; healthy false-positive ~33%
+- id: EV-prolonged-standing
+  name: Prolonged standing (30-60 min, free-living relevant)
+  protocol: stand quietly 30-60 min after active stand onset; record plasma-filtration drift
+  duration: 30-60 min
+  baseline: supine >=10 min
+  stimulus: sustained hydrostatic stress + transcapillary filtration
+  expected_response:
+    steady_state_healthy: delta-HR creeps +2-5 bpm per 10 min (plasma filtration -10%/5 min, -15-20%/10 min); stand 30-min delta-HR ~26+/-3 (Vanderbilt
+      protocol)
+    peak_drift_condition_deltas:
+      pots: continued rise beyond diagnostic window; +5-15 bpm creep 10->30 min
+      vasovagal_susceptible: prodrome possible after 1-5+ min; terminate on presyncope
+    recovery: baseline within ~1-3 min supine
+  affected_systems:
+  - cardiovascular
+  - fluid shift
+  - RAAS (minutes-hours, do NOT attribute first 60 s)
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - EDA
+  evidence:
+  - claims:
+    - EVD-HLTH-004
+    - EVD-AUTN-005
+    - EVD-POTS-005
+    - EVD-POTS-017
+    E: E3-E4
+- id: EV-walking
+  name: Walking (steady-state ambulation)
+  protocol: walk at self-selected or fixed cadence (e.g., 100 steps/min) on level ground, 6-20 min; record grade/speed
+  duration: 6-20 min
+  baseline: standing rest 2 min
+  stimulus: rhythmic low-moderate exercise (~30-50% VO2max typical)
+  expected_response:
+    latency_initial_healthy: 'HR onset biphasic: fast vagal tau 5-10 s + slow tau 30-45 s; steady HR ~ resting + (HRmax-resting)*relative_intensity'
+    steady_state_healthy: HR ~90-115 bpm typical moderate walk; HR-VO2 approx linear 40-100% VO2max
+    recovery: bi-exponential HRR; fast vagal tau 15-30 s
+    condition_deltas:
+      mecfs: ' pacing is a first-class behavioral state; activity-matching abolishes most group signatures - do not force elevated exercise HR'
+      pots: upright+exercise tachycardia compounds; not separately quantified (E1)
+      deconditioned: higher HR at same absolute workload (lower HRmax reserve utilization)
+  affected_systems:
+  - cardiovascular
+  - muscle pump (venous return augmented vs standing)
+  wearable_signals:
+  - 'PPG HR (cadence-lock artifact: naive MAE ~26 bpm vs SOTA 0.73-1.86)'
+  - IMU steps (wrist +20-40% overcount; slow-gait undercount 5-30%)
+  - PRV degraded
+  evidence:
+  - claims:
+    - EVD-HLTH-005
+    - EVD-TEMP-004
+    - EVD-SENS-004
+    - EVD-SENS-008
+    - EVD-MECFS-011
+    E: E3-E5
+- id: EV-exercise-ramp
+  name: Incremental ramp exercise (CPET-style GXT)
+  protocol: cycle/treadmill ramp, e.g., 20-25 W/min to volitional exhaustion; measure HRmax, VT, VO2 (lab); RER>=1.05-1.1 for effort validation
+  duration: 8-15 min to exhaustion
+  baseline: seated/supine rest 3-5 min
+  stimulus: continuously increasing workload
+  expected_response:
+    initial_healthy: HR rises biphasic; baroreflex resetting with PRESERVED gain (OP shift rightward)
+    peak_healthy: HRmax = 208-0.7*age + N(0,10.5); fat oxidation peaks 62.5+/-9.8% VO2max (range 42-82%), ~0 by 85-90%
+    condition_deltas:
+      mecfs: criterion HRmax -5.81+/-3.34; symptom-limited HRpeak -16.62 (effort-confounded); CI subset ~15%
+      long_covid: 'CI phenotype 30%: peak HR -49 bpm (clinic sample, E2)'
+      pots: near-normal semirecumbent VO2max (Arnold 2013); do not impose capacity deficit
+    recovery: see EV-recovery
+  affected_systems:
+  - cardiovascular
+  - metabolic
+  - baroreflex resetting
+  wearable_signals:
+  - PPG HR (MAPE 5-10% moderate, degrades vigorous)
+  - 'strap RR (DFA-alpha1 error grows: LoA +58/-41% at high intensity)'
+  evidence:
+  - claims:
+    - EVD-POP-003
+    - EVD-METB-009
+    - EVD-METB-010
+    - EVD-MECFS-005
+    - EVD-LCOV-007
+    - EVD-AUTN-008
+    - EVD-SENS-001
+    - EVD-SENS-002
+    E: E2-E5
+- id: EV-exercise-constant-load
+  name: Constant-load submaximal exercise
+  protocol: step to fixed workload (e.g., 50% VO2max or >=VT1 for PEM-provocation designs), hold 10-30 min
+  duration: 10-30 min
+  baseline: rest 5 min
+  stimulus: step workload
+  expected_response:
+    initial_healthy: mono-exponential approach tau 10-45 s (intensity/fitness dependent); two-component (vagal 5-10 s + sympathetic 30-45 s)
+    steady_state_healthy: HR stable + slow cardiovascular drift if heat/dehydration; DFA-alpha1 declines with intensity
+    condition_deltas:
+      mecfs: 'if >=VT1: triggers PEM machinery - slowed same-day physiological recovery (tau 9-13 h vs 3-6 h) + delayed symptom kernel (12-48
+        h onset) - DECOUPLED channels'
+      heat: drift onset at lower stress than core-temperature inflection
+    recovery: bi-exponential; full baseline 30-60+ min after hard exercise
+  affected_systems:
+  - cardiovascular
+  - metabolic
+  - PEM trigger (condition-dependent)
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - HRV (alpha1 drop)
+  - skin temperature rise
+  evidence:
+  - claims:
+    - EVD-TEMP-004
+    - EVD-HLTH-005
+    - EVD-MECFS-010
+    - EVD-MECFS-008
+    - EVD-TEMP-001
+    - EVD-HLTH-008
+    E: E2-E4
+- id: EV-recovery
+  name: Post-exercise recovery
+  protocol: cessation of exercise; record position (supine vs seated vs standing cool-down - shifts HRR ~+6 bpm); passive recovery standard
+  duration: 5-60 min (extended 3-13 h autonomic window for PEM designs)
+  baseline: pre-exercise rest
+  stimulus: exercise offset
+  expected_response:
+    initial_healthy: fast vagal reactivation tau 15-30 s; HRR1 ~ N(20,6) bpm post-max with cool-down; abnormal <=12 bpm
+    steady_state_healthy: slow sympathetic decay tau 2-4 min; full baseline 30-60+ min; autonomic recovery complete 3-6 h
+    condition_deltas:
+      long_covid_mecfs_proxy: delayed autonomic recovery 9-13 h after >=VT1 exercise (same-day slowing, NOT 24-48 h delayed trough); nocturnal
+        RMSSD suppressed up to 24 h, dose-dependent
+      mecfs_PEM: symptom kernel onset 12-48 h (decoupled from physiology)
+    recovery: is the event
+  affected_systems:
+  - autonomic
+  - cardiovascular
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - nocturnal RMSSD (following night)
+  evidence:
+  - claims:
+    - EVD-HLTH-005
+    - EVD-TEMP-004
+    - EVD-MECFS-010
+    - EVD-LCOV-009
+    E: E2-E5
+- id: EV-meal
+  name: Meal ingestion (postprandial response)
+  protocol: standardized mixed meal after >=4 h fast; record kcal (280/560/840 kcal grading separable), carb fraction, time of day; remain seated
+  duration: 0-4 h post-ingestion
+  baseline: fasted seated rest 15 min
+  stimulus: meal; carbohydrate dominant driver
+  expected_response:
+    latency: onset 0-15 min
+    peak_30_60min_healthy: HR +6+/-3 bpm (mixed meal) up to +10-20 (large/high-carb); CO +10-30%; SV +10-20%; SMA flow x1.9-2.2; glucose peak
+      +40+/-15 mg/dL at 45-65 min (<140 healthy); young SBP 0+/-8 mmHg (provisional)
+    steady_state: duration proportional to meal size
+    recovery: baseline by 2-4 h; glucose by 150-180 min
+    condition_deltas:
+      elderly: PPH -11 to -16 mmHg at ~60 min (~40% prevalence); autonomic failure -25 to -40 with blunted dHR
+      pots: ~53% report worsening after high-carb; model splanchnic pooling pulse amplifying orthostatic delta-HR
+      circadian: evening meal postprandial glucose +6-17% vs morning
+  affected_systems:
+  - cardiovascular
+  - splanchnic pooling
+  - metabolic
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - CGM (if modeled)
+  - skin temperature (+meal thermogenesis, small)
+  evidence:
+  - claims:
+    - EVD-HLTH-006
+    - EVD-METB-005
+    - EVD-METB-002
+    - EVD-METB-006
+    - EVD-POTS-016
+    - EVD-METB-012
+    E: E3-E4
+- id: EV-sleep
+  name: Nocturnal sleep (full-night)
+  protocol: habitual bedtime; record sleep stages (PSG or wearable-staged with healthy-only kappa caveat); 6-9 h
+  duration: 6-9 h
+  baseline: pre-sleep resting wake
+  stimulus: sleep onset + stage cycling (~90-min ultradian)
+  expected_response:
+    initial_healthy: 'sleep onset: distal skin warming (vasodilation), HR begins decline vs ambulatory day'
+    steady_state_healthy: N3 highest vagal gain (HF up, LF/HF min, BRS up); REM phasic HR bursts +5-15 bpm, LF/HF up; stage HR spread vs recumbent
+      wake only ~2 bpm (13.5% dip >=10%); SBP dip 14.1+/-4.6% (dipper 80-85%); RR N3 ~13 brpm low CV / REM ~16 high CV; core temp toward nadir
+      04:00-06:00
+    recovery: awakening response (see EV-awakening)
+    condition_deltas:
+      mecfs: SE -3-6%, SOL +7-10 min, WASO up, TST NORMAL; PEM nights TIB +30-90 min, fragmentation up 1-7 nights
+      osa_comorbid: AHI-parameterized 4-phase cyclical HR/SpO2 sawtooth (desat >=3-4% per event)
+      inflammation: biphasic; fragmentation up dose-dependently
+  affected_systems:
+  - autonomic
+  - cardiovascular
+  - thermoregulation
+  - respiratory
+  wearable_signals:
+  - 'PPG HR (best-quality window: night usable fraction 65-75%)'
+  - nocturnal RMSSD
+  - skin temperature (ring/iButton r~0.98 overnight)
+  - SpO2
+  - IMU (actigraphy)
+  evidence:
+  - claims:
+    - EVD-HLTH-007
+    - EVD-HLTH-003
+    - EVD-SENS-007
+    - EVD-MECFS-012
+    - EVD-NEUR-012
+    - EVD-SENS-003
+    E: E2-E5
+- id: EV-awakening
+  name: Awakening and morning activation
+  protocol: record wake time (habitual vs shifted); supine->stand transition within 30 min; record circadian phase of awakening
+  duration: 0-60 min post-wake
+  baseline: last sleep epoch
+  stimulus: awakening (circadian-gated)
+  expected_response:
+    initial_healthy: sympathetic step over 30-45 min; CAR cortisol +~50% (LogNormal median 50%, IQR 25-100%) within 30 min, responder rate ~75%,
+      phase-GATED (present only when awakening ~3 h before habitual wake; absent afternoon/evening)
+    peak_healthy: morning BP surge +15-25 mmHg over 30-60 min (sleep-trough +25.1+/-11.9; pre-awakening +16.3+/-11.5)
+    condition_deltas:
+      pots: morning orthostatic intolerance worst; AM tilt positivity 100% vs 27.9% evening (pediatric) - schedule simulated tests accordingly
+    recovery: combine with orthostatic stand response (real morning traces = circadian + CAR + orthostatic)
+  affected_systems:
+  - HPA (latent)
+  - autonomic
+  - cardiovascular
+  wearable_signals:
+  - PPG HR step-up
+  - RR intervals
+  - EDA rise
+  - IMU activity onset
+  evidence:
+  - claims:
+    - EVD-HLTH-009
+    - EVD-HLTH-003
+    - EVD-POTS-002
+    E: E2-E4
+- id: EV-heat
+  name: Passive heat exposure
+  protocol: whole-body or lower-body heating (water-perfusion suit / sauna), target +0.5-1.5 degC core; record hydration
+  duration: 30-90 min
+  baseline: thermoneutral rest
+  stimulus: ambient/skin heat
+  expected_response:
+    latency: skin neural vasodilation within ~8 s; core-driven tachycardia tracks temperature
+    steady_state_healthy: HR ~ +10 bpm per +1 degC core (adult; core:skin weight 9:1); SVC +73% per +1.2 C (Ganio n=11); severe heat CO +3.3-6.6
+      L/min; orthostatic tolerance reduced
+    condition_deltas:
+      pots: heat amplifies orthostatic tachycardia (compose with POTS branches)
+      dehydrated: compounds (+3-8 bpm per -1% body mass)
+    recovery: HR tracks cooling, minutes-tens of minutes
+  affected_systems:
+  - thermoregulation
+  - cardiovascular
+  - cutaneous vasomotor
+  wearable_signals:
+  - PPG HR
+  - skin temperature (ambient leak tau 2-10 min when uncovered)
+  - EDA SCL rise (heat/humidity confound - NOT arousal)
+  - PPG amplitude changes with skin perfusion
+  evidence:
+  - claims:
+    - EVD-HLTH-008
+    - EVD-SENS-006
+    - EVD-SENS-007
+    E: E3
+  - note: repo heat perturbation Raupm/Ralpm x0.58 (Ganio 2012) has whole-body->compartmental mapping caveat - NEEDS REVIEW, sample +/-50%
+- id: EV-cold
+  name: Cold stress (cold pressor test and whole-body cold)
+  protocol: hand in ice water 3 min (cold pressor) OR whole-body cold exposure; record site/duration
+  duration: 3 min (CPT); variable (whole-body)
+  baseline: thermoneutral seated rest
+  stimulus: cold pain / skin cooling
+  expected_response:
+    initial_healthy: 'pressor response: SBP +10.4+/-6.4, DBP +7.8+/-3.7 mmHg (n=200); SBP 118->138, DBP 71->91 (n=56); MAP +~17 mmHg'
+    peak_healthy: 'HR response BIMODAL: ~50% sustained increase, ~50% initial rise then fall - mixture model mandatory; HR +5+/-5 bpm average'
+    condition_deltas:
+      older_adults: augmented pressor +20-40 mmHg; impaired SV maintenance
+      pots_neuropathic: blunted leg NE spillover with intact arm responses (regional dissociation)
+    recovery: minutes; distal skin temperature drops rapidly (vasoconstriction) -> PPG amplitude attenuation
+  affected_systems:
+  - sympathetic vasomotor
+  - pain
+  - cardiovascular
+  wearable_signals:
+  - PPG HR
+  - EDA surge (pain/arousal)
+  - skin temperature fall
+  - PPG amplitude attenuation
+  evidence:
+  - claims:
+    - EVD-POTS-019
+    E: 'E3 (dossier HEALTHY section 7.2: PMC4337083, physoc phy2.13985, PMID 18198985 - not separately registered)'
+  note: registry has no dedicated cold-pressor claim; evidence from HEALTHY dossier section 7.2 (E3, standard scale)
+- id: EV-stress-tsst
+  name: Acute psychosocial stress (TSST-like)
+  protocol: 5-min anticipation + 5-min speech + 5-min mental arithmetic before panel; record repetition number (habituation)
+  duration: 15-20 min stressor + 30-70 min recovery
+  baseline: seated rest 10 min
+  stimulus: social-evaluative threat
+  expected_response:
+    initial_healthy: 'SAM arm: HR +10-35 bpm (ES 0.89), SBP up (ES 1.17), EDA surge, RMSSD drop (ES -0.33) within minutes'
+    peak_healthy: cortisol +50-100% (d=0.93) peaking 15-20 min post-stressor (latent); responder rate 64-70%; male > female cortisol
+    recovery: HR/SBP 10-30 min; cortisol 30-70 min; cortisol HABITUATES on repetition, SAM does NOT
+    condition_deltas:
+      anxiety: tonic vmHRV low (g -0.3..-0.45) but reactivity NOT different - do not exaggerate stress response
+      panic_event_contrast: 'panic attacks modest: +10-30 bpm high variance, some HR-invariant; synthetic panic vs TSST vs ictal tachycardia must
+        be hard to separate by HR alone'
+  affected_systems:
+  - SAM (fast)
+  - HPA (slow, latent)
+  - EDA
+  wearable_signals:
+  - PPG HR
+  - EDA (cleanest sympathetic-specific channel)
+  - RR intervals/RMSSD
+  - NOT cortisol (latent-only)
+  evidence:
+  - claims:
+    - EVD-NEUR-011
+    - EVD-NEUR-010
+    - EVD-NEUR-009
+    - EVD-AUTN-010
+    - EVD-SENS-006
+    E: E2-E5
+- id: EV-dehydration
+  name: Hypohydration / dehydration
+  protocol: 24-h fluid restriction or exercise-heat sweat loss, target -1 to -3% body mass; record method (fluid restriction vs furosemide vs
+    sweat)
+  duration: hours to 24 h induction
+  baseline: euhydrated rest
+  stimulus: volume loss
+  expected_response:
+    steady_state_healthy: 'per -1% body mass: orthostatic/exercise HR +~3-8 bpm (context: exercise-heat > furosemide > mild fluid restriction);
+      mild 24-h restriction (-2.3% mass, -4.1% BV): exercising HR +7 bpm but orthostatic tolerance NOT impaired (n=17); exercise-dehydration+LBNP:
+      HR 119+/-8 vs 82+/-7'
+    condition_deltas:
+      pots: amplifies orthostatic tachycardia (hypovolemia axis composition)
+      fever: adds independent tachycardia confound to fever-HR slope
+    recovery: 'fluid ingestion partially restores within tens of minutes; water-drinking pressor: SBP +15-23 (young) / +22-42 (older women), cold
+      > room temp'
+  affected_systems:
+  - blood volume
+  - baroreflex (cardiopulmonary gain up with iso-osmotic hypovolemia)
+  - thermoregulation interaction
+  wearable_signals:
+  - PPG HR
+  - RR intervals
+  - hydration NOT directly wearable-observable (latent)
+  evidence:
+  - claims: []
+    E: 'E3 (HEALTHY dossier sections 3.4/7.3: PMC6723555, Davis & Fortney 1997, PMID 42109236, PMC8793880 - small n, consistent direction)'
+  note: no dedicated registry claim; dossier-derived, E3

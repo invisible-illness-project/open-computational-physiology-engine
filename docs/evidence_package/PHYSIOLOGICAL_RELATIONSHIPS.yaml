@@ -1,0 +1,1487 @@
+metadata:
+  name: OCPE Physiological Relationships (Model Translation, Pass 3)
+  generated_by: Model Translation Scientist
+  inputs:
+  - EVIDENCE_REGISTRY.yaml (143 claims)
+  - EVIDENCE_AUDIT_NOTES.md
+  - CONTRADICTION_AUDIT.md
+  - INDEPENDENT_REVIEW_PASS2.md
+  - CURRENT_IMPLEMENTATION_MAP.md
+  - CURRENT_PHENOTYPE_SCOPE.md
+  scale_note: 'All evidence_level values use the NORMALIZED standard scale from EVIDENCE_REGISTRY.yaml: E0=hypothesis, E1=mechanistic, E2=observational
+    human, E3=controlled human experimental, E4=replicated quantitative, E5=meta-analysis/consensus. TEMPORAL_MODEL_EVIDENCE.md and WEARABLE_OBSERVABILITY_EVIDENCE.md
+    use INVERTED scales; only registry-normalized values are used here. Auditor downgrades (EVIDENCE_AUDIT_NOTES.md, CONTRADICTION_AUDIT.md, INDEPENDENT_REVIEW_PASS2.md)
+    are applied and are BINDING.'
+  binding_constraints:
+  - Every entry in the audit's must-not-be-hard-coded list is represented as a distribution/mixture/latent, never a point constant.
+  - PEM symptom kernel (24-48 h delay, days-weeks recovery) is DECOUPLED from the physiological recovery kernel (slowed same-day recovery, hours).
+    A delayed physiological second wave is E0, optional, default OFF.
+  - Healthy orthostatic delta-HR is protocol-conditioned; the >95%-below-30-bpm constraint must NOT be enforced.
+  - Fever/HR slope is age-graded (~13 child -> ~7-10 adult bpm/degC); 12.3 bpm/C is pediatric only.
+  - POTS baroreflex gain contradiction (reduced vs unchanged vs increased) is a sampled latent, not a constant.
+  - Geddes-derived perturbations are tier-D scenario samples with a competing Fu-2010 mechanism branch (small heart + hypovolemia, intact baroreflex).
+  - RMSSD is generated from (vagal state, respiration, tidal volume, HR level, device bias); LF/HF never emitted as a sympathovagal label.
+  - Condition dependence is expressed as perturbation deltas on the shared healthy reference, never duplicate models.
+  conventions:
+    distributions: structured dicts {type, params, units}; 'provisional' flagged inline
+    evidence_level: normalized E0-E5 with auditor downgrades applied
+    source_claims: claim_ids from EVIDENCE_REGISTRY.yaml; dossier-section refs given where no registry claim exists
+relationships:
+- id: REL-HR-SV-COMPENSATION
+  name: Heart-rate to stroke-volume compensatory coupling (orthostasis, exercise, heat)
+  variables:
+    inputs:
+    - stroke_volume (preload/venous-return determined)
+    - posture
+    - exercise_intensity
+    - core_temperature
+    outputs:
+    - heart_rate
+    - cardiac_output
+  direction: SV fall drives compensatory HR rise to defend CO/MAP; in exercise SV plateaus at ~40-60% VO2max and further CO rise is HR-driven
+  functional_form:
+    class: algebraic identity + compensatory controller
+    equation: 'CO = HR * SV ; upright: HR = HR_supine + g_sv * max(0, (SV_supine - SV_upright)/SV_supine) with g_sv person-specific; heat: SV
+      decline above ~38C core is HR-mediated (filling-time), reversible by beta-blockade at matched HR'
+    notes: HR must NOT be driven independently of SV/preload in orthostatic scenarios; the repo engine implements this implicitly via the 0-D
+      hemodynamics + baroreflex loops.
+  quantitative_parameters:
+  - name: upright_SV_change
+    distribution:
+      type: normal
+      mean: -0.23
+      sd: 0.05
+      units: fraction
+      ci95:
+      - -0.3
+      - -0.16
+    note: MRI supine->60deg HUT; classic -33%
+  - name: upright_CO_change
+    distribution:
+      type: uniform
+      min: -0.2
+      max: -0.14
+      units: fraction
+  - name: upright_SVR_change
+    value: +~25% to hold MAP
+    units: fraction
+  - name: sitting_vs_supine_SV
+    value: 55+/-7 vs 76+/-8 mL (n=7, Poliner)
+    units: mL
+  timescale: beat-by-beat to minutes
+  condition_dependence:
+    healthy: as above
+    pots: resting SV 69+/-3 vs 85+/-7 mL (Fu 2010); upright CO decreased in EVERY POTS patient (n=58, Stewart 2018); %CO reduction bimodal with
+      -15% cutoff (van Campen n=226); delta-HR inversely related to delta-SV reserve until hyperadrenergic branch (delta-HR>=40) breaks the relation
+    mecfs: 'severe: cardiac index -26+/-7% during tilt (EVD-MECFS-006)'
+    heds: optional venous-capacitance perturbation only (mechanism untested, E0-E1)
+  evidence_level: E3
+  source_claims:
+  - EVD-POTS-006
+  - EVD-HLTH-004
+  - EVD-AUTN-005
+  - EVD-MECFS-006
+  uncertainty: SV/CO are NOT wearable-observable (latent); subgroup percentages of bimodal CO reduction not fully retrieved
+  contradiction_level: low
+  validation: 'tilt simulation: upright CO decrease >10% in POTS personas vs <10% controls; HR rise inversely correlated with SV reserve across
+    synthetic cohort'
+- id: REL-RSA-RESPIRATORY-GATING
+  name: Respiratory sinus arrhythmia (HR <-> respiration)
+  variables:
+    inputs:
+    - respiration_rate
+    - tidal_volume
+    - vagal_gain
+    - HR_level
+    outputs:
+    - RR_interval modulation at respiratory frequency
+    - RMSSD
+    - HF_power
+  direction: inspiration shortens RR (vagal gating), expiration lengthens; RSA amplitude scales with tidal volume and inversely with respiration
+    rate INDEPENDENTLY of vagal tone
+  functional_form:
+    class: phase-gated parasympathetic modulation
+    equation: RR(t) = RR_mean + A_rsa * sin(2*pi*f_resp*t + phi); A_rsa ~ k_vt * tidal_volume / f_resp; RSA power attenuates -20 dB/decade above
+      0.1 Hz
+    notes: Respiration and HR are MECHANISTIC INPUTS to RMSSD/HF, not noise. Respiration alone (0.03-0.5 Hz) changes SDNN up to 33%, RMSSD 37%,
+      LF 72%, HF 36%; breathing <9/min shifts respiratory power into the LF band.
+  quantitative_parameters:
+  - name: paced_6bpm_deep_breathing_maxmin_dHR
+    value: '>=15 bpm normal; 11-14 borderline; <=10 abnormal (Ewing battery)'
+    units: bpm
+  - name: E_I_ratio_by_age
+    value: 1.62 (age 16) -> 1.20 (age 70); lower normal limits >=1.36 (20s), 1.23 (30s), 1.14 (40s), 1.10 (50s), 1.06 (60s)
+    units: ratio
+  - name: resting_respiration_rate
+    distribution:
+      type: normal
+      mean: 15.5
+      sd: 2.3
+      truncate:
+      - 9
+      - 28
+      units: breaths/min
+    note: 'KORA-FF4 n=2224: median 15.8, 5th-95th 12.1-20.1; athletes 10.5 vs 13.8'
+  - name: resp_confound_magnitude
+    value: RMSSD +/-37%, SDNN +/-33% across respiration rates at constant HR (Schipke 1999)
+  timescale: seconds (within-breath)
+  condition_dependence:
+    healthy: as above; generate sympathetic and vagal drives independently and pass through respiratory gating
+    pots: postural hyperventilation/hypocapnia subset ~25% (ETCO2<30 Torr) amplifies RSA-band power and reduces CBFv (EVD-POTS-008)
+    mecfs: no direct evidence; do not perturb RSA independently of vagal-gain knob
+  evidence_level: E4
+  source_claims:
+  - EVD-AUTN-006
+  - EVD-HLTH-002
+  - EVD-HLTH-010
+  - EVD-TEMP-001
+  - EVD-POTS-008
+  uncertainty: 'exact tidal-volume scaling coefficient not pinned (E1-E2); REQUIRED TEST: paced 0.1-Hz breathing must inflate LF/HF with no sympathetic
+    change'
+  contradiction_level: none
+  validation: synthetic RMSSD must vary up to ~37% across imposed respiration rates at constant mean HR; E/I ratio within age norms under deep-breathing
+    protocol
+- id: REL-AUTONOMIC-FILTERING
+  name: Vagal/sympathetic latency and low-pass filtering of autonomic drive at the SA node
+  variables:
+    inputs:
+    - vagal_drive
+    - sympathetic_drive
+    outputs:
+    - chronotropic_effect_on_RR
+  direction: vagal fast (sub-second), sympathetic delayed and slow
+  functional_form:
+    class: pure delay + first-order low-pass per limb
+    equation: 'vagal: delay 0.2-0.6 s, tau_v 0.5-1.5 s (effective within same/next beat); sympathetic: delay ~1.5-2 s, tau_s 5-15 s; vagal bandwidth
+      >=0.4-0.5 Hz, sympathetic <=0.1-0.15 Hz (physiological basis of HF/LF split)'
+    notes: HRV content >0.15 Hz generated by the vagal limb only. MSNA burst latency 1.3+/-0.03 s post R-wave (shortens to 1.04 s at presyncope).
+  quantitative_parameters:
+  - name: vagal_delay
+    distribution:
+      type: uniform
+      min: 0.2
+      max: 0.6
+      units: s
+  - name: vagal_tau
+    distribution:
+      type: uniform
+      min: 0.5
+      max: 1.5
+      units: s
+  - name: sympathetic_delay
+    distribution:
+      type: uniform
+      min: 1.5
+      max: 2.0
+      units: s
+    note: canine pure delay 1.7 s
+  - name: sympathetic_tau
+    distribution:
+      type: uniform
+      min: 5
+      max: 15
+      units: s
+    note: 'WIDE PRIOR: exact human SA-node sympathetic tau inferred, not directly measured; treat exact values as soft priors (registry EVD-TEMP-005
+      = E1, do-not-hard-code list item 20)'
+  timescale: sub-second to tens of seconds
+  condition_dependence:
+    healthy: as above
+    mecfs: repo tier-D tauH 6.25->12 s / taur 12.5->25 s have NO supporting source; keep experimental-only
+  evidence_level: E4
+  source_claims:
+  - EVD-AUTN-004
+  - EVD-TEMP-005
+  uncertainty: cross-dossier grading disagreement resolved in favor of AUTONOMIC (La Rovere/Berger/Saul) with wide-prior caveat on human sympathetic
+    tau; exact latency values = soft priors only
+  contradiction_level: low
+  validation: 'simulated phenylephrine ramp: RR lengthens within 1 beat; sympathetic step: HR rise begins after ~2 s, 63% complete in 10-20 s'
+- id: REL-BAROREFLEX-SIGMOID
+  name: Carotid baroreflex logistic (sigmoid) HR/MAP response + operating-point gain
+  variables:
+    inputs:
+    - carotid_sinus_pressure (MAP surrogate)
+    outputs:
+    - HR
+    - MAP
+    - SVR
+  direction: pressure up -> HR/SVR down (negative feedback); sigmoid with threshold and saturation
+  functional_form:
+    class: 4-parameter logistic (Kent/Raven/Ogoh form); repo implements Hill targets on pcm
+    equation: HR = A4 + A1/(1+exp(A2*(P-A3)))  [A1 range, A2 slope, A3 midpoint, A4 minimum]; Gmax = -A1*A2/4 at P=A3; use EXACT 5% Thr/Sat =
+      A3 +/- 2.0/A2 (the common +/-2/A2 approximation underestimates operating range ~32%)
+    notes: 'carotid-cardiac arc ~90% vagal at this timescale: muscarinic blockade collapses Gmax_HR -0.58 -> -0.06 bpm/mmHg. Repo mapping: Hill
+      loops with kR/kE/kH, p2Ru/p2Ra/p2E/p2H, tauR/tauE/tauH, tauP=2.5 s pressure filter.'
+  quantitative_parameters:
+  - name: CBR_HR_range_A1
+    distribution:
+      type: normal
+      mean: 17.1
+      sd: 2.7
+      units: bpm
+  - name: CBR_slope_A2
+    distribution:
+      type: normal
+      mean: 0.15
+      sd: 0.03
+      units: 1/mmHg
+  - name: CBR_midpoint_A3
+    distribution:
+      type: normal
+      mean: 99.9
+      sd: 5.0
+      units: mmHg
+  - name: CBR_minHR_A4
+    distribution:
+      type: normal
+      mean: 55.6
+      sd: 1.8
+      units: bpm
+  - name: Gmax_HR
+    distribution:
+      type: normal
+      mean: -0.58
+      sd: 0.1
+      units: bpm/mmHg
+    note: carotid-only scale; whole-baroreflex gain larger
+  - name: Gmax_MAP
+    distribution:
+      type: uniform
+      min: -0.4
+      max: -0.24
+      units: mmHg/mmHg
+  - name: BRS_operating_point
+    value: young supine ~10-15 ms/mmHg (sequence/spectral), 15-20 ms/mmHg (phenylephrine scale); halve per ~20 y of age; lognormal, SD/mean ~0.4-0.5
+    note: 'METHOD BIAS: sequence/spectral UNDERESTIMATE phenylephrine BRS by 33-67% - method must be a modeled variable'
+  timescale: seconds
+  condition_dependence:
+    healthy: as above
+    pots: 'CONTRADICTORY (do-not-hard-code item 1): Gmax -25% supine (Stewart 2021) vs unchanged (Fu 2010, Galbreath 2011) vs INCREASED pediatric.
+      Sample gain delta from ~N(-0.20, 0.10) truncated [-0.35, +0.10] as latent uncertainty; pediatric branch positive; NO point constant.'
+    post_mi_chf_anchors: BRS ~7-8 (post-MI), ~2-4 (CHF); BRS<3 ms/mmHg -> RR 2.8 cardiac mortality (ATRAMI)
+  evidence_level: E3
+  source_claims:
+  - EVD-AUTN-003
+  - EVD-AUTN-002
+  - EVD-POTS-010
+  uncertainty: canonical parameter set rests on n=9 (Ogoh/Raven lab) - point estimates, NOT population distributions (do-not-hard-code item 15);
+    method-scale dependence must be encoded
+  contradiction_level: high (POTS gain); none (healthy logistic form)
+  validation: neck-suction impulse simulation reproduces Gmax and glycopyrrolate sensitivity; sequence-method analysis of synthetic supine BP/HR
+    recovers prescribed gain within documented method bias
+- id: REL-BAROREFLEX-RESETTING
+  name: Baroreflex resetting rule (exercise and posture)
+  variables:
+    inputs:
+    - exercise_intensity
+    - central_command
+    - exercise_pressor_reflex
+    outputs:
+    - sigmoid_P3_P4_shift
+    - operating_point
+  direction: exercise resets sigmoid upward/rightward with PRESERVED maximal gain; operating point moves toward threshold (OP gain falls geometrically)
+  functional_form:
+    class: intensity-dependent operating-point shift (NOT gain reduction)
+    equation: P3(exercise) = P3_rest + dP3 * intensity; P4(exercise) = P4_rest + dP4 * intensity; Gmax unchanged. Central command resets carotid-cardiac
+      arc; central command OR pressor reflex resets carotid-vasomotor arc.
+    notes: 'BRS falls within SECONDS at exercise onset (vagal withdrawal) while operating-point resetting is slower (tens of s to min). Post-exercise:
+      rapid vagal reactivation resets back.'
+  quantitative_parameters:
+  - name: gain_fall_onset
+    value: seconds (vagal withdrawal)
+    units: s
+  - name: OP_reset_tau
+    value: tens of seconds to minutes
+    units: s
+  timescale: seconds to minutes
+  condition_dependence:
+    healthy: as above
+    pots: no direct evidence; apply same structure
+    mecfs: blunted peak HR ceiling applies (REL-EXERCISE-KINETICS)
+  evidence_level: E4
+  source_claims:
+  - EVD-AUTN-008
+  uncertainty: key human studies small (n=8); dP3/dP4 magnitudes per intensity not pinned - provisional
+  contradiction_level: none
+  validation: 'steady-state exercise: HR and BP rise in parallel with preserved sequence-analysis counts displaced rightward'
+- id: REL-ACCENTUATED-ANTAGONISM
+  name: Vagal-sympathetic interaction (accentuated antagonism)
+  variables:
+    inputs:
+    - vagal_level
+    - sympathetic_level
+    outputs:
+    - HR
+  direction: vagal HR effect AUGMENTED by background sympathetic activity; interaction obligatory, not additive
+  functional_form:
+    class: multiplicative interaction
+    equation: HR = f(vagal, symp) with vagal gain scaled by (1 + k * symp_level); branches NOT additive-independent
+    notes: Levy 1971 direction is E4; the human interaction coefficient magnitude is E1-E2.
+  quantitative_parameters:
+  - name: interaction_coefficient_k
+    distribution:
+      type: uniform
+      min: 1
+      max: 3
+    note: 'DO-NOT-HARD-CODE (audit item 14): tunable with mandatory sensitivity analysis'
+  timescale: beat-by-beat
+  condition_dependence:
+    healthy: as above
+  evidence_level: E4 (direction); E1-E2 (k magnitude)
+  source_claims:
+  - EVD-AUTN-009
+  uncertainty: k uncertain; run sensitivity over k in [1,3]
+  contradiction_level: none
+  validation: 'sensitivity analysis over k; direction check: HR rise on vagal withdrawal larger at high sympathetic background'
+- id: REL-INTRINSIC-HR
+  name: Intrinsic heart rate and resting autonomic balance
+  variables:
+    inputs:
+    - age
+    - vagal_effect
+    - sympathetic_effect
+    outputs:
+    - HR
+  direction: resting HR < IHR in most healthy adults -> resting state is vagal-dominant
+  functional_form:
+    class: linear age model + multiplicative autonomic modulation
+    equation: IHR = 118.1 - 0.57*age (Jose & Collison 1970); HR = IHR * (1 - vagal_effect) * (1 + sympathetic_effect); double blockade eliminates
+      >98% of HRV
+    notes: observed IHR range 57-126 bpm
+  quantitative_parameters:
+  - name: IHR_intercept
+    value: 118.1
+    units: bpm
+  - name: IHR_age_slope
+    value: -0.57
+    units: bpm/year
+  timescale: chronic (age); beat-by-beat (modulation)
+  condition_dependence:
+    healthy: as above
+  evidence_level: E4
+  source_claims:
+  - EVD-AUTN-007
+  uncertainty: blockade doses vary across labs
+  contradiction_level: none
+  validation: simulated double blockade collapses HRV >98% and yields HR = IHR(age)
+- id: REL-ORTHOSTATIC-TIMECOURSE
+  name: Posture -> HR/BP/SV/CO full time course (PROTOCOL-CONDITIONED, MANDATORY)
+  variables:
+    inputs:
+    - posture_transition (supine->stand | supine->tilt | NASA-lean)
+    - supine_rest_duration
+    - fasting_state
+    - time_of_day
+    - age
+    outputs:
+    - delta_HR(t)
+    - SBP(t)
+    - DBP(t)
+    - SV(t)
+    - CO(t)
+    - SVR(t)
+  direction: upright -> venous pooling -> transient BP dip -> baroreflex HR/SVR compensation -> sustained tachycardia with slow upward drift
+  functional_form:
+    class: multi-phase event kernel (initial transient + early stabilization + sustained creep), parameterized PER PROTOCOL
+    equation: 'delta_HR(t) = A_transient * kernel_fast(t) + A_sustained(protocol) * (1 - exp(-(t-t0)/tau_rise)) + drift_rate * t; recovery on
+      supine return: fast tau << onset tau, baseline within ~30-60 s with bradycardic overshoot'
+    notes: 'MANDATORY per contradiction audit Target 1: the healthy 10-min delta-HR is protocol-dependent, NOT a single Normal(+12,5). Never force
+      >95%-below-30-bpm; true 10-min false-positive rate is ~10-33% depending on protocol. Split initial transient (peak 10-30 s) from sustained
+      1-10-min response explicitly (review P2 item 9).'
+  quantitative_parameters:
+  - name: initial_BP_dip
+    value: nadir ~10 s, recover by 20-30 s; abnormal if SBP drop >40 or DBP >25 mmHg (initial OH)
+    units: mmHg
+  - name: initial_HR_peak
+    value: rises from ~3 s, peaks ~10-15 s (vagal withdrawal + muscle-pump reflex)
+    units: s
+  - name: stand10_deltaHR_casual
+    distribution:
+      type: normal
+      mean: 12
+      sd: 5
+      units: bpm
+    note: free-living/short-notice stand; <5% exceed 30 bpm
+  - name: stand10_deltaHR_lab
+    distribution:
+      type: normal
+      mean: 25
+      sd: 6
+      units: bpm
+    note: 'Vanderbilt protocol (>=1 h supine, fasting, morning): 23+/-3 @5min, 25+/-3 @10min, 26+/-3 @30min (Plash); Seeley 2025 review: 15 [IQR
+      9-20]; NASA lean (passive-muscle-pump-removed): 33% of healthy exceed 30 bpm by 10 min (Lee 2020)'
+  - name: tilt10_deltaHR
+    distribution:
+      type: normal
+      mean: 34
+      sd: 8
+      units: bpm
+    note: 'Plash tilt: 27+/-3 @5min, 34+/-3 @10min, 40+/-4 @30min; 60% of controls exceed 30 bpm at 10-min tilt, 80% at 30-min'
+  - name: prolonged_stand_drift
+    distribution:
+      type: uniform
+      min: 2
+      max: 5
+      units: bpm per 10 min
+    note: plasma-filtration driven; E1 provisional
+  - name: upright_SV_CO_SVR
+    value: SV -23% (CI -30..-16), CO -14 to -20%, SVR +~25%, DBP +~8+/-4 mmHg, SBP ~0+/-6 mmHg
+  - name: adolescent_tail
+    value: 95th percentile stand delta-HR 41-48 bpm; 42% of healthy children exceed 30 bpm on 5-min tilt -> pediatric POTS criterion >=40 bpm
+  timescale: seconds (transient) to 30+ min (creep)
+  condition_dependence:
+    healthy: as above; protocol-conditioned means with honest tails
+    pots: 'sustained component rises over 2-5 min and creeps to 30+ min; HUT delta-HR 49+/-4 @5min, 55+/-5 @10min, 62+/-4 @30min; stand 44+/-4
+      / 50+/-4; 1-min values overlap controls (103.9 vs 99.2), separation develops minutes 2-10; tilt>stand at every time point (EVD-POTS-005);
+      time-of-day: +8-10 bpm AM bias, pediatric positivity 100% AM vs 27.9% evening (EVD-POTS-002)'
+    mecfs: HUT HR SMD +0.92+/-0.24; standing delta-HR SMD +0.86+/-0.46; CBF -26% vs -7%; hemodynamic phenotypes 58% normal / 14% delayed OH /
+      28% POTS (EVD-MECFS-006)
+    heds: POTS-rate 7-49% by criteria/ascertainment - sample, do not hard-code (EVD-EDS-004)
+    vasovagal_contrast: SV-fall-first state machine; symptoms ~155 s before measurable change; CBFv leads MAP by ~67 s; cardioinhibition late
+      (EVD-POTS-017)
+  evidence_level: E3 (healthy reference); E4 (POTS trajectory)
+  source_claims:
+  - EVD-HLTH-004
+  - EVD-AUTN-005
+  - EVD-TEMP-003
+  - EVD-POTS-001
+  - EVD-POTS-005
+  - EVD-POTS-002
+  - EVD-POTS-012
+  - EVD-POTS-018
+  - EVD-MECFS-006
+  uncertainty: free-living healthy stand distribution essentially unmeasured at scale; orthostatic delta-HR event-to-event reliability unknown
+    (provisional CV 15-25%, coverage gap 5)
+  contradiction_level: high (this is THE calibration hinge; protocol must be a modeled variable)
+  validation: 'fraction exceeding 30 bpm at 10 min: ~2-5% casual stand, ~10-33% aggressive stand/NASA-lean, ~40-60% tilt; 1-min POTS/control overlap;
+    5-10-min separation; tilt-down: HR within ~10 bpm of baseline by 2 min'
+- id: REL-VENOUS-POOLING-REFILL
+  name: Orthostatic venous pooling and transcapillary plasma shift
+  variables:
+    inputs:
+    - posture
+    - upright_duration
+    outputs:
+    - thoracic blood volume
+    - plasma volume
+    - preload
+  direction: upright -> blood shifts below diaphragm; plasma filters to interstitium; both drive preload fall
+  functional_form:
+    class: two-time-constant volume dynamics
+    equation: 'pooling: 0.5-1.0 L, bulk within first 10 s, complete 3-5 min; plasma loss ~10% (~500 mL) by 5 min, 15-20% by 10 min; repo states:
+      Vvm (Heldt 2002 venomotor Hill, tau_veno=12 s) + Vsr (van Heusden 2006 stress-relaxation creep, tau_sr=100 s)'
+    notes: RAAS engages only after minutes - do NOT attribute first-60-s compensation to RAAS. CO falls ~20%; MSNA ~1.5-2x; plasma NE 181->472
+      pg/mL (~2.5x; spillover +80%, clearance -30%).
+  quantitative_parameters:
+  - name: pooled_volume
+    distribution:
+      type: uniform
+      min: 300
+      max: 800
+      units: mL
+    note: TEMPORAL claim 300-800 mL; AUTONOMIC 0.5-1.0 L
+  - name: plasma_loss_5min
+    value: -10% (~500 mL)
+    units: fraction
+  - name: plasma_loss_10min
+    value: -15 to -20%
+    units: fraction
+  timescale: pooling <10 s to 3-5 min; filtration minutes; RAAS minutes-hours
+  condition_dependence:
+    healthy: as above
+    pots_flow_phenotypes: 'thoracic volume change at tilt: control -12+/-3% vs low-flow -25+/-5%, normal-flow -32+/-4%, high-flow -30+/-5%; splanchnic
+      pooling differentiates variants (Stewart lab, adolescents, replication LOW - do-not-overtrust)'
+    heds: 'venous-pooling mechanism E0-E1: no venous-compliance measurement exists; optional perturbation with explicit ''mechanism untested''
+      flag (do-not-hard-code item 10)'
+  evidence_level: E4
+  source_claims:
+  - EVD-AUTN-005
+  - EVD-POTS-007
+  - EVD-TEMP-003
+  - EVD-EDS-003
+  uncertainty: 'venous stress-relaxation kinetics quantitatively unknown (E1); Stewart flow phenotypes single-lab (replication: low)'
+  contradiction_level: low (healthy arc); high (hEDS mechanism)
+  validation: 'active-stand scenario: pooling <10 s, BP dip recovery <30 s, plasma drift -10%/5 min; repo test: pooling >=350 mL at 100 s, analytic
+    steady state in [500,1000] mL'
+- id: REL-EXERCISE-KINETICS
+  name: Exercise HR on/off kinetics, HRmax, and heart-rate recovery
+  variables:
+    inputs:
+    - workload
+    - age
+    - fitness
+    - protocol (position, cool-down)
+    outputs:
+    - HR(t)
+    - HRmax
+    - HRR1/HRR2
+  direction: 'onset: biphasic rise (vagal fast + sympathetic slow); cessation: bi-exponential decay (fast vagal + slow sympathetic)'
+  functional_form:
+    class: mono-exponential on-kinetics; bi-exponential off-kinetics; linear HR-workload
+    equation: 'on: HR(t) = HR0 + dHR_fast*(1-exp(-t/tau_fast)) + dHR_slow*(1-exp(-t/tau_slow)); off: HR(t) = HR_end - A1*(1-exp(-t/tau_rec_fast))
+      - A2*(1-exp(-t/tau_rec_slow)); steady HR ~= resting + (HRmax - resting) * relative_intensity (approx linear 40-100% VO2max); HRmax = 208
+      - 0.7*age + N(0, 10.5)'
+    notes: SUPERSEDED Fox 220-age equation must be REPLACED in repo population.py (HM=(220-age)/60) by Tanaka (audit defect). HRmax residual is
+      irreducible (SD ~10-12 bpm; two healthy 40-y-olds can differ by 40 bpm) - never sample HR zones without residual.
+  quantitative_parameters:
+  - name: tau_on_fast_vagal
+    distribution:
+      type: uniform
+      min: 5
+      max: 10
+      units: s
+    note: provisional
+  - name: tau_on_slow_symp
+    distribution:
+      type: uniform
+      min: 30
+      max: 45
+      units: s
+    note: provisional; TEMP-004 allows 10-45 s overall mono-exponential
+  - name: tau_off_fast_vagal
+    distribution:
+      type: uniform
+      min: 15
+      max: 30
+      units: s
+  - name: tau_off_slow_symp
+    distribution:
+      type: uniform
+      min: 120
+      max: 240
+      units: s
+  - name: HRmax_residual
+    distribution:
+      type: normal
+      mean: 0
+      sd: 10.5
+      units: bpm
+  - name: HRR1_healthy
+    distribution:
+      type: normal
+      mean: 20
+      sd: 6
+      units: bpm
+    note: post-max with cool-down; CARDIA mean 44+/-11 bpm at 1 min declining -3.6 bpm/20 y (protocol differs); abnormal <=12 bpm (Cole)
+  - name: full_recovery_time
+    value: 30-60+ min after hard exercise
+    units: min
+  timescale: seconds to ~1 h
+  condition_dependence:
+    healthy: 'as above; DO NOT implement universal fitness->HRR1 mapping (contradictory: master athletes null vs students large effect; protocol-dependent
+      shift ~+6 bpm)'
+    mecfs: criterion HRmax -5.81+/-3.34 bpm (I2=0%); symptom-limited HRpeak -16.62+/-4.68 bpm (effort-confounded, triple the criterion effect);
+      chronotropic incompetence subset ~15%
+    long_covid: 'CI phenotype in ~30% of symptomatic clinic cohort: peak HR -49 bpm (119 vs 170), HRR1 -7.9 bpm (EVD-LCOV-007, single cohort E2)'
+    pots: no exercise-capacity deficit established (near-normal semirecumbent VO2max, Arnold 2013); HM ceiling unchanged
+    medication: beta-blocker caps HR ceiling (gain mask, REL-MEDICATION-MASKS)
+  evidence_level: E5 (HRmax); E3-E4 (kinetics/HRR)
+  source_claims:
+  - EVD-HLTH-005
+  - EVD-TEMP-004
+  - EVD-POP-003
+  - EVD-METB-010
+  - EVD-MECFS-005
+  - EVD-LCOV-007
+  uncertainty: onset tau values provisional; HRR protocol-dependent (position/cool-down ~+6 bpm); HRR test-retest CV not located
+  contradiction_level: moderate (fitness->HRR1)
+  validation: 'synthetic transients: tau_on in 10-45 s; bi-exponential off-kinetics beats mono-exponential on synthetic data; HRmax residual SD
+    ~10.5 bpm across synthetic cohort'
+- id: REL-MEAL-RESPONSE
+  name: Postprandial cardiovascular and metabolic response
+  variables:
+    inputs:
+    - meal_size_kcal
+    - carb_fraction
+    - time_of_day
+    - age
+    outputs:
+    - HR(t)
+    - CO
+    - SV
+    - SBP
+    - SMA_flow
+    - glucose(t)
+  direction: meal -> splanchnic vasodilation + hyperemia -> HR/SV/CO up; young BP maintained, elderly PPH
+  functional_form:
+    class: asymmetric meal kernel (rise ~0-60 min, decay 60-240 min), meal-size scaled
+    equation: 'dHR(t) = A_meal * kernel(t; peak 30-60 min, tau_decay ~60-90 min); A_meal = +6+/-3 bpm mixed meal, up to +10-20 bpm large/high-carb;
+      glucose: rise ~0.5-1 mg/dL/min, peak +40+/-15 mg/dL at 45-65 min, return by 150-180 min'
+    notes: 'RESOLVED cross-dossier conflict (audit B3.1): default +6+/-3 bpm mixed meal (METABOLIC controlled data), NOT +10-20 (clinical-review
+      only). Duration proportional to meal size; HR changes explain ~68% of postprandial SMA flow change. Glucose almost always <140 mg/dL in
+      healthy; time-to-peak within-person IQR 40-124 min (huge lability).'
+  quantitative_parameters:
+  - name: dHR_mixed_meal
+    distribution:
+      type: normal
+      mean: 6
+      sd: 3
+      units: bpm
+  - name: dHR_large_meal
+    distribution:
+      type: uniform
+      min: 10
+      max: 20
+      units: bpm
+  - name: CO_increase
+    value: +9-100% across studies (use +10-30% typical)
+    units: percent
+  - name: SV_increase
+    value: +18-41% (use +10-20% typical)
+    units: percent
+  - name: SMA_flow_multiplier
+    distribution:
+      type: uniform
+      min: 1.9
+      max: 2.2
+    note: +87% carb, +121% fat
+  - name: young_SBP_change
+    distribution:
+      type: normal
+      mean: 0
+      sd: 8
+      units: mmHg
+    note: provisional - rests partly on low-authority synthesis (audit downgrade 15)
+  - name: elderly_PPH
+    value: -11 to -16 mmHg at ~60 min; prevalence ~40% healthy elderly, ~90% frail; carb-dominant driver
+  timescale: onset 0-15 min; peak 30-60 min; resolve 2-4 h
+  condition_dependence:
+    healthy: as above
+    pots: ~53% report postprandial worsening after high-carb meals (survey n=8919); model as transient splanchnic pooling pulse amplifying orthostatic
+      delta-HR; GIP mechanism effect sizes never retrieved (E2, do not quantify)
+    elderly_autonomic_failure: PPH -25 to -40 mmHg with blunted dHR (<+5 bpm)
+  evidence_level: E4 (hemodynamic review, downgraded from E5); E3 (glucose, downgraded E4->E3/E4 borderline)
+  source_claims:
+  - EVD-HLTH-006
+  - EVD-METB-005
+  - EVD-METB-002
+  - EVD-METB-006
+  - EVD-POTS-016
+  uncertainty: meal composition dependence large; posture/activity/caffeine/circadian confounds; interstitial CGM lag +5-15 min
+  contradiction_level: moderate (magnitude cross-dossier; resolved to meal-size-scaled distribution)
+  validation: synthetic post-meal HR delta vs Waalen/geriatric series; peak timing 30-60 min; meal-size grading separable 15-120 min
+- id: REL-TEMPERATURE-HR
+  name: Core temperature -> HR coupling (AGE-GRADED; binding correction)
+  variables:
+    inputs:
+    - core_temperature
+    - age
+    - hydration
+    - medications
+    outputs:
+    - HR
+  direction: fever/heat -> tachycardia
+  functional_form:
+    class: linear slope, age-interpolated
+    equation: 'dHR = slope(age) * dT_core; slope ~13 bpm/C young children -> ~10 older children -> ~7-10 bpm/C adults (adult ED: 7.2 national
+      unadjusted; 10.4 local / 6.9 national adjusted; CIs 5.9-11.4). Pediatric: 12.3 overall (12.2-12.4), 13.7 youngest -> 8.7 oldest (n=188,635).'
+    notes: 'BINDING per contradiction audit Target 7: 12.3 bpm/C is PEDIATRIC - REFUTED as a general adult slope. Adult ~10 bpm/C is heuristic
+      (coverage gap 9). Slope varies with hydration, medications, sepsis vs benign fever - represent as distribution. REE +10-13% per °C (Du Bois).'
+  quantitative_parameters:
+  - name: slope_adult
+    distribution:
+      type: normal
+      mean: 8.5
+      sd: 1.5
+      truncate:
+      - 5.9
+      - 11.4
+      units: bpm/degC
+  - name: slope_child
+    distribution:
+      type: age_graded
+      young: 13.7
+      old_child: 8.7
+      units: bpm/degC
+  - name: REE_multiplier_per_C
+    value: 1 + 0.11*(Tcore - 37), bounded
+    note: high interindividual variability (measured/predicted 0.44-1.53)
+  timescale: acute (tracks fever time course)
+  condition_dependence:
+    healthy: as above
+    acute_inflammation: combine with REL-INFLAMMATION-IMPULSE kernel; dehydration adds independent tachycardia (confound)
+  evidence_level: E4 (pediatric regression); adult value heuristic (treat as E2-E3 with wide spread)
+  source_claims:
+  - EVD-AUTO-003
+  - EVD-HLTH-008
+  - EVD-AUTO-004
+  uncertainty: 'adult slope is the weakest link: large regression is pediatric; harmonize ALL model uses to the age-graded version'
+  contradiction_level: resolved-by-audit (pediatric vs adult)
+  validation: 'synthetic febrile episodes: HR(t)-T(t) regression recovers planted age-graded slope within CIs'
+- id: REL-HEAT-RESPONSE
+  name: Heat stress -> cardiovascular drift and skin perfusion
+  variables:
+    inputs:
+    - ambient_heat
+    - core_temperature
+    - skin_temperature
+    - hydration
+    outputs:
+    - HR
+    - SV
+    - CO
+    - skin_blood_flow
+    - orthostatic_tolerance
+  direction: heat -> tachycardia + cutaneous vasodilation; cardiovascular drift during prolonged exercise-heat
+  functional_form:
+    class: two-compartment coupling + slow drift ramp
+    equation: 'dHR_heat ~ 10 * dT_core + skin_term (core:skin weight ~9:1); skin heating acts within ~8 s (neural); drift = slow HR ramp + SV
+      decline once core exceeds threshold; severe heat: CO +3.3-6.6 L/min'
+    notes: mechanism split ~40% direct cardiac temperature + ~60% autonomic (~75% vagal withdrawal). Cardiovascular drift begins at LOWER stress
+      than core-temperature inflection. Repo heat perturbation (Raupm/Ralpm x0.58, Ganio 2012) has a whole-body->compartmental mapping caveat
+      - NEEDS REVIEW, sample ±50% (contradiction audit item 11).
+  quantitative_parameters:
+  - name: HR_per_core_C
+    value: ~10 bpm/C (adult heat; see REL-TEMPERATURE-HR)
+    units: bpm/degC
+  - name: skin_neural_latency
+    value: ~8 s
+    units: s
+  - name: SVC_increase_per_1.2C
+    value: 0.094->0.163 l/min/mmHg (+73%, n=11; Ganio 2012)
+    note: tier B, compartment mapping uncertain
+  - name: drift_form
+    value: slow ramp; SV decline above 38C core HR-mediated, reversible with beta-blockade at matched HR
+  timescale: seconds (skin neural) to tens of minutes (drift)
+  condition_dependence:
+    healthy: as above
+    pots: heat is a canonical orthostatic-tolerance reducer; compose heat perturbation with POTS branches
+    dehydration_interaction: hypohydration amplifies (REL in EVENT dehydration; +3-8 bpm per -1% body mass)
+  evidence_level: E3
+  source_claims:
+  - EVD-HLTH-008
+  uncertainty: febrile-derived slope; dehydration confound; repo compartment mapping unresolved
+  contradiction_level: none (direction); moderate (magnitude mapping)
+  validation: slope vs PMC9605188 class data; drift onset before core inflection (PSU HEAT)
+- id: REL-SLEEP-AUTONOMIC
+  name: Sleep-stage <-> autonomic state coupling
+  variables:
+    inputs:
+    - sleep_stage
+    - circadian_phase
+    - time_since_sleep_onset
+    outputs:
+    - HR
+    - HRV(HF,LF/HF)
+    - BRS
+    - BP
+    - RR
+    - EDA_rate
+  direction: 'NREM: vagal predominance (HF up, LF/HF down, BRS up); REM: sympathetic surges on vagal background; late-night REM more sympathetic
+    than early-night'
+  functional_form:
+    class: stage-conditioned state machine on ~90-min ultradian cycles
+    equation: 'HR_stage = HR_recumbent_wake * (1 + delta_stage); delta_N3 ~ 0 to -5% (vs recumbent wake) BUT -20-30% vs ambulatory day; REM =
+      baseline + phasic bursts +5-15 bpm (seconds, clustered); RR: N3 ~N(13,1.2) brpm low CV, REM ~N(16,3) high CV; SBP dip 10-20% (dipper fraction
+      ~80-85%)'
+    notes: 'CRITICAL reference-frame rule (Huang 2018, n=1047): absolute stage HR differences vs RECUMBENT WAKE are ~2 bpm and only 13.5% show
+      >=10% NREM dip; the 20-30% ''dip'' exists only vs AMBULATORY daytime reference. Model sleep HR comparator-relative.'
+  quantitative_parameters:
+  - name: stage_HR_spread_vs_recumbent_wake
+    value: ~2 bpm (wake 62.3, N2 62.9, N3 64.2, REM 64.6)
+    units: bpm
+  - name: SBP_nocturnal_dip
+    distribution:
+      type: normal
+      mean: 14.1
+      sd: 4.6
+      units: percent
+    note: dipper 10-20% in ~80-85%; non-dipper 10-15%; extreme/reverse ~5%
+  - name: REM_phasic_HR_burst
+    distribution:
+      type: uniform
+      min: 5
+      max: 15
+      units: bpm
+  - name: SpO2_sleep
+    value: stable 96-98% healthy
+    units: percent
+  timescale: minutes within stage; hours across night
+  condition_dependence:
+    healthy: as above
+    mecfs: 'SE -3-6%, SOL +7-10 min, WASO up, TST NORMAL (do NOT model hypersomnia); PEM nights: TIB +30-90 min, fragmentation up 1-7 nights (EVD-MECFS-012,
+      E4 after downgrade)'
+    osa_module: 4-phase cyclical HR/SpO2 sawtooth generator parameterized by AHI (EVD-NEUR-012, E5)
+    inflammation: sleep disturbance -> IL-6 ES 0.20 / CRP ES 0.12 over weeks (bidirectional, small; EVD-AUTO-010)
+  evidence_level: E4
+  source_claims:
+  - EVD-HLTH-007
+  - EVD-HLTH-003
+  - EVD-MECFS-012
+  - EVD-NEUR-012
+  - EVD-AUTO-010
+  uncertainty: PSG cohort is clinical-referral; wearable sleep staging in ME/CFS/LC unstudied (coverage gap 17) - healthy-only kappa values
+  contradiction_level: low
+  validation: stage-conditional HR/HF vs Cabiddu 2012 and Huang 2018; dip phenotype fractions reproduced
+- id: REL-CIRCADIAN-MODULATION
+  name: Circadian modulators of HR, BP, temperature, cortisol, and orthostatic response
+  variables:
+    inputs:
+    - clock_time
+    - habitual_wake_time
+    - circadian_phase
+    outputs:
+    - HR_mesor/amplitude/acrophase
+    - BP
+    - T_core
+    - T_skin
+    - orthostatic_delta_HR_gain
+    - CAR
+  direction: afternoon peak / early-morning nadir for HR/BP; core temp nadir ~2 h before habitual wake; orthostatic tachycardia larger in the
+    morning
+  functional_form:
+    class: cosinor/harmonic carrier + two-process (S+C) gating; do NOT simulate SCN biochemistry
+    equation: 'X(t) = MESOR + A*cos(2pi*(t-phi)/24h); HR: A~13.5 bpm, phi~14:40 (free-living peak ~16:30-17:00); SBP: A~10, DBP: A~7, phi~14:15;
+      T_core: 36.9 + 0.25*cos(...), nadir 04:00-06:00; endogenous period tau = 24h11min +/- 16min'
+    notes: 'repo defect: D_circ is computed but never fed back to any model parameter - wire to baroreflex gains (kR/kH) per validation_strategy
+      plan. Time-of-day orthostatic gain is a NEW mechanism layer, not a parameter rescale.'
+  quantitative_parameters:
+  - name: circadian_period
+    distribution:
+      type: normal
+      mean: 24.183
+      sd: 0.267
+      units: h
+  - name: HR_amplitude
+    distribution:
+      type: normal
+      mean: 13.5
+      sd: 1.0
+      units: bpm
+  - name: SBP_amplitude
+    value: ~10 mmHg; DBP ~7 mmHg
+    units: mmHg
+  - name: Tcore_amplitude
+    value: ~0.5 C full swing (0.25 half-amplitude); damped 20-40% elderly; phase advances 1-2 h with age
+    units: degC
+  - name: Tskin_wrist_amplitude
+    distribution:
+      type: uniform
+      min: 1.2
+      max: 1.4
+      units: degC
+    note: foot 1.8-2.2 C; distal acrophase ~04:00-07:00; mesor ~33 C
+  - name: orthostatic_AM_bias
+    distribution:
+      type: uniform
+      min: 8
+      max: 10
+      units: bpm
+    note: delta-HR larger AM in POTS AND controls; pediatric positivity 100% AM / 44.2% PM / 27.9% evening
+  - name: CAR
+    value: cortisol +~50% (LogNormal median 50%, IQR 25-100%) within 30 min of awakening; responder rate ~75%; phase-gated (present only when
+      awakening ~3h before habitual wake)
+  timescale: 24 h (+ awakening kernel 30-45 min)
+  condition_dependence:
+    healthy: as above
+    pots: morning orthostatic intolerance amplification (EVD-POTS-002) - time-of-day covariate mandatory for simulated tilt/stand scheduling
+    circadian_misalignment: '12-h misalignment: glucose +6%, insulin +22%, leptin -17%, MAP +3% (EVD-METB-012)'
+  evidence_level: E5 (period/temperature); E2-E4 (amplitudes)
+  source_claims:
+  - EVD-TEMP-006
+  - EVD-HLTH-003
+  - EVD-HLTH-009
+  - EVD-SENS-007
+  - EVD-POTS-002
+  - EVD-METB-012
+  uncertainty: masking inflates raw CBT amplitude; free-living acrophase later than lab; wearable cohorts E2
+  contradiction_level: none
+  validation: significant 24-h cosinor in synthetic HR; acrophase afternoon, nadir 03:00-05:00; simulated morning tilt-test positivity >> evening
+- id: REL-PEM-SYMPTOM-KERNEL
+  name: Post-exertional malaise DELAYED SYMPTOM kernel (ME/CFS; symptom channel only)
+  variables:
+    inputs:
+    - exertion (physical/cognitive/emotional) above individual threshold
+    outputs:
+    - symptom_severity(t) - latent
+    - activity_suppression(t)
+  direction: exertion -> delayed multi-system symptom exacerbation; onset delayed, peak 24-48 h, recovery days-weeks
+  functional_form:
+    class: delayed gamma event kernel + right-skewed recovery distribution
+    equation: onset_delay ~ Gamma(mode 12-24 h, range 0-48 h; 11% consistently >=24 h); peak at 24-48 h; amplitude +~1.5 symptom units; decay
+      ~0.10+/-0.02 units/day; judged-recovery MEAN 12.7+/-1.2 d (NOT median - review correction), range 1-64 d, IQR ~5-21 d, 5-10% >3 weeks, tail
+      to >1 y
+    notes: DECOUPLED from physiological kernel per contradiction audit Target 5. Repo time_engine PEM constants (12-h delay, 2-h resolution, 0.6
+      threshold) are off by ~2 orders of magnitude on recovery and are dead code - must be replaced by this kernel. Trigger threshold is person-specific
+      (state-dependent), not 0.6 fixed.
+  quantitative_parameters:
+  - name: onset_delay_mode
+    distribution:
+      type: gamma
+      mode_h: 18
+      range_h:
+      - 0
+      - 48
+      units: h
+  - name: peak_time
+    distribution:
+      type: uniform
+      min: 24
+      max: 48
+      units: h
+  - name: recovery_mean
+    distribution:
+      type: right_skewed
+      mean_d: 12.7
+      sem_d: 1.2
+      iqr_d:
+      - 5
+      - 21
+      range_d:
+      - 1
+      - 64
+      tail: 5-10% beyond 21 d
+    units: days
+  - name: decay_rate
+    distribution:
+      type: normal
+      mean: 0.1
+      sd: 0.02
+      units: symptom units/day
+  - name: prolonged_fraction
+    value: 84% endure PEM >=24 h; 60% >5 d after maximal CPET (controls all <=2 d); mean relapse 8.82 d, 22% at day 12 (Lapp)
+  timescale: 12 h to weeks
+  condition_dependence:
+    mecfs: as above (defining feature; PEM prevalence 40.6-93.8% by question wording - measurement problem)
+    long_covid: shared machinery (PEM-like delay 12-48 h); background PEM rate in uninfected controls 7% must be present in synthetic controls
+      (EVD-LCOV-012)
+    healthy: delayed-onset muscle soreness/fatigue resolves <=2 d - no multi-day kernel
+  evidence_level: E4 (timing, symptom level); single-source flag on Moore 2023 amplitude/decay
+  source_claims:
+  - EVD-MECFS-001
+  - EVD-MECFS-008
+  - EVD-MECFS-009
+  - EVD-MECFS-014
+  uncertainty: retrospective self-report dominates; recall bias; amplitude +35-40% is DERIVED not measured (fabricated-precision flag B2); PEM
+    remains latent-only - no validated wearable detector
+  contradiction_level: low (symptom kernel itself)
+  validation: synthetic PEM onset-delay/duration distributions match Chu 2018 frequencies and Moore 2023 mean 12.7 d / IQR 5-21 d / tail
+- id: REL-PEM-PHYSIOLOGY-KERNEL
+  name: Post-exertional PHYSIOLOGICAL recovery kernel (DECOUPLED from symptom kernel; binding)
+  variables:
+    inputs:
+    - exercise >= VT1 (intensity/duration dose)
+    outputs:
+    - nocturnal_RMSSD(t)
+    - HRR_tau(t)
+    - HR(t)
+  direction: physiology shows SLOWED SAME-DAY RECOVERY (hours), not a 24-48 h delayed trough
+  functional_form:
+    class: slowed-recovery kernel (prolonged immediate recovery) + OPTIONAL explicitly-speculative delayed second wave
+    equation: 'healthy: autonomic recovery tau ~3-6 h post-exercise; patient (long-COVID proxy): tau ~9-13 h; nocturnal RMSSD depressed up to
+      24 h after >=VT1 exercise, dose-dependent on intensity/duration. OPTIONAL second component: delayed dip at 24-48 h flagged E0 (default OFF).'
+    notes: 'BINDING per contradiction audit Target 5: do NOT propagate a 24-48 h physiological dip into HR/HRV channels as established. Direct
+      ME/CFS multi-day wearable PEM dataset does NOT exist (coverage gap 1) - this is an EXTRAPOLATION from a long-COVID cohort (n=127) and must
+      be labeled as such.'
+  quantitative_parameters:
+  - name: healthy_autonomic_recovery_tau
+    distribution:
+      type: uniform
+      min: 3
+      max: 6
+      units: h
+  - name: patient_recovery_tau
+    distribution:
+      type: uniform
+      min: 9
+      max: 13
+      units: h
+    note: long-COVID proxy, NOT classic ME/CFS
+  - name: nocturnal_RMSSD_suppression
+    distribution:
+      type: uniform
+      min: -0.3
+      max: -0.15
+      units: fraction
+    note: 24-72 h window; extrapolated, flag E2
+  - name: HRR_tau_multiplier
+    distribution:
+      type: uniform
+      min: 2
+      max: 3
+    note: slow post-exercise HRR; extrapolated
+  - name: delayed_second_wave
+    value: OPTIONAL, E0, default disabled
+    note: no objective delayed physiological dip has ever been tracked
+  timescale: hours (up to 24-72 h extrapolated)
+  condition_dependence:
+    healthy: recovery 3-6 h
+    long_covid: 9-13 h delayed same-day recovery (Sports Med 2026, verified)
+    mecfs: extrapolated from LC proxy; label every synthetic ME/CFS PEM wearable channel as ASSUMPTION
+  evidence_level: E2 (LC proxy); E0-E1 (any delayed physiological second wave)
+  source_claims:
+  - EVD-MECFS-010
+  - EVD-LCOV-009
+  uncertainty: 'PEM signatures largely vanish after activity matching (pacing confound); Nelson 2019 meta: no HR recovery difference (2 studies)'
+  contradiction_level: moderate
+  validation: consistency with lab HRV dynamics + LC proxy cohort; document extrapolation in every dataset manifest
+- id: REL-CPET-DAY2-CONTESTED
+  name: Two-day CPET day-2 response (CONTESTED - mixture model mandatory)
+  variables:
+    inputs:
+    - day-1 maximal CPET
+    - PEM_state
+    outputs:
+    - day2_VO2peak
+    - day2_VO2_at_VT
+    - day2_Work_at_VT
+    - day2_max_effort_capacity
+  direction: small mean capacity decrement in a responder subgroup + reduced day-2 maximal effort during PEM; NOT a universal physiological law
+  functional_form:
+    class: 'mixture: responder subgroup + effort-coupling term + null arm'
+    equation: 'day2_capacity = day1 * (1 - delta_responder * I_responder) - effort_coupling(PEM_state); delta_responder: peak -5-7% (Keller 2024
+      multicenter), VT/workload-weighted -10-20%; I_responder ~ Bernoulli(0.5-0.6); null arm MUST remain generatable (Natelson 2026: no day-2
+      change; >=1 unit decline in 22% patients vs 33% CONTROLS)'
+    notes: 'BINDING downgrade E4->E2/E3 (contradiction audit Target 4 + audit item 20). Effort confound is intrinsic: Keller 2024 day-2 %HR reserve
+      fell below 80% criterion in ME/CFS. 2-day CPET sensitivity ~33% at 90% specificity - not diagnostic-grade; state clearly it is contested
+      as an objective PEM biomarker.'
+  quantitative_parameters:
+  - name: delta_VO2peak_day2
+    distribution:
+      type: mixture
+      components:
+      - weight: 0.55
+        dist: N(-0.06, 0.03)
+      - weight: 0.45
+        dist: N(0.0, 0.03)
+      units: fraction
+  - name: delta_Work_at_VT_day2
+    value: 'Lim 2020: -14.6 W patients vs +6.5 W controls; Keller 2024: Work@VAT -9.4%; strict-effort null (Natelson 2026)'
+  - name: responder_fraction
+    distribution:
+      type: uniform
+      min: 0.5
+      max: 0.6
+  - name: effort_coupling
+    value: day-2 maximal effort capacity reduced during PEM (Walitt 2024 effort-preference finding) - mechanistically interesting, model explicitly
+  timescale: 24-48 h post-exertion
+  condition_dependence:
+    mecfs: as above (mild-moderate ambulatory only; severe excluded from all 2-day CPET studies - severe-tier parameters are downward extrapolations)
+    healthy: day-2 change ~0 within test-retest variability (VO2peak ~5-10%)
+  evidence_level: E2/E3 (downgraded from E4; binding)
+  source_claims:
+  - EVD-MECFS-007
+  - EVD-LCOV-009
+  uncertainty: cross-study delta-peak VO2 from +5.3% to -14%; test-retest variability explains most signal
+  contradiction_level: high
+  validation: 'in-silico 2-day CPET: Lim/Keller declines within CI in ~50-60% of personas; null arm plausible; synthetic cohort must NOT show
+    day-2 decline enriched vs synthetic controls beyond responder fraction'
+- id: REL-MENSTRUAL-MODULATION
+  name: Menstrual-cycle modulation of wearable signals (healthy core - mandatory in female personas)
+  variables:
+    inputs:
+    - cycle_phase
+    - cycle_length
+    outputs:
+    - distal_skin_temperature
+    - RHR
+    - RMSSD
+    - core_temperature_setpoint
+  direction: 'luteal: temperature +, RHR +, RMSSD -; biphasic with brief ovulation dip'
+  functional_form:
+    class: biphasic cyclic modulator
+    equation: 'luteal: T_skin +0.2-0.3 C (up to 0.5 individually; ring-detectable 0.30+/-0.12 C), RHR +2-7 bpm (+3.8 mid-luteal, n=91), RMSSD
+      x0.9 (-4-5 ms), SDNN -12%; T_core setpoint +0.3-0.4 C luteal; T_cycle ~ N(28.6, 3.8) d'
+    notes: 'MUST be present in healthy female personas so it is not misread as flare/infection (overlap-matrix item 12). DO-NOT-HARD-CODE (audit
+      item 23): verified lab n=26; large-N source (Oura 48,720 cycles) is a conference abstract; per-person heterogeneity high - sample per-person
+      effect multipliers.'
+  quantitative_parameters:
+  - name: luteal_Tskin_offset
+    distribution:
+      type: normal
+      mean: 0.25
+      sd: 0.08
+      units: degC
+  - name: luteal_RHR_offset
+    distribution:
+      type: uniform
+      min: 2
+      max: 7
+      units: bpm
+  - name: luteal_RMSSD_multiplier
+    distribution:
+      type: normal
+      mean: 0.9
+      sd: 0.05
+  - name: cycle_length
+    distribution:
+      type: normal
+      mean: 28.6
+      sd: 3.8
+      units: days
+  timescale: ~monthly
+  condition_dependence:
+    healthy_female: as above
+    interaction: stacks with disease RHR/HRV perturbations (additive-on-log-scale for HRV recommended; review P2 item 11)
+  evidence_level: E3
+  source_claims:
+  - EVD-TEMP-008
+  - EVD-SENS-007
+  uncertainty: effect heterogeneity across individuals high; detection-rate falsification target 82%
+  contradiction_level: low
+  validation: synthetic biphasic pattern detectable by standard cycle detection (~82% detection rate as falsification target)
+- id: REL-MEDICATION-MASKS
+  name: Medication gain masks (cross-disease confound layer)
+  variables:
+    inputs:
+    - medication_state (drug, dose)
+    outputs:
+    - gain multipliers on HR ceiling / baroreflex / inflammation coupling / volume
+  direction: beta-blockers blunt HR/HRV/orthostatic response; steroids raise RHR, degrade sleep, decorrelate CRP-proxy from RHR; midodrine works
+    only in neuropathic subtype; compression dose-dependent
+  functional_form:
+    class: gain multipliers / ceiling shifts applied to specific limbs (masks), NOT global offsets
+    equation: 'beta_blocker: HR impulse gain x~0.5, HM ceiling lowered (repo experimental HM 3.33->2.2 bps has NO quantitative source - keep tier
+      D); propranolol 20 mg lowers supine/standing HR, 80 mg LESS symptom benefit; ivabradine: stand-supine delta-HR 13.1 vs 17.0 bpm; midodrine:
+      acute standing HR 114->92.8 (neuropathic only); compression: tilt HR 109->92 (full); fludrocortisone: TotalVol +~500 mL ACUTE ONLY (magnitude
+      assumption, sample ±50%); chronic phase pressor TPR-mediated - schema cannot express; steroids: RHR +2-8 bpm dose-scaled high variance,
+      sleep efficiency -5-15%'
+    notes: fludrocortisone has NO adequate RCT in POTS (coverage gap 11) yet is a canonical repo perturbation - label assumption. POTS medication
+      effect sizes are point estimates from n=9-54 crossovers (fabricated-precision flag B2) - distributions mandatory. Prescription-prevalence
+      distributions do not exist (E0).
+  quantitative_parameters:
+  - name: beta_blocker_HR_gain
+    distribution:
+      type: uniform
+      min: 0.4
+      max: 0.6
+    note: provisional
+  - name: steroid_RHR_offset
+    distribution:
+      type: uniform
+      min: 2
+      max: 8
+      units: bpm
+    note: all indirect evidence (do-not-hard-code item 17)
+  - name: steroid_sleep_efficiency
+    distribution:
+      type: uniform
+      min: -0.15
+      max: -0.05
+      units: fraction
+  - name: fludrocortisone_volume
+    distribution:
+      type: normal
+      mean: 500
+      sd: 250
+      units: mL
+    note: sample ±50%; acute_to_early_chronic_only
+  - name: compression_tilt_HR
+    value: 109+/-19 -> 92+/-14 bpm (full compression, Bourne 2021)
+  timescale: acute to hours (most); weeks-months (steroids, biologics); fludrocortisone chronic phase unencodable
+  condition_dependence:
+    pots: 'subtype-dependent response: midodrine neuropathic-only; exercise training superior to propranolol (EVD-POTS-013, single n=19 - do not
+      hard-code remission)'
+    autoimmune: steroid state decorrelates CRP-proxy from RHR (confound stress test)
+  evidence_level: E3 (POTS acute trials); E2 (steroids); E0 (fludrocortisone efficacy)
+  source_claims:
+  - EVD-POTS-015
+  - EVD-AUTO-009
+  - EVD-POTS-013
+  uncertainty: small n, short endpoints; dose-response mostly unknown; repo beta-blocker validation check currently vacuous in canonical mode
+  contradiction_level: low-moderate
+  validation: 'compression dose-response as intervention sanity check; confound stress test: steroid state decorrelates CRP-proxy from RHR'
+- id: REL-INFLAMMATION-IMPULSE
+  name: Acute systemic inflammation impulse and chronic low-grade inflammation coupling
+  variables:
+    inputs:
+    - inflammatory_trigger (LPS-analog severity / flare state)
+    outputs:
+    - HR
+    - core_temperature
+    - HRV
+    - MAP
+    - REE
+  direction: 'acute: HR/temp up, HRV down, MAP down - stereotyped transient storm; chronic low-grade: small HRV reduction, RHR slightly up'
+  functional_form:
+    class: acute impulse kernel (log-dose severity analog) + slow chronic latent coupling
+    equation: 'acute (LPS 2 ng/kg analog): onset 1-2 h, peak 3-5 h, recovery 8-24 h; HR peak +40-55%, Tcore +1-1.75 C, HRV gain 0.4-0.7, MAP ~-15%;
+      dose-response: vitals unchanged <=0.5 ng/kg, HRV changes from ~1 ng/kg; chronic: RMSSD/SDNN gain 0.85-0.95, RHR +1-4 bpm, |r|~0.1 with CRP'
+    notes: hydrocortisone blunts cytokines but does NOT block HRV depression; LF/HF inconsistent - do not model as sympathovagal balance; TNF-alpha
+      association NULL (required null-fidelity test).
+  quantitative_parameters:
+  - name: acute_HR_peak
+    distribution:
+      type: uniform
+      min: 0.4
+      max: 0.55
+      units: fraction
+  - name: acute_Tcore
+    distribution:
+      type: uniform
+      min: 1.0
+      max: 1.75
+      units: degC
+  - name: acute_HRV_gain
+    distribution:
+      type: uniform
+      min: 0.4
+      max: 0.7
+  - name: chronic_RMSSD_gain
+    distribution:
+      type: uniform
+      min: 0.85
+      max: 0.95
+  - name: RA_flare_offsets
+    value: RHR +5.0 bpm, night HR +5.5, RMSSD mesor -25%, steps -515/d symptomatic-only; slow 2-4 wk ramp preceding flare (EVD-AUTO-005; within-person
+      offsets survive, classifier AUC~1.00 does NOT)
+  timescale: acute hours; flare ramp 2-4 weeks; chronic weeks-years
+  condition_dependence:
+    healthy_acute: as above (young male over-represented in source data)
+    ra_ibd: flare replay offsets above; IBD AUC claims = optimistic upper bounds, never emit as validated
+  evidence_level: E4 (acute); E5 (chronic CRP/IL-6 direction, |r|~0.1); E2 (flare offsets)
+  source_claims:
+  - EVD-AUTO-001
+  - EVD-AUTO-002
+  - EVD-AUTO-005
+  - EVD-AUTO-010
+  uncertainty: low-grade inflammation sits BELOW acute-vitals detection threshold; endothelial/temperature-setpoint/PPG-stiffness effects latent-only
+    (EVD-AUTO-011)
+  contradiction_level: low
+  validation: replay vs digitized Jan 2009/Dorresteijn 2010 time series (RMSE on HR, temperature); synthetic cohort CRP-RMSSD correlation small-negative;
+    TNF ~0 (null fidelity)
+- id: REL-STRESS-SAM-HPA
+  name: Acute psychosocial stress (TSST-like) two-arm response
+  variables:
+    inputs:
+    - psychosocial_stressor
+    outputs:
+    - HR
+    - SBP
+    - EDA
+    - HRV
+    - cortisol (latent)
+  direction: fast SAM arm (HR/SBP/EDA up, HRV down) + slow HPA arm (cortisol); cortisol habituates with repetition, SAM does NOT
+  functional_form:
+    class: two-arm event model with habituation asymmetry + responder structure
+    equation: 'SAM: HR +10-35 bpm (meta ES 0.89 youth), SBP ES 1.17, EDA surge, RMSSD drop ES -0.33, peak minutes, recovery 10-30 min; HPA: cortisol
+      +50-100% (d=0.93 adult), peak 15-20 min post-stressor, recovery 30-70 min; habituation: cortisol-only on repeat; responder rate ~64-70%;
+      male cortisol > female'
+    notes: 'panic attacks are REALISTIC-MODEST, not textbook dramatic: HR surge +10-30 bpm high variance, many attacks HR-invariant; hyperventilation
+      itself only +4.4 bpm (EVD-NEUR-010). Panic vs TSST vs ictal tachycardia must be HARD TO SEPARATE by HR alone (negative-control test).'
+  quantitative_parameters:
+  - name: SAM_HR_delta
+    distribution:
+      type: uniform
+      min: 10
+      max: 35
+      units: bpm
+  - name: cortisol_peak_delay
+    distribution:
+      type: uniform
+      min: 15
+      max: 20
+      units: min
+  - name: responder_fraction
+    distribution:
+      type: uniform
+      min: 0.64
+      max: 0.7
+  - name: EDA_SCR
+    value: latency 1-4 s, rise 0.5-5 s, amplitude 0.05-5 uS log-normal, half-recovery 2-10 s; NS-SCR 1-3/min rest -> 5-10+/min stress
+  timescale: minutes (SAM) to ~1 h (HPA)
+  condition_dependence:
+    healthy: as above
+    anxiety_disorders: TONIC vmHRV reduction g~-0.3 to -0.45 with NO reactivity difference (EVD-NEUR-009 E5) - trait layer, not event layer; effect
+      disappears controlling for psychotropics in large-N
+  evidence_level: E5 (TSST meta); E2 (panic magnitude)
+  source_claims:
+  - EVD-NEUR-011
+  - EVD-NEUR-010
+  - EVD-NEUR-009
+  - EVD-AUTN-010
+  - EVD-SENS-006
+  uncertainty: small-study inflation (r=-0.24 sample-size bias); VR/online variants attenuate cortisol; no large ambulatory panic dataset (coverage
+    gap 10)
+  contradiction_level: low (TSST); high (panic stereotype refuted)
+  validation: 'virtual TSST: dHR ES ~0.9, dSBP ES ~1.2, cortisol ES ~0.5-0.9; cortisol-only habituation on repeat; EDA events need not covary
+    with cardiac sympathetic (dissociation test)'
+- id: REL-HRV-GENERATION-STRUCTURE
+  name: Beat-interval generative structure (1/f fractal + point-process + metric emergence)
+  variables:
+    inputs:
+    - vagal_limb_output
+    - sympathetic_limb_output
+    - respiratory_gating
+    - fractal_modulation
+    outputs:
+    - RR series
+    - RMSSD/SDNN/LF/HF/DFA-alpha1 (emergent)
+  direction: structured variability emerges from limbs + gating + 1/f noise; NEVER inject metric values directly
+  functional_form:
+    class: IPFM or inverse-Gaussian point-process beat generator + additive fractal (1/f) noise
+    equation: DFA-alpha1 ~ 1.0 (0.7-1.2) at rest, declining with exercise intensity and disease; RR intervals history-dependent inverse-Gaussian
+      (KS-validated); repo's uniform +/-2% multiplicative noise is NOT physiologically structured and must be replaced
+    notes: no evidence higher-complexity generators beat simple models; multiscale entropy is the bar separating synthetic from real. LF/HF must
+      NEVER be generated as a direct sympathovagal label.
+  quantitative_parameters:
+  - name: DFA_alpha1_rest
+    distribution:
+      type: uniform
+      min: 0.7
+      max: 1.2
+      mean: 1.0
+  - name: weekly_lnRMSSD_CV
+    distribution:
+      type: uniform
+      min: 0.03
+      max: 0.1
+    note: athletes; OU baseline drift tau 3-7 d reproduces this
+  - name: hrv_noise_repo
+    value: 0.02 uniform - REPLACE with structured generator
+  timescale: beat-to-beat to weeks
+  condition_dependence:
+    healthy: as above
+    disease_general: 'alpha1 declines with disease/exercise; POTS: reduced time-domain variability with ambiguous frequency-domain (do NOT model
+      as generically ''low HRV'', EVD-POTS-011)'
+  evidence_level: E4 (fractal structure); E2 (generator class)
+  source_claims:
+  - EVD-TEMP-001
+  - EVD-TEMP-002
+  - EVD-TEMP-011
+  - EVD-AUTN-006
+  - EVD-POTS-011
+  - EVD-TEMP-007
+  uncertainty: each generator validation single-study; IPFM does not by itself produce 1/f structure
+  contradiction_level: none
+  validation: DFA-alpha1 of synthetic RR ~1.0 at rest, declining with exercise; multiscale entropy indistinguishable-from-real test; spectral
+    peaks at 0.1 Hz and respiratory band
+- id: REL-DAY-TO-DAY-DRIFT
+  name: Within-person day-to-day drift (OU processes) and measurement reliability
+  variables:
+    inputs:
+    - OU state per channel
+    outputs:
+    - daily RHR
+    - daily lnRMSSD
+    - sleep duration
+    - steps
+  direction: slow mean-reverting drift around stable traits
+  functional_form:
+    class: Ornstein-Uhlenbeck baseline drift
+    equation: dx = -(x - mu)/tau_OU dt + sigma_OU dW; tau_OU 3-7 d; RHR day-to-day CV ~4.6% (within-person SD 3.03 bpm, Quer n=92,457); 5-day
+      ICC 0.87; RMSSD 5-day ICC 0.66 (0.32-0.86); lnRMSSD CV 3-13% standardized / 0.37 uncontrolled (protocol effect); sleep single-night ICC
+      0.27-0.38; steps need 2.5-4.4 d for ICC>=0.8
+    notes: 'RECONCILED (review P0 item 4): within-person RHR SD fixed from Quer 2020 (~3.0 bpm, CV 4.6%), superseding HEALTHY dossier E0 ''est
+      3-6 bpm''. HEALTHY within-person claim stays do-not-hard-code until reconciled at generation time - use POPULATION values.'
+  quantitative_parameters:
+  - name: RHR_within_person_SD
+    distribution:
+      type: normal
+      mean: 3.03
+      sd: 0.5
+      units: bpm
+  - name: lnRMSSD_CV_standardized
+    distribution:
+      type: uniform
+      min: 0.03
+      max: 0.13
+  - name: sleep_duration_within_SD
+    value: median 0:30 h
+    units: h
+  - name: orthostatic_event_reliability
+    value: CV 15-25% PROVISIONAL - no test-retest study exists (coverage gap 5)
+  timescale: days to weeks
+  condition_dependence:
+    healthy: as above
+    mecfs: steps day-to-day variation mean 47% (range 25-79%); boom-bust amplitude LARGER in milder patients; boom-bust via PEM kernel autocorrelation,
+      not i.i.d. noise (EVD-MECFS-011)
+    overreaching: lnRMSSD CV 8.1% during functional overreaching vs 2.8% stable (single case study)
+  evidence_level: E4
+  source_claims:
+  - EVD-POP-004
+  - EVD-TEMP-007
+  - EVD-HLTH-001
+  - EVD-MECFS-011
+  uncertainty: orthostatic reliability unmeasured; athlete OU parameters athlete-specific
+  contradiction_level: none
+  validation: synthetic day-series ICCs match published (RHR 0.87, RMSSD 0.66, sleep 0.27-0.38)
+- id: REL-TRAINING-ADAPTATION
+  name: Slow training/fitness adaptation state (and POTS exercise-training response)
+  variables:
+    inputs:
+    - training_load_history
+    outputs:
+    - RHR
+    - RMSSD/HF
+    - HRmax (near-unchanged)
+    - blood_volume
+    - LV_mass
+  direction: 'training block: RHR down, HRV up over 8-12 wk; detraining reverses over weeks'
+  functional_form:
+    class: slow saturating adaptation state F (OU-like with input)
+    equation: dF = (training_input - F)/tau_F dt, tau_F 2-6 wk; RHR -= (2-6 bpm)*F; RMSSD/HF up SMD 0.6-0.9 equivalent; endurance-trained resting
+      HR -8 to -12 bpm (athletes 40-55 bpm)
+    notes: 'POTS training branch (Fu 2010/2011): LV mass +12%, blood volume +7%, upright HR -9 [1-17] bpm, 10/19 no longer met criteria - SINGLE
+      n=19 completers-only study, no replication; remission fraction must NOT be hard-coded (do-not-hard-code item 3); deconditioning-as-cause
+      contested.'
+  quantitative_parameters:
+  - name: tau_adaptation
+    distribution:
+      type: uniform
+      min: 2
+      max: 6
+      units: weeks
+  - name: RHR_training_delta
+    distribution:
+      type: uniform
+      min: -6
+      max: -2
+      units: bpm
+  - name: HRV_training_SMD
+    distribution:
+      type: uniform
+      min: 0.58
+      max: 0.89
+    note: SDNN 0.58, RMSSD 0.84, HF 0.89; CIs wide
+  - name: pots_training_branch
+    value: BV +7%, LV mass +12%, upright HR -9 bpm; remission ~53% as SAMPLED uncertain, not canonical
+  timescale: weeks to months
+  condition_dependence:
+    healthy: as above
+    pots: training intervention = parameter trajectory (volume + LV mass + upright HR), not instant remission; supports deconditioning/hypovolemia
+      competing branch (Fu 2010)
+  evidence_level: E4 (training->HRV meta); E3 (POTS training, downgraded)
+  source_claims:
+  - EVD-TEMP-009
+  - EVD-POTS-013
+  uncertainty: heterogeneous training programs; detraining E4-level only
+  contradiction_level: moderate
+  validation: 'synthetic 8-12 wk training block: RMSSD weekly-mean rise SMD 0.6-0.9 equivalent; RHR -2-6 bpm'
+- id: REL-HR-RMSSD-SCALING
+  name: HR-RMSSD coupling (RR-interval scaling law; binding correction to fixed correlation)
+  variables:
+    inputs:
+    - mean_RR_interval
+    - vagal_state
+    outputs:
+    - RMSSD
+  direction: RMSSD mechanically scales with RR interval; residual vagal signal secondary
+  functional_form:
+    class: mathematical scaling + weak residual
+    equation: RMSSD ~ c * RR^alpha (alpha ~0.5-1, van Roon 2016 / de Geus 2019 class); between-person population r(HR,RMSSD) emerges from scaling
+      + vagal covariance; DO NOT hard-code r=-0.58 (children-only anchor, n=626)
+    notes: 'BINDING (contradiction audit Target 6): use RR-scaling law + weak residual for adults; within-person delta-RMSSD (device-stable) preferred
+      over absolute cross-device values. Population r downgraded to E1/E2.'
+  quantitative_parameters:
+  - name: scaling_exponent
+    distribution:
+      type: uniform
+      min: 0.5
+      max: 1.0
+    note: provisional
+  - name: population_r_residual
+    distribution:
+      type: uniform
+      min: -0.3
+      max: -0.1
+    note: provisional with sensitivity at r=0
+  timescale: chronic (trait) + beat-by-beat (mechanical)
+  condition_dependence:
+    healthy: as above
+  evidence_level: E2 (scaling); E1-E2 (population r after downgrade)
+  source_claims:
+  - EVD-POP-005
+  - EVD-POP-002
+  uncertainty: adult population r genuinely unevidenced beyond scaling law
+  contradiction_level: resolved-by-audit (children-only anchor)
+  validation: synthetic HR-RMSSD between-person correlation emerges in [-0.6,-0.3] WITHOUT being planted; within-person deltas device-stable

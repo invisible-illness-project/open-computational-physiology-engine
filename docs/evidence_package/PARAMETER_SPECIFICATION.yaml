@@ -1,0 +1,1389 @@
+metadata:
+  name: OCPE Parameter Specification (first-dataset scope; Model Translation, Pass 3)
+  generated_by: Model Translation Scientist
+  scale_note: 'All evidence_level values use the NORMALIZED standard scale from EVIDENCE_REGISTRY.yaml: E0=hypothesis, E1=mechanistic, E2=observational
+    human, E3=controlled human experimental, E4=replicated quantitative, E5=meta-analysis/consensus. TEMPORAL_MODEL_EVIDENCE.md and WEARABLE_OBSERVABILITY_EVIDENCE.md
+    use INVERTED scales; only registry-normalized values are used here. Auditor downgrades (EVIDENCE_AUDIT_NOTES.md, CONTRADICTION_AUDIT.md, INDEPENDENT_REVIEW_PASS2.md)
+    are applied and are BINDING.'
+  tier_definitions:
+    implementable_now: human-data anchored (E3-E5 after binding downgrades), distribution specified, maps to repo symbol or well-defined NEW symbol
+    provisional_with_uncertainty: usable ONLY as distributions/mixtures/latents with explicit uncertainty; on the audit's do-not-hard-code list
+      or single-source/contradicted
+    requires_further_research: evidence absent, engine-falsified, or speculative; engine-inert or optional-flag only
+  binding_resolutions_applied:
+  - 'Hypovolemic POTS: repo TotalVol=3500 (Geddes in-silico, ~1.5x Raj 2005 measured 689+/-270 mL deficit) REPLACED by mixture distribution (hypovolemic
+    branch ~40-50% weight, deficit ~-14+/-10%; volume-normal branch); 3500 retained only as extreme-tail scenario sample (EVD-POTS-004, contradiction
+    Target 3).'
+  - Geddes-derived POTS gain perturbations (RalpM->11.5, Ralpm->0.76, kR->32, kH->34, kE->10, p2H->89.8) demoted to tier-D scenario samples; competing
+    Fu-2010 branch (small LV mass + hypovolemia + INTACT baroreflex) added as explicit model branch (contradiction Target 2).
+  - 'Neuropathic POTS criterion failure documented: repo reaches 21.2 bpm vs >=30 target (flat dose-response, hydrostatic-gate-limited); dV_veno_max
+    denervation stays tier-D experimental; do not report as validated.'
+  - Hyperadrenergic kR/kH/p2H normal_value-vs-KB-nominal mismatch documented (applied 34.78/31.48/89.96, not 32/34/89.8); delta-SBP +10 mmHg criterion
+    unmet (-4.0, 0-D windkessel limitation) - xfail is not a resolution.
+  - Repo population.py HM=(220-age)/60 uses SUPERSEDED Fox equation - replace with Tanaka 208-0.7*age + N(0,10.5).
+  - Repo time_engine PEM constants (12-h delay / 0.6 threshold / 2-h resolution) replaced by gamma-delay + right-skewed-recovery kernel (mean
+    12.7 d, NOT median); PEM currently dead code (exertion never passed).
+  - Sensor constants (sigma=1 ms, dropout 0.5%) replaced by KB validation metrics (Polar H10 LoA -2.3/+2.4 ms, ICC 0.99; PPG HR LoA -7.19/+6.64
+    bpm; usable-fraction day/night split).
+  - PEM symptom kernel decoupled from physiological slowed-recovery kernel (3-6 h healthy vs 9-13 h patient); delayed 24-48 h physiological second
+    wave is E0 optional, default OFF.
+  - 'Fever-HR slope age-graded: ~13 (young child) -> ~10 (older child) -> 7-10 (adult) bpm/degC; 12.3 pediatric-only value never used for adults.'
+  - 'Repo tier-C relabeled: provenance ''machine-fitted'' + strength E0-E1 + mandatory human-range citation; recommended provenance enum {human-experimental,
+    human-observational, meta-analysis, in-silico, machine-fitted, engineering-judgment} alongside E0-E5.'
+implementable_now:
+- parameter: resting_HR_mean
+  meaning: 'Free-living daily resting heart rate (definition-conditional: nocturnal-RHR vs daytime-rest vs seated-clinic are different quantities)'
+  units: bpm
+  distribution:
+    type: normal_conditional
+    mean: 'mu(age,sex,fitness): Quer 65.5 overall; inverted-U age shape (peak ~50 y); women +3 bpm; fitness -5 to -12; Health eHeart real-world
+      on-demand 77.6+/-14.6 healthy (gradients only, not absolute calibration)'
+    sd_between: 7.7
+    note: sigma_between 7.7 (Fitbit n=92,457) to 12-14 (Health eHeart young); device/definition offsets +/-4-8 bpm
+  bounds:
+  - 35
+  - 120
+  population_dependence: age (inverted-U), sex (+3 bpm female), BMI, fitness; sex+age+BMI+sleep explain <=10% of variance - most between-person
+    variance unexplained; seasonality +/-1 bpm sinusoid (peak early Jan)
+  condition_dependence:
+    mecfs: +3-5 bpm severity-scaled (E4; effect below within-person noise floor)
+    pots_clinic: +10-20 bpm
+    pots_self_report: +~3 bpm near-complete overlap (spectrum-dependent; do-not-hard-code)
+    long_covid: +1-3 bpm tail
+    heds: +~10 bpm (E4 borderline)
+    anxiety: via tonic vagal knob
+  temporal_behavior: stable trait + OU day-to-day drift (REL-DAY-TO-DAY-DRIFT)
+  equation: RHR ~ N(mu(age,sex,fitness), sigma_between); tag every synthetic record with RHR definition
+  source:
+  - EVD-POP-001
+  - EVD-HLTH-001
+  - EVD-MECFS-003
+  - EVD-POTS-014
+  - EVD-EDS-002
+  evidence_level: E2
+  confidence: moderate-high (large n; definition dependence documented)
+  implementation: NEW (fixes simulation/population.py uncited priors); reconcile with repo cohorts.yaml
+  validation: synthetic RHR marginals by age/sex vs Quer 2020; synthetic resting-HR classifier AUC near chance on self-report-like POTS labels
+- parameter: resting_HR_within_person_SD
+  meaning: Day-to-day within-person RHR variability
+  units: bpm
+  distribution:
+    type: normal
+    mean: 3.03
+    sd: 0.5
+    cv: 0.046
+  bounds:
+  - 1.5
+  - 6
+  population_dependence: weak
+  condition_dependence:
+    mecfs: baseline RHR stable trait with episode-linked deviations (6-month Fitbit stability)
+  temporal_behavior: daily OU noise
+  equation: RHR_day = RHR_trait + OU(sigma)
+  source:
+  - EVD-POP-004
+  - EVD-POP-001
+  - EVD-HLTH-001
+  evidence_level: E4
+  confidence: high (n=92,457; reconciles HEALTHY E0 gap per review P0.4)
+  implementation: NEW (time_engine/behavior layer)
+  validation: 5-day ICC 0.87 in synthetic series
+- parameter: RMSSD_age_sex_marginal
+  meaning: Short-term resting RMSSD population reference (right-skewed)
+  units: ms
+  distribution:
+    type: lognormal_spline
+    anchor: Lifelines n=84,772 age-bin medians (women 52.1 ms at 20-24 y -> 17.8 at 65-69); meta-norm 42 ms (19-75); women > men ~5 ms only 20-45
+      y
+  bounds:
+  - 3
+  - 200
+  population_dependence: steep age decline to ~60 y then plateau; sex gap 20-45 y only
+  condition_dependence:
+    mecfs: SMD -0.37 (~-10-20% relative; large overlap - NOT drastically low)
+    pots: -15.16 ms time-domain reduction (upright)
+    anxiety: g -0.3 to -0.45 tonic
+  temporal_behavior: chronic trait + lnRMSSD day-to-day CV 3-13% (standardized)
+  equation: ln(RMSSD) ~ Normal(mu(age,sex), sigma); mechanistically generated from vagal state + RR scaling (REL-HR-RMSSD-SCALING)
+  source:
+  - EVD-POP-002
+  - EVD-HLTH-002
+  - EVD-MECFS-004
+  - EVD-POTS-011
+  evidence_level: E5
+  confidence: high
+  implementation: NEW (emergent from HRV generator; repo currently has no RSA/HRV structure)
+  validation: synthetic RMSSD age/sex quantiles vs Lifelines tables
+- parameter: SDNN_24h
+  meaning: 24-h SDNN healthy reference
+  units: ms
+  distribution:
+    type: normal
+    mean: 150
+    sd: 38
+  bounds:
+  - 40
+  - 300
+  population_dependence: age decline; men 160+/-40, women 147+/-36 (25-41 y)
+  condition_dependence:
+    long_covid: -15-25% group level (E2, cross-sectional)
+  temporal_behavior: 24-h aggregate
+  equation: emergent from beat generator
+  source:
+  - EVD-HLTH-002
+  - EVD-LCOV-005
+  evidence_level: E4
+  confidence: high
+  implementation: NEW
+  validation: Aeschbacher 24-h values; Nunan pooled table
+- parameter: HRmax
+  meaning: Maximal heart rate
+  units: bpm
+  distribution:
+    type: normal
+    mean: 208 - 0.7*age
+    sd: 10.5
+  bounds:
+  - 140
+  - 220
+  population_dependence: age slope -0.7; women 206-0.88*age (Gulati); fit 211-0.64*age (Nes/HUNT); residual irreducible (LoA ~44 bpm span)
+  condition_dependence:
+    mecfs: criterion HRmax -5.81+/-3.34 bpm; symptom-limited HRpeak -16.62 (effort-confounded)
+    long_covid: CI subgroup -49 bpm (30% of symptomatic clinic)
+  temporal_behavior: chronic trait
+  equation: HRmax = 208 - 0.7*age + N(0,10.5)
+  source:
+  - EVD-POP-003
+  - EVD-METB-010
+  - EVD-HLTH-005
+  - EVD-MECFS-005
+  evidence_level: E5
+  confidence: high
+  implementation: 'REPO SYMBOL FIX: simulation/population.py HM=(220-age)/60 uses SUPERSEDED Fox equation - replace with Tanaka; note repo model
+    ceiling HM=3.3333 bps (200 bpm) is a model bound, distinct from population HRmax'
+  validation: synthetic HRmax residual SD ~10.5 bpm
+- parameter: HRR1
+  meaning: 1-min heart-rate recovery after maximal exercise with cool-down
+  units: bpm
+  distribution:
+    type: normal
+    mean: 20
+    sd: 6
+  bounds:
+  - 2
+  - 60
+  population_dependence: age -3.6 bpm/20 y (CARDIA); fitness effect CONTRADICTORY - no universal mapping
+  condition_dependence:
+    long_covid: -7.9 bpm in CI subgroup
+    mecfs: no established difference (Nelson 2019 meta, 2 studies)
+  temporal_behavior: event recovery
+  equation: biexponential off-kinetics (REL-EXERCISE-KINETICS)
+  source:
+  - EVD-HLTH-005
+  - EVD-POP-003
+  evidence_level: E5
+  confidence: high (protocol-dependent)
+  implementation: NEW
+  validation: Cole-protocol distribution; abnormal <=12 bpm
+- parameter: respiration_rate_rest
+  meaning: Resting respiratory rate
+  units: breaths/min
+  distribution:
+    type: normal
+    mean: 15.5
+    sd: 2.3
+    truncate:
+    - 9
+    - 28
+  bounds:
+  - 6
+  - 35
+  population_dependence: U-shaped age (min ~15.2 at 49-58 y); athletes -2 to -3.5 with larger tidal volume
+  condition_dependence:
+    pots: postural hyperventilation subset ~25% (ETCO2<30)
+    sleep: N3 ~13 low CV; REM ~16 high CV
+  temporal_behavior: state-dependent; drives RSA gating
+  equation: RR ~ N(15.5, 2.3)
+  source:
+  - EVD-HLTH-010
+  - EVD-HLTH-007
+  - EVD-POTS-008
+  evidence_level: E2-E3
+  confidence: moderate
+  implementation: NEW (repo PPG respiration is a cosmetic 0.25 Hz sine - replace)
+  validation: 5th/95th percentile vs KORA-FF4
+- parameter: circadian_period
+  meaning: Endogenous circadian period
+  units: h
+  distribution:
+    type: normal
+    mean: 24.183
+    sd: 0.267
+  bounds:
+  - 23.5
+  - 25.0
+  population_dependence: age phase advance 1-2 h
+  condition_dependence: {}
+  temporal_behavior: 24-h carrier
+  equation: X(t)=MESOR+A*cos(2pi(t-phi)/24h)
+  source:
+  - EVD-TEMP-006
+  evidence_level: E5
+  confidence: high
+  implementation: NEW (time_engine has clock but D_circ never couples to parameters - WIRE IT)
+  validation: significant 24-h cosinor in synthetic HR
+- parameter: circadian_HR_amplitude
+  meaning: HR circadian double-amplitude half-range
+  units: bpm
+  distribution:
+    type: normal
+    mean: 13.5
+    sd: 1.0
+  bounds:
+  - 8
+  - 20
+  population_dependence: identical amplitude/phase across sex (mesor differs)
+  condition_dependence:
+    pots: orthostatic gain AM bias +8-10 bpm (separate mechanism layer)
+  temporal_behavior: 24 h
+  equation: HR circadian term, acrophase ~14:40 lab / ~16:30-17:00 free-living
+  source:
+  - EVD-HLTH-003
+  - EVD-POTS-002
+  evidence_level: E2
+  confidence: moderate
+  implementation: NEW
+  validation: acrophase afternoon; nadir 03:00-05:00
+- parameter: Tcore_circadian
+  meaning: Core temperature circadian rhythm
+  units: degC
+  distribution:
+    type: cosinor
+    mesor: 36.9
+    half_amplitude: 0.25
+    nadir: 04:00-06:00
+  bounds:
+  - 35.5
+  - 39.5
+  population_dependence: amplitude damped 20-40% elderly; phase advances with age; luteal +0.3-0.4 C offset
+  condition_dependence:
+    fever: see fever_slope_age_graded
+    menstrual: luteal setpoint offset
+  temporal_behavior: 24 h + sleep-evoked -0.2-0.3 C component (provisional E1)
+  equation: T_core(t) = 36.9 + 0.25*cos(2pi(t-phi_T)/24h)
+  source:
+  - EVD-TEMP-006
+  - EVD-TEMP-008
+  evidence_level: E5
+  confidence: high
+  implementation: NEW (no temperature state in repo)
+  validation: amplitude ~0.5 C; nadir timing
+- parameter: sleep_stage_HR_deltas
+  meaning: Stage-conditioned HR offsets vs recumbent wake
+  units: bpm
+  distribution:
+    type: categorical_offsets
+    N3: -0 to -5% vs recumbent wake
+    REM: baseline + phasic bursts +5-15 bpm
+    note: ONLY 13.5% dip >=10% vs recumbent wake; 20-30% dip exists only vs ambulatory day
+  bounds: null
+  population_dependence: younger/male/lower-BMI dip more; women higher sleep HR all stages
+  condition_dependence:
+    mecfs: SE -3-6%, SOL +7-10 min, TST normal (no hypersomnia)
+  temporal_behavior: 90-min ultradian cycles
+  equation: stage-conditioned state machine (REL-SLEEP-AUTONOMIC)
+  source:
+  - EVD-HLTH-007
+  - EVD-MECFS-012
+  evidence_level: E4
+  confidence: moderate-high
+  implementation: NEW (repo never enters sleep; is_sleeping hardcoded False)
+  validation: stage-conditional HR/HF vs Huang 2018 / Cabiddu 2012
+- parameter: BP_resting_and_dip
+  meaning: Seated/24-h BP profile, nocturnal dip, morning surge
+  units: mmHg
+  distribution:
+    type: composite
+    seated: SBP N(112-118, 10), DBP N(70-76, 8) age 20-40
+    dip: N(14.1, 4.6)% SBP
+    surge: +15-25 mmHg over 30-60 min at awakening
+    dipper_fractions: dipper 80-85% / non-dipper 10-15% / extreme-reverse ~5%
+  bounds:
+  - 70
+  - 200
+  population_dependence: men +~7 mmHg SBP; age slope +0.3-0.5 mmHg/y; between-population offsets 5-10 mmHg
+  condition_dependence:
+    mecfs_severe: supine hypertension / reverse dipping possible
+    medication: levodopa post-dose OH (NEUR-005)
+  temporal_behavior: 24 h cosinor + awakening surge kernel
+  equation: SBP(t) = MESOR + 10*cos(2pi(t-14:15)/24h) + surge_kernel
+  source:
+  - EVD-HLTH-003
+  - EVD-HLTH-009
+  evidence_level: E2
+  confidence: moderate
+  implementation: NEW (semi-latent for wearables; cuffless PPG-BP cannot observe)
+  validation: ABPM table reproduction; dip phenotype fractions
+- parameter: BRS_operating_point
+  meaning: Cardiovagal baroreflex sensitivity, method-conditional
+  units: ms/mmHg
+  distribution:
+    type: lognormal
+    mean: 10-15 (sequence/spectral) / 15-20 (phenylephrine scale)
+    sd_over_mean: 0.45
+  bounds:
+  - 1
+  - 40
+  population_dependence: halve per ~20 y of age (19.5 -> 10.7 -> 6.0 across 23-39/40-59/60-77 y)
+  condition_dependence:
+    pots: CONTRADICTORY - sample delta N(-0.20, 0.10) trunc [-0.35,+0.10]; pediatric branch positive (do-not-hard-code item 1)
+    sleep_deprivation: decreased spontaneous BRS (Zhong 2005, direction only)
+  temporal_behavior: state-dependent (sleep raises BRS); method bias fixed per analysis method
+  equation: BRS_method = BRS_true * method_scale (sequence/spectral underestimate 33-67%)
+  source:
+  - EVD-AUTN-002
+  - EVD-POTS-010
+  evidence_level: E4
+  confidence: high for method bias; low for POTS delta
+  implementation: maps to repo Hill gains kH/kE/kR only loosely - document mapping or introduce NEW effective-gain parameter
+  validation: sequence-method analysis of synthetic data recovers prescribed gain within method bias
+- parameter: orthostatic_protocol_deltas
+  meaning: Protocol-conditioned healthy orthostatic delta-HR (MANDATORY encoding)
+  units: bpm
+  distribution:
+    type: per_protocol_normals
+    stand_casual_10min:
+      mean: 12
+      sd: 5
+      exceed30: <5%
+    stand_lab_vanderbilt_10min:
+      mean: 25
+      sd: 6
+      exceed30: ~10-33%
+    nasa_lean_10min:
+      mean: ~20-28 (free-tailed)
+      exceed30: 33% (Lee 2020)
+    tilt60_10min:
+      mean: 34
+      sd: 8
+      exceed30: ~40-60%
+    tilt60_30min:
+      mean: 40
+      sd: 8
+      exceed30: ~80%
+  bounds:
+  - -10
+  - 60
+  population_dependence: 'adolescents: 95th pct 41-48 bpm (pediatric criterion >=40); age attenuates orthostatic tachycardia'
+  condition_dependence:
+    pots: delta-HR(t) trajectory with 2-10-min separation; >=30 sustained adults / >=40 ages 12-19
+    mecfs: SMD +0.86-0.92
+  temporal_behavior: transient (s) + sustained (min) + drift (2-5 bpm/10 min)
+  equation: delta_HR(t, protocol, supine_rest_duration, fasting, time_of_day) - all modeled variables
+  source:
+  - EVD-HLTH-004
+  - EVD-POTS-001
+  - EVD-POTS-005
+  - EVD-POTS-018
+  evidence_level: E3-E4
+  confidence: moderate (protocol spread is the honest representation)
+  implementation: NEW protocol registry consumed by engine (repo tilt_test.yaml is data-only, unparsed - wire it); relaxes repo test 'healthy
+    sustained delta-HR < 30'
+  validation: exceedance fractions per protocol vs Plash 2013 / Lee 2020 / Seeley 2025
+- parameter: orthostatic_pooling_volume
+  meaning: Blood volume shifted below diaphragm on standing
+  units: mL
+  distribution:
+    type: uniform
+    min: 300
+    max: 800
+  bounds:
+  - 100
+  - 1200
+  population_dependence: body-size scaled
+  condition_dependence:
+    pots_flow_phenotypes: thoracic -25..-32% vs control -12+/-3% (Stewart, replication low)
+    heds: optional untested pooling perturbation
+  temporal_behavior: bulk <10 s, complete 3-5 min; plasma -10%/5 min, -15-20%/10 min
+  equation: two-time-constant central volume dynamics
+  source:
+  - EVD-AUTN-005
+  - EVD-TEMP-003
+  - EVD-POTS-007
+  evidence_level: E4
+  confidence: high (direction), moderate (magnitude)
+  implementation: repo states Vvm/Vsr exist; magnitudes tier C machine-fitted - keep with provenance label
+  validation: pooling >=350 mL at 100 s; steady state in [500,1000] mL
+- parameter: meal_kernel
+  meaning: Postprandial HR/CO/glucose kernel
+  units: bpm / mg/dL
+  distribution:
+    type: kernel_params
+    dHR_mixed: N(6,3) bpm
+    dHR_large: U(10,20) bpm
+    peak_min: U(30,60)
+    tau_decay_min: U(60,90)
+    glucose_peak: +40+/-15 mg/dL at 45-65 min, <140 mg/dL healthy
+  bounds: null
+  population_dependence: elderly PPH -11 to -16 mmHg (~40% prevalence)
+  condition_dependence:
+    pots: high-carb splanchnic pooling pulse amplifies delta-HR (~53% report worsening)
+  temporal_behavior: rise 0-60 min, resolve 2-4 h; duration ~ meal size
+  equation: asymmetric kernel scaled by kcal and carb fraction (REL-MEAL-RESPONSE)
+  source:
+  - EVD-HLTH-006
+  - EVD-METB-005
+  - EVD-METB-002
+  - EVD-POTS-016
+  evidence_level: E3-E4
+  confidence: moderate-high
+  implementation: replaces repo behavior.py uncited meal constants (RalpM/Ralpm x0.75, Cal x1.15) with kernel-driven modulation
+  validation: peak timing 30-60 min; meal-size grading
+- parameter: PEM_symptom_kernel_params
+  meaning: PEM delayed symptom kernel (ME/CFS)
+  units: h / days
+  distribution:
+    type: composite
+    onset_delay: Gamma(mode 18 h, range 0-48 h)
+    peak: U(24,48) h
+    recovery: right-skewed mean 12.7+/-1.2 d, IQR 5-21, range 1-64, tail 5-10% >21 d
+    decay: N(0.10, 0.02) units/day
+  bounds: null
+  population_dependence: person-specific exertion threshold (state-dependent)
+  condition_dependence:
+    mecfs: defining
+    long_covid: shared machinery; background PEM 7% in controls
+  temporal_behavior: 12 h to weeks
+  equation: delayed gamma kernel + right-skewed recovery (REL-PEM-SYMPTOM-KERNEL)
+  source:
+  - EVD-MECFS-008
+  - EVD-MECFS-009
+  - EVD-MECFS-001
+  evidence_level: E4
+  confidence: moderate (single-source amplitude/decay; mean NOT median per review)
+  implementation: REPLACES repo time_engine.py PEM constants (12-h delay / 0.6 threshold / 2-h resolution - off by ~2 orders of magnitude AND
+    dead code; engine.py:120 never passes exertion)
+  validation: onset-delay/duration vs Chu 2018; mean 12.7 d vs Moore 2023
+- parameter: EDA_tonic_phasic
+  meaning: EDA SCL/SCR generator parameters
+  units: uS
+  distribution:
+    type: composite
+    SCL: random walk 2-16 uS (range 1-40)
+    SCR_amplitude: lognormal 0.05-5 uS (min 0.01-0.05)
+    SCR_latency: N(1.8,0.4) s
+    SCR_rise: 0.5-5 s
+    half_recovery: 2-10 s
+    NS_SCR_rate: 1-3/min rest, 5-10+/min stress, up to 20-25 high arousal
+  bounds:
+  - 0
+  - 45
+  population_dependence: wide; wrist weaker than palmar; ambient heat/humidity raise SCL independent of arousal
+  condition_dependence:
+    stress: REL-STRESS-SAM-HPA
+    note: dissociable from cardiac sympathetic - do not force coherence
+  temporal_behavior: seconds (phasic) / minutes (tonic)
+  equation: sudomotor burst input -> impulse response (delay 1-3 s, rise 1-3 s, tau_rec 3-10 s)
+  source:
+  - EVD-AUTN-010
+  - EVD-SENS-006
+  evidence_level: E4
+  confidence: high
+  implementation: NEW
+  validation: SCR shape parameters within standard ranges
+- parameter: MSNA_resting
+  meaning: Resting muscle sympathetic nerve activity (latent)
+  units: bursts/min
+  distribution:
+    type: lognormal
+    mean: 22
+    sd: 6
+    note: 24+/-6; range 9-41; 4-fold interindividual range is a defining feature
+  bounds:
+  - 5
+  - 50
+  population_dependence: predominantly male source data; resting MSNA does NOT correlate with vasoconstrictor tone in young women
+  condition_dependence:
+    pots: supine usually normal, upright exaggerated (208+/-30 vs 123+/-24 %baseline on 30-deg HUT) BUT contradictions (Furlan/Jacob low) - state-dependent
+      gain + high-resting tail
+  temporal_behavior: stable trait; pulse-synchronous latency 1.3 s
+  equation: MSNA ~ lognormal; orthostatic ~1.5-2x
+  source:
+  - EVD-AUTN-001
+  - EVD-POTS-009
+  - EVD-AUTN-005
+  evidence_level: E4
+  confidence: moderate
+  implementation: NEW latent (not wearable-observable)
+  validation: orthostatic doubling in synthetic drive
+- parameter: sensor_PPG_HR_error
+  meaning: Wrist PPG HR measurement error (Apple-Watch-class)
+  units: bpm
+  distribution:
+    type: composite
+    bias: -0.27
+    LoA:
+    - -7.19
+    - 6.64
+    sigma_rest: 3.5
+    exercise_MAPE: 5-10% moderate; tails +/-19-30 bpm severe motion; arrhythmia degrade ~5x
+  bounds: null
+  population_dependence: skin-tone penalty UNRESOLVED - sample with mass at ~0 (do-not-hard-code item 13); pediatric/ambulatory tails wider
+  condition_dependence:
+    all: error widening with motion; cadence-lock artifact during rhythmic gait
+  temporal_behavior: state-conditional
+  equation: HR_obs = HR_true + bias + sigma(state)*eps + cadence_lock_artifact(state)
+  source:
+  - EVD-SENS-001
+  - EVD-SENS-004
+  - EVD-SENS-005
+  evidence_level: E5 (bias/LoA); E2 (skin tone)
+  confidence: high (Lambe 2026, 82 studies)
+  implementation: 'REPO FIX: wearable_sensors.py hardcoded sigma=1ms/dropout 0.5% and PPG coefficients ignore KB validation data (Polar H10 LoA
+    -2.3/+2.4 ms, ICC 0.99) - wire KB metrics in'
+  validation: synthetic error distribution vs pooled LoA; naive-vs-SOTA cadence-lock reproduction
+- parameter: sensor_PPG_usable_fraction
+  meaning: Free-living PPG data-usability / missingness
+  units: fraction
+  distribution:
+    type: state_conditional_bernoulli
+    day: p_usable 0.30-0.60
+    night: 0.65-0.75
+    streaming_loss: up to 49% BLE vs <=9% on-device
+  bounds:
+  - 0
+  - 1
+  population_dependence: device-specific (E4-device)
+  condition_dependence: {}
+  temporal_behavior: diurnal missingness pattern
+  equation: dropout ~ Bernoulli(p(state)); forward-fill policy explicit
+  source:
+  - EVD-SENS-003
+  evidence_level: E4
+  confidence: high
+  implementation: 'REPO FIX: replace fixed 0.5% dropout'
+  validation: synthetic missingness diurnal profile vs published fractions
+- parameter: sensor_strap_RR_error
+  meaning: Chest-strap RR-interval and derived-HRV metric error
+  units: ms
+  distribution:
+    type: composite
+    RR_bias: 0.4-0.7 ms
+    RR_LoA:
+    - -2.8
+    - 4.3
+    DFA_alpha1_LoA_high_intensity:
+    - -0.409
+    - 0.581
+    watch_HRV_MAPE: 0.289
+    nocturnal_HRV_MAPE:
+    - 0.0596
+    - 0.1632
+  bounds: null
+  population_dependence: device-dependent
+  condition_dependence: {}
+  temporal_behavior: intensity-conditional
+  equation: error model PER DERIVED METRIC, not per raw channel (beat-timing accuracy does not transfer)
+  source:
+  - EVD-SENS-002
+  evidence_level: E3
+  confidence: moderate-high
+  implementation: 'REPO FIX: wire Schaffarczyk KB table into PolarH10SensorModel'
+  validation: synthetic DFA-alpha1/RMSSD error reproduction under exercise
+- parameter: steps_daily_marginal
+  meaning: Steps/day population marginal (device-algorithm-conditional)
+  units: steps/day
+  distribution:
+    type: lognormal_or_gamma
+    anchors: UKB wrist median 9076 [6844-11687]; NHANES bands; 32% mean shift from censoring choice - device algorithm is part of the model
+  bounds:
+  - 0
+  - 40000
+  population_dependence: age/fitness; wrist +20-40% overcount vs hip; slow-gait undercount 5-30% (severity-confounded)
+  condition_dependence:
+    mecfs: severity anchors 8235/5195/2031; day-to-day variation 47%; boom-bust via PEM kernel
+  temporal_behavior: daily, autocorrelated
+  equation: per-device lognormal marginal + overcount bias
+  source:
+  - EVD-POP-008
+  - EVD-MECFS-002
+  - EVD-MECFS-011
+  - EVD-SENS-008
+  evidence_level: E2-E3
+  confidence: moderate
+  implementation: NEW (no activity/accelerometry in repo)
+  validation: NHANES band percentages; wrist-vs-hip +39%
+- parameter: OU_day_to_day
+  meaning: Ornstein-Uhlenbeck baseline drift parameters
+  units: various
+  distribution:
+    type: composite
+    tau_OU_days: U(3,7)
+    lnRMSSD_CV: U(0.03,0.13) standardized
+    sleep_SD_h: 0.5
+    steps_reliability_days:
+    - 2.5
+    - 4.4
+  bounds: null
+  population_dependence: athlete OU params athlete-specific
+  condition_dependence:
+    overreaching: lnRMSSD CV 8.1% (single case study)
+  temporal_behavior: days-weeks
+  equation: dx = -(x-mu)/tau dt + sigma dW
+  source:
+  - EVD-TEMP-007
+  - EVD-POP-004
+  evidence_level: E2-E4
+  confidence: moderate
+  implementation: NEW
+  validation: synthetic ICCs match published
+- parameter: anxiety_tonic_vagal_gain
+  meaning: Shared tonic vagal-gain knob for anxiety/PD/pain/migraine/depression layers
+  units: Hedges g
+  distribution:
+    type: uniform
+    min: -0.45
+    max: -0.29
+  bounds:
+  - -0.6
+  - 0
+  population_dependence: effect disappears controlling for psychotropics in large-N - medication-mask interaction
+  condition_dependence:
+    anxiety: tonic baseline shift, NOT reactivity shift; no exaggerated orthostatic tachycardia
+  temporal_behavior: chronic trait
+  equation: vagal_gain *= (1 + g) for persona with anxiety layer
+  source:
+  - EVD-NEUR-009
+  evidence_level: E5
+  confidence: high (meta-analytic; non-specific by design)
+  implementation: NEW shared latent knob (overlap-matrix architecture)
+  validation: reproduces g ~ -0.3..-0.45 without orthostatic phenotype
+provisional_with_uncertainty:
+- parameter: baroreflex_logistic_A1_A4
+  meaning: Carotid baroreflex 4-parameter logistic set (CBR-HR)
+  units: bpm / 1/mmHg / mmHg
+  distribution:
+    type: point_estimates_wide_prior
+    A1: 17.1+/-2.7 bpm
+    A2: 0.15+/-0.03
+    A3: 99.9+/-5.0 mmHg
+    A4: 55.6+/-1.8 bpm
+    Gmax: -0.58+/-0.10 bpm/mmHg
+  bounds: null
+  population_dependence: UNKNOWN - n=9 single lab; treat as point estimates, NOT population distributions (do-not-hard-code item 15)
+  condition_dependence:
+    pots: gain delta contradictory - sampled latent (see BRS_operating_point)
+  temporal_behavior: seconds
+  equation: 4-param logistic (REL-BAROREFLEX-SIGMOID)
+  source:
+  - EVD-AUTN-003
+  evidence_level: E3
+  confidence: low-moderate (n=9)
+  implementation: maps to repo Hill targets (kH/p2H/HM/Hm etc.); Geddes values are in-silico-calibrated equivalents
+  validation: neck-suction impulse simulation reproduces Gmax
+- parameter: autonomic_latencies_exact
+  meaning: Exact vagal/sympathetic latency and time-constant values
+  units: s
+  distribution:
+    type: soft_priors
+    vagal_delay: U(0.2,0.6)
+    vagal_tau: U(0.5,1.5)
+    symp_delay: U(1.5,2.0)
+    symp_tau: U(5,15)
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    mecfs: repo tauH/taur tier-D doublings UNSOURCED - keep experimental-only
+  temporal_behavior: sub-second to tens of s
+  equation: delay + first-order filters
+  source:
+  - EVD-AUTN-004
+  - EVD-TEMP-005
+  evidence_level: E4 (class) / E1 (exact values)
+  confidence: moderate
+  implementation: NEW filter layer; do-not-hard-code item 20 (soft priors)
+  validation: phase-lag qualitative tests
+- parameter: accentuated_antagonism_k
+  meaning: Vagal gain amplification by sympathetic background
+  units: dimensionless
+  distribution:
+    type: uniform
+    min: 1
+    max: 3
+  bounds:
+  - 0
+  - 5
+  population_dependence: unknown
+  condition_dependence: {}
+  temporal_behavior: beat-by-beat
+  equation: vagal_gain *= (1 + k*symp_level)
+  source:
+  - EVD-AUTN-009
+  evidence_level: E1-E2 (magnitude)
+  confidence: low
+  implementation: NEW; do-not-hard-code item 14 - tunable with mandatory sensitivity analysis
+  validation: sensitivity analysis over k in [1,3]
+- parameter: POTS_subtype_mixture_weights
+  meaning: Joint distribution of POTS phenotype axes (hyperadrenergic/hypovolemic/neuropathic)
+  units: probability
+  distribution:
+    type: provisional_joint
+    marginals:
+      hyperadrenergic: 0.75
+      hypovolemic: 0.449
+      neuropathic: 0.378
+    overlap:
+      two: 0.417
+      three: 0.114
+      none: 0.068
+    competing_source: 'Thieben 2007: neuropathic 42.8-53.8%, hypovolemic 28.9%, hyperadrenergic 29%'
+  bounds: null
+  population_dependence: referral-biased (Mayo, 89.9% female, mean 23 y); definition- and assay-dependent
+  condition_dependence:
+    pots: 3 independent latent severities with mixture-weight sampling; NOT 3 exclusive classes
+  temporal_behavior: chronic
+  equation: sample latent severities; compose perturbations
+  source:
+  - EVD-POTS-003
+  evidence_level: E2
+  confidence: low (single center, referral bias; do-not-hard-code item 2)
+  implementation: NEW (repo has 3 discrete presets - presets must SAMPLE from this joint distribution, not replace it)
+  validation: sampled joint reproduces Angeli 2024 overlap fractions including ~7% none
+- parameter: POTS_blood_volume_deficit
+  meaning: Blood volume deficit in hypovolemic POTS branch (MIXTURE - binding resolution)
+  units: fraction deficit
+  distribution:
+    type: mixture
+    components:
+    - name: hypovolemic_branch
+      weight: 0.40-0.50
+      dist: deficit ~ N(-0.14, 0.10) (Kulapatana -13.92+/-10.38%; Fu -15%; Raj -11..-12%)
+    - name: volume_normal_branch
+      weight: 0.50-0.60
+      dist: deficit ~ N(0, 0.05)
+    note: substantial minority have normal or elevated BV
+  bounds:
+  - -0.35
+  - 0.1
+  population_dependence: weight- and sex-dependent absolute mL - use mL/kg or % deficit, NOT Raj's absolute 689+/-270 mL
+  condition_dependence:
+    pots: deficit correlates with upright HR only in POTS (r=-0.608, Kulapatana 2025)
+  temporal_behavior: chronic
+  equation: TotalVol_persona = TotalVol_healthy * (1 + deficit)
+  source:
+  - EVD-POTS-004
+  evidence_level: E4 (direction/magnitude class)
+  confidence: moderate-high (triangulated 3 methods); heterogeneity real
+  implementation: 'REPO MISMATCH RESOLUTION: replace canonical TotalVol=3500 (Geddes in-silico, ~1.5x measured) with this mixture; keep 3500 only
+    as an extreme-tail scenario sample'
+  validation: synthetic hypovolemic branch mean deficit ~-12..-15%; delta-HR-BV negative correlation reproduced
+- parameter: POTS_baroreflex_gain_delta
+  meaning: POTS cardiovagal baroreflex gain change (UNRESOLVED)
+  units: fraction
+  distribution:
+    type: normal
+    mean: -0.2
+    sd: 0.1
+    truncate:
+    - -0.35
+    - 0.1
+    pediatric_branch: positive
+  bounds:
+  - -0.4
+  - 0.2
+  population_dependence: age- and method-dependent
+  condition_dependence:
+    pots: reduced (Stewart 2021) vs unchanged (Fu 2010, Galbreath 2011) vs increased (pediatric) - genuinely unresolved
+  temporal_behavior: chronic
+  equation: G_baro *= (1 + delta)
+  source:
+  - EVD-POTS-010
+  evidence_level: E3
+  confidence: low (contradiction high)
+  implementation: latent gain on repo Hill loops; do-not-hard-code item 1
+  validation: distribution-level check only; NO single-valued target
+- parameter: cerebral_autoregulation_gain
+  meaning: Cerebral autoregulation under orthostasis (POTS)
+  units: dimensionless gain
+  distribution:
+    type: latent_uncertain
+    range: intact (Schondorf 2005) to impaired (Ocon 2009)
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    pots: CBFv fall partly via hypocapnia (~25% subset); CO2 clamp reverses - ETCO2 as dynamic covariate
+  temporal_behavior: minutes
+  equation: CBFv = f(MAP, ETCO2, autoreg_gain)
+  source:
+  - EVD-POTS-008
+  evidence_level: E3
+  confidence: low (contradiction high; do-not-hard-code item 5)
+  implementation: NEW latent; CBFv NOT wearable-observable
+  validation: hyperventilation-tagged samples reproduce reversible symptom flares
+- parameter: Fu2010_competing_branch
+  meaning: 'Competing POTS mechanism: small heart + hypovolemia, INTACT baroreflex'
+  units: composite
+  distribution:
+    type: scenario_branch
+    LV_mass: 1.26 vs 1.45 g/kg
+    BV: 60 vs 71 mL/kg (-15%)
+    baroreflex: unchanged
+  bounds: null
+  population_dependence: n=19
+  condition_dependence:
+    pots: explicit competing model branch REQUIRED alongside Geddes gain-shift scenarios (contradiction audit Target 2)
+  temporal_behavior: chronic
+  equation: perturb Es/preload/TotalVol; leave Hill gains at healthy values
+  source:
+  - EVD-POTS-006
+  - EVD-POTS-004
+  - EVD-POTS-013
+  evidence_level: E3-E4 (human data)
+  confidence: moderate
+  implementation: NEW scenario in perturbation layer; Geddes-derived gain shifts (RalpM->11.5, kR->32 etc.) demoted to tier-D scenario samples
+  validation: both branches must reach >=30 bpm sustained via different mechanisms; report which branch each synthetic record used
+- parameter: exercise_onset_tau
+  meaning: HR on-kinetics time constants
+  units: s
+  distribution:
+    type: uniform
+    fast:
+    - 5
+    - 10
+    slow:
+    - 30
+    - 45
+    mono_exp_overall:
+    - 10
+    - 45
+  bounds:
+  - 2
+  - 90
+  population_dependence: intensity/fitness dependent
+  condition_dependence: {}
+  temporal_behavior: seconds
+  equation: two-exponential onset
+  source:
+  - EVD-TEMP-004
+  - EVD-HLTH-005
+  evidence_level: E3
+  confidence: low-moderate (provisional, broad ranges)
+  implementation: NEW
+  validation: tau_on within 10-45 s overall
+- parameter: PEM_physio_recovery_tau
+  meaning: Post-exertional physiological recovery time constants (slowed-recovery kernel)
+  units: h
+  distribution:
+    type: uniform
+    healthy:
+    - 3
+    - 6
+    patient_LC_proxy:
+    - 9
+    - 13
+    nocturnal_RMSSD_suppression:
+    - -0.3
+    - -0.15
+    HRR_tau_multiplier:
+    - 2
+    - 3
+  bounds:
+  - 1
+  - 72
+  population_dependence: dose-dependent on intensity/duration (>=VT1 trigger)
+  condition_dependence:
+    mecfs: EXTRAPOLATED from long-COVID cohort (n=127) - label as assumption; direct ME/CFS wearable PEM data does not exist
+  temporal_behavior: hours to 24-72 h
+  equation: slowed-recovery kernel (REL-PEM-PHYSIOLOGY-KERNEL); optional E0 delayed second wave default OFF
+  source:
+  - EVD-MECFS-010
+  - EVD-LCOV-009
+  evidence_level: E2
+  confidence: low (single study, extrapolation)
+  implementation: NEW
+  validation: consistency with LC proxy; extrapolation documented in manifest
+- parameter: CPET_day2_decrement
+  meaning: Two-day CPET day-2 capacity decrement (CONTESTED)
+  units: fraction
+  distribution:
+    type: mixture
+    responder:
+      weight: 0.5-0.6
+      peak: N(-0.06,0.03)
+      VT_weighted: -10..-20%
+    null_arm:
+      weight: 0.4-0.5
+      dist: N(0,0.03)
+    effort_coupling: day-2 max effort reduced during PEM
+  bounds:
+  - -0.3
+  - 0.1
+  population_dependence: mild-moderate only; severe excluded
+  condition_dependence:
+    mecfs: as above; sensitivity ~33% at 90% specificity - not diagnostic-grade
+  temporal_behavior: 24-48 h
+  equation: mixture + effort-coupling (REL-CPET-DAY2-CONTESTED)
+  source:
+  - EVD-MECFS-007
+  - EVD-LCOV-009
+  evidence_level: E2/E3 (binding downgrade from E4)
+  confidence: low
+  implementation: NEW scenario
+  validation: null arm generatable; decline not enriched vs synthetic controls beyond responder fraction
+- parameter: menstrual_effect_sizes
+  meaning: Menstrual-cycle wearable effect sizes
+  units: bpm / ms / degC
+  distribution:
+    type: composite
+    luteal_RHR: U(2,7) bpm
+    luteal_RMSSD: x0.90+/-0.05
+    luteal_Tskin: N(0.25,0.08) C
+    cycle_length: N(28.6,3.8) d
+    per_person_heterogeneity: HIGH - sample per-person multipliers
+  bounds: null
+  population_dependence: premenopausal women
+  condition_dependence:
+    all_female_personas: mandatory healthy-core modulation (not a flare/infection signal)
+  temporal_behavior: ~monthly
+  equation: biphasic modulator (REL-MENSTRUAL-MODULATION)
+  source:
+  - EVD-TEMP-008
+  - EVD-SENS-007
+  evidence_level: E3
+  confidence: low-moderate (verified lab n=26; large-N abstract; do-not-hard-code item 23)
+  implementation: NEW
+  validation: cycle-detection ~82% detection rate falsification target
+- parameter: medication_gain_masks
+  meaning: Medication confound gain multipliers
+  units: various
+  distribution:
+    type: composite
+    beta_blocker_HR_gain: U(0.4,0.6)
+    steroid_RHR: U(2,8) bpm high variance
+    steroid_sleep_eff: U(-0.15,-0.05)
+    fludrocortisone_vol_mL: N(500,250) ACUTE ONLY
+    propranolol_20mg: lowers supine/standing HR; 80mg less benefit
+    ivabradine: delta-HR 13.1 vs 17.0 bpm
+  bounds: null
+  population_dependence: dose-scaled; prescription-prevalence distributions do not exist (E0)
+  condition_dependence:
+    pots: subtype-dependent (midodrine neuropathic-only)
+    autoimmune: steroid decorrelates CRP-proxy from RHR
+  temporal_behavior: acute-hours; steroids weeks-months; fludrocortisone chronic phase UNENCODABLE in current schema
+  equation: gain masks (REL-MEDICATION-MASKS)
+  source:
+  - EVD-POTS-015
+  - EVD-AUTO-009
+  evidence_level: E2-E3
+  confidence: low (n=9-54 crossovers; point estimates - distributions mandatory)
+  implementation: repo medication.yaml exists; beta_blocker HM->2.2/kH->12 stay tier-D experimental; fludrocortisone +500 mL flagged assumption
+    +/-50%
+  validation: compression dose-response sanity check; steroid confound stress test
+- parameter: POTS_resting_HR_effect
+  meaning: POTS resting-HR elevation (spectrum-dependent)
+  units: bpm
+  distribution:
+    type: mixture_by_frame
+    clinic: U(10,20)
+    self_report: N(3, 2) with near-complete overlap
+  bounds:
+  - 0
+  - 25
+  population_dependence: ascertainment frame is the dominant variable
+  condition_dependence:
+    pots: clinic vs free-living self-report contradiction caps grade at E3
+  temporal_behavior: chronic
+  equation: RHR += delta(frame)
+  source:
+  - EVD-POTS-014
+  evidence_level: E3 (downgraded from E4)
+  confidence: low-moderate
+  implementation: NEW ascertainment-frame covariate
+  validation: resting-HR-only classifier near chance on self-report-like labels
+- parameter: population_correlation_cells
+  meaning: Between-person correlation matrix (partially evidenced)
+  units: r
+  distribution:
+    type: copula
+    evidenced:
+      SBP_DBP: 0.717
+      RHR_SBP: 0.257 (wide CI)
+      RHR_VO2max: -0.34
+    provisional:
+      RMSSD_BP: U(-0.2,0) with sensitivity at r=0
+      EDA_RHR_between: unevidenced
+      steps_RMSSD: route through fitness latent
+    downgraded:
+      RHR_RMSSD: RR-scaling law + weak residual, NOT fixed -0.58 (children-only)
+  bounds: null
+  population_dependence: large-n sources (NHANES II, Copenhagen Male Study)
+  condition_dependence: {}
+  temporal_behavior: chronic
+  equation: Gaussian copula on evidenced cells; sensitivity analysis on provisional
+  source:
+  - EVD-POP-005
+  evidence_level: E2
+  confidence: low-moderate (do-not-hard-code item 18)
+  implementation: NEW population sampler
+  validation: synthetic correlation matrix vs evidenced cells; r=0 sensitivity
+- parameter: comorbidity_cooccurrence
+  meaning: Pairwise comorbidity rates for joint cohort sampling
+  units: probability
+  distribution:
+    type: pairwise_rates
+    hEDS_in_POTS: 0.31
+    POTS_in_hEDS: 0.175-0.927 range
+    hEDS_in_MECFS: 0.12-0.19
+    MECFS_screen_in_LC: ~0.58
+    downweight: x0.3-0.5 for population sampling or declare clinic-like cohort
+  bounds: null
+  population_dependence: ascertainment-inflated; no third-order evidence (E0)
+  condition_dependence: {}
+  temporal_behavior: chronic
+  equation: copula/log-linear on {POTS, hEDS, ME/CFS, LC}
+  source:
+  - EVD-POP-007
+  - EVD-POTS-020
+  - EVD-EDS-004
+  evidence_level: E2
+  confidence: low (do-not-hard-code item 19)
+  implementation: NEW cohort sampler
+  validation: joint marginals vs Miller 2020 / De Wandele 2016
+- parameter: longCOVID_orthostatic_axis
+  meaning: Long-COVID orthostatic dysregulation graded latent axis
+  units: delta-HR bpm
+  distribution:
+    type: graded_latent
+    range: 0 -> 30+ bpm continuous
+    penetrance: 0-79% by method - DO NOT hard-code ~30%
+  bounds:
+  - 0
+  - 60
+  population_dependence: ascertainment-dependent (0% rigorous HUTT to 79% specialist-clinic active stand)
+  condition_dependence:
+    long_covid: POTS prevalence contested; Bjornson 2025 n=467 ~31% symptomatic
+  temporal_behavior: chronic
+  equation: sample axis severity; binary POTS label emerges at >=30 under defined protocol
+  source:
+  - EVD-LCOV-004
+  evidence_level: E2
+  confidence: low (contradiction high; do-not-hard-code item 8)
+  implementation: NEW
+  validation: standing delta-HR distribution vs Seeley/HUTT studies; OI symptom ~25%
+- parameter: post_infection_RHR_trajectory
+  meaning: Post-acute-infection (COVID) multiphasic RHR trajectory
+  units: bpm / days
+  distribution:
+    type: composite
+    acute: +5-15 bpm
+    tail: +1-3 bpm (>=5 bpm in 7-14%)
+    mean_time_to_baseline: 79 d (prolonged subset)
+    steps_recovery: 32 d
+    sleep_recovery: 24 d
+  bounds: null
+  population_dependence: self-selected wearable owners
+  condition_dependence:
+    long_covid: standalone base layer composable with phenotype axes
+  temporal_behavior: days to ~5 months
+  equation: triphasic trajectory module
+  source:
+  - EVD-LCOV-010
+  evidence_level: E4
+  confidence: moderate-high
+  implementation: NEW
+  validation: fraction >=5 bpm at 12 wk ~7-14%
+- parameter: fasting_autonomic_shift
+  meaning: 24-h fast autonomic effects (sex/protocol-dependent direction)
+  units: composite
+  distribution:
+    type: point_with_direction_conflict
+    HR: -4 bpm at 24 h
+    BRS: +30%
+    SV: +13%
+    HFnu: 55->62% BUT female-only study reports DECREASE - direction sex/protocol-dependent
+    72h_HR: +3-6 bpm secondary-source approximation (flagged)
+  bounds: null
+  population_dependence: young normotensives; n=25 crossover
+  condition_dependence: {}
+  temporal_behavior: 24-72 h piecewise
+  equation: 'HR(t) piecewise: -4 bpm @24h -> baseline 36-48h -> +3-6 bpm @72h (approximate)'
+  source:
+  - EVD-METB-013
+  evidence_level: E3 (flagged, contradiction moderate)
+  confidence: low (single study; do-not-hard-code item 22)
+  implementation: NEW
+  validation: fasting HR trend vs PMC9512108
+- parameter: sleep_restriction_metabolic
+  meaning: Sleep-restriction metabolic/autonomic effects
+  units: composite
+  distribution:
+    type: composite
+    insulin_sensitivity: -10 to -20% after >=2 short nights
+    morning_glucose: +5-10 mg/dL
+    nocturnal_HR: +2-4 bpm (E2 proxy)
+    RMSSD: -10-20% (E2 proxy)
+  bounds: null
+  population_dependence: healthy young men studied
+  condition_dependence: {}
+  temporal_behavior: detectable after 1 night, dose-dependent
+  equation: sleep-debt state variable -> multipliers
+  source:
+  - EVD-METB-011
+  - EVD-METB-012
+  evidence_level: E3 (SI) / E2 (proxies)
+  confidence: moderate-low
+  implementation: NEW sleep-debt state
+  validation: sleep-restriction personas show -10-20% SI
+- parameter: skin_tone_sensor_bias
+  meaning: Skin-tone effect on PPG HR accuracy (UNRESOLVED)
+  units: bpm error
+  distribution:
+    type: sampled_with_mass_at_zero
+    note: Shcherbina positive vs Bent null - direction unresolved; SpO2 bias direction robust (Sjoding) but magnitude 3-8 pp unstable; wearable
+      SpO2 LoA +/-4% dwarfs bias
+  bounds: null
+  population_dependence: Fitzpatrick type; underpowered at FST VI
+  condition_dependence: {}
+  temporal_behavior: static covariate
+  equation: bias_term sampled per persona with mass at ~0 (PPG-HR); positive-bias distribution (SpO2)
+  source:
+  - EVD-SENS-005
+  evidence_level: E2
+  confidence: low (do-not-hard-code item 13)
+  implementation: NEW equity-artifact covariate
+  validation: sensitivity analyses ONLY
+- parameter: latent_repo_defaults
+  meaning: Repo latent-state defaults (T_sym 0.3, T_para 0.7, G_baro 25, V_total 4500, E_syst 3.0, R_periph 1.0, C_vasc 1.0, D_circ 0, P_sleep
+    0.1, H_hydr 0.9, L_stress 0.1, B_infl 0.1, R_metab 1.0, S_horm 0.0, C_rec 1.0)
+  units: arbitrary [0,1]-ish
+  distribution:
+    type: uncited_defaults
+    note: no provenance at all (implementation map section 4); re-anchor each latent to an evidenced parameter above or mark engineering-judgment
+  bounds: null
+  population_dependence: unknown
+  condition_dependence: {}
+  temporal_behavior: various
+  equation: latent_physiology.py
+  source: []
+  evidence_level: E0 (engineering judgment)
+  confidence: low
+  implementation: 'EXISTING repo symbols - governance fix: no canonical parameter without E-level + provenance tag'
+  validation: validator CI gate
+requires_further_research:
+- parameter: hEDS_venous_compliance
+  meaning: Venous compliance/capacitance perturbation in hEDS
+  units: mL/mmHg
+  distribution:
+    type: unmeasured
+    note: no venous-compliance study exists in hEDS; narrative mechanism E0-E1
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    heds: OPTIONAL perturbation with explicit 'mechanism untested' flag (do-not-hard-code item 10); repo Cal->0.65/VMvl->987 stay tier-D engine-inert
+  temporal_behavior: structural
+  equation: none (unmeasured)
+  source:
+  - EVD-EDS-003
+  evidence_level: E0-E1
+  confidence: very low
+  implementation: EXISTING repo tier-D (Cal, VMvl) - keep experimental-only
+  validation: if enabled, reproduce HUT delta-HR distributions (validates output, NOT mechanism)
+- parameter: hEDS_dysautonomia_mechanism_split
+  meaning: Intrinsic vs deconditioning-mediated dysautonomia in hEDS
+  units: fraction
+  distribution:
+    type: unresolved_latent
+    note: no mediation analysis exists; keep components separable (do-not-hard-code item 12)
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    heds: intrinsic and deconditioning components must remain separately parameterized
+  temporal_behavior: chronic
+  equation: dysautonomia = f(intrinsic) + g(deconditioning)
+  source:
+  - EVD-EDS-008
+  evidence_level: E0
+  confidence: very low
+  implementation: NEW latent split
+  validation: none possible yet
+- parameter: neuropathic_venomotor_denervation_magnitude
+  meaning: Quantitative human venomotor denervation magnitude in neuropathic POTS
+  units: mL
+  distribution:
+    type: engine_falsified
+    note: 'repo dV_veno_max 250->75 (tier D) reaches only 21.2 bpm sustained delta-HR vs >=30 criterion with FLAT dose-response (18.5->21.7) -
+      hydrostatic-gate-limited; direction supported (Jacob 2000: 91-99% blunted leg NE spillover) but magnitude/structure insufficient'
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    pots_neuropathic: criterion failure DOCUMENTED (strict-xfail); do not report neuropathic-POTS outputs as validated; needs bounded stress-relaxation
+      creep and/or tilt-onset gain application (Geddes Eq 2.16, unimplemented)
+  temporal_behavior: orthostatic minutes
+  equation: requires model-structure fix before parameterization
+  source:
+  - EVD-POTS-019
+  evidence_level: E3 (direction, Jacob 2000) / E0 (magnitude)
+  confidence: very low for magnitude
+  implementation: EXISTING repo tier-D symbol dV_veno_max - keep experimental; structural fix required
+  validation: strict-xfail stands until structure fixed
+- parameter: fludrocortisone_chronic_phase
+  meaning: Chronic-phase fludrocortisone pressor (TPR-mediated) parameterization
+  units: composite
+  distribution:
+    type: unencodable
+    note: 'Chobanian 1979: chronic phase plasma volume returns to control, pressor effect TPR-mediated; static +500 mL is CONTRADICTED for chronic
+      phase by its own citation; schema cannot express time-varying perturbations'
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    pots: NO adequate RCT exists (coverage gap 11)
+  temporal_behavior: weeks
+  equation: requires schema extension (time-varying/phase-dependent perturbations)
+  source:
+  - EVD-POTS-015
+  evidence_level: E0
+  confidence: very low
+  implementation: EXISTING repo fludrocortisone TotalVol->5000 (acute only); chronic phase requires human review
+  validation: none until schema extension
+- parameter: severe_MECFS_physiology
+  meaning: Severe ME/CFS physiological parameters
+  units: various
+  distribution:
+    type: extrapolation
+    note: severe patients systematically excluded from lab/CPET studies; all severe-tier parameters are downward extrapolations (coverage gap
+      13); steps anchor 2031+/-824, %predicted VO2 48+/-9% are the only objective anchors
+  bounds: null
+  population_dependence: severity latent
+  condition_dependence:
+    mecfs_severe: seated tilt CBF -24.5% vs -0.4% controls (van Campen, single-group)
+  temporal_behavior: chronic
+  equation: severity latent mapped to steps/VO2 anchors
+  source:
+  - EVD-MECFS-002
+  - EVD-MECFS-006
+  evidence_level: E2-E3 with extrapolation flag
+  confidence: low
+  implementation: NEW severity latent
+  validation: marginal anchors only
+- parameter: PEM_delayed_physiological_second_wave
+  meaning: Delayed 24-48 h physiological dip in HR/HRV after exertion
+  units: composite
+  distribution:
+    type: speculative_optional
+    note: no study has tracked a delayed 24-48 h objective physiological dip; symptom-kernel delay documented, physiological kernel is slowed-recovery
+      (hours); E0, default OFF
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    mecfs: if enabled, must be labeled speculative in manifest
+  temporal_behavior: 24-48 h
+  equation: optional second kernel component
+  source:
+  - EVD-MECFS-010
+  evidence_level: E0-E1
+  confidence: very low
+  implementation: NEW (optional flag)
+  validation: none - validation EXCLUSION (no multi-day wearable PEM dataset exists)
+- parameter: mecfs_metabolomic_panels
+  meaning: ME/CFS metabolomic signatures
+  units: AUROC
+  distribution:
+    type: mechanistic_prior_only
+    note: hypometabolic DIRECTION replicated; specific panels do NOT survive cross-lab replication; AUROC 94-96% in-sample only - NEVER use as
+      classifier targets (do-not-hard-code item 7)
+  bounds: null
+  population_dependence: unknown
+  condition_dependence:
+    mecfs: use only as mechanistic prior for PEM amplitude/recovery
+  temporal_behavior: chronic
+  equation: none (latent)
+  source:
+  - EVD-MECFS-013
+  evidence_level: E1
+  confidence: very low for classification
+  implementation: NEW prior only
+  validation: explicitly excluded from classifier targets
+- parameter: adult_fever_HR_slope_precision
+  meaning: Precise adult fever->HR slope
+  units: bpm/degC
+  distribution:
+    type: heuristic
+    current: N(8.5,1.5) trunc [5.9,11.4]
+    note: best large regression is pediatric (n=188,635); adult ~7-10 remains heuristic (coverage gap 9); needs large adult regression
+  bounds:
+  - 5
+  - 13
+  population_dependence: age-graded (binding)
+  condition_dependence:
+    fever: hydration/medication/sepsis-vs-benign modifiers
+  temporal_behavior: acute
+  equation: dHR = slope(age)*dT
+  source:
+  - EVD-AUTO-003
+  evidence_level: E4 pediatric / heuristic adult
+  confidence: moderate-low adult
+  implementation: NEW age-graded slope
+  validation: planted-slope recovery
+- parameter: orthostatic_event_reliability
+  meaning: Event-to-event reliability of orthostatic delta-HR
+  units: CV
+  distribution:
+    type: provisional
+    cv:
+    - 0.15
+    - 0.25
+    note: NO test-retest study in healthy or POTS (coverage gap 5)
+  bounds: null
+  population_dependence: unknown
+  condition_dependence: {}
+  temporal_behavior: event-to-event
+  equation: event CV sampled U(0.15,0.25)
+  source:
+  - EVD-POP-004
+  evidence_level: E0 (provisional)
+  confidence: very low
+  implementation: NEW
+  validation: none available - flag as assumption
+- parameter: factor_analytic_latent_structure
+  meaning: Latent factor structure of autonomic/wearable batteries ('vagal setpoint','fitness','hemodynamic aging')
+  units: loadings
+  distribution:
+    type: theory_driven
+    note: no factor-analytic study exists (coverage gap 7; audit-confirmed); sample loadings over +/-50% ranges, Gaussian copula sensitivity at
+      r=0
+  bounds: null
+  population_dependence: unknown
+  condition_dependence: {}
+  temporal_behavior: chronic
+  equation: latent factors with loading uncertainty
+  source:
+  - EVD-POP-005
+  evidence_level: E0
+  confidence: very low (do not let downstream consumers treat as empirical)
+  implementation: NEW (optional architecture)
+  validation: sensitivity analyses only
+- parameter: geddes_base_provenance_fix
+  meaning: 29 Geddes-base ODE parameters provenance (Ral, Rvl, Cau, Cal, Cvu, Es, Vd, kR, taur, RaupM, Raupm, p2Ru, RalpM, Ralpm, p2Ra, kE, tauE,
+    EdM, Edm, p2E, kH, tauH, HM, Hm, p2H, TotalVol, VMvl, mvl, tauP)
+  units: various
+  distribution:
+    type: provenance_relabel
+    note: entire canonical core traces to ONE in-silico paper (Level 4); evidentially ~E1 functioning as tier-A-equivalent; add per-parameter
+      provenance tags (in-silico + machine-fitted for 10 Cycle-2 venous params); structural form defensible, magnitudes carry documented uncertainty;
+      no independent human dataset confirms Geddes parameter SHIFTS
+  bounds: null
+  population_dependence: n=25 healthy validation in-source
+  condition_dependence:
+    pots: all Geddes perturbations = tier-D scenario samples + Fu-2010 competing branch
+  temporal_behavior: static
+  equation: 12-state ODE (repo models/baroreflex_model.py)
+  source:
+  - EVD-TEMP-003
+  - EVD-TEMP-010
+  evidence_level: E1 (magnitudes, in-silico provenance) / structural form Level-4
+  confidence: 'structural: moderate; magnitudes: low'
+  implementation: 'EXISTING repo symbols (all 39 params in mathematical_models.yaml); audit defect 1-2 fix: label tier C = provenance machine-fitted
+    + strength E0-E1 + mandatory human-range citation; fix kR/kH/p2H normal_value-vs-nominal mismatches (applies 34.78/31.48/89.96 not 32/34/89.8);
+    delete dead inline phenotypes blocks'
+  validation: 'parameter-recovery test from simulator''s own output (TEMP-010 identifiability: only ~5-6 estimable); no E0/E1 value in canonical
+    mode per CI gate'
