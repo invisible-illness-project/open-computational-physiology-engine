@@ -32,9 +32,19 @@ disease:
   name: "Myalgic Encephalomyelitis / Chronic Fatigue Syndrome"
   abbreviation: "ME/CFS"
   description: "A complex multi-system illness characterized by profound fatigue, post-exertional malaise (PEM), unrefreshing sleep, cognitive impairment, and orthostatic intolerance."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; no value changes) ---
+  canonical_status: "canonical"  # HM perturbation canonical-eligible (tier B); tauH/taur stay EXPERIMENTAL
+  evidence_tier: "B"             # human CPET data (Davenport 2019), semi-quantitative
+  evidence_e_level: "E2-E3"
+  provenance:
+    source_claim_ids: null  # FLAG: Davenport 2019 (chronotropic intolerance at VAT) not in EVIDENCE_REGISTRY (related claims EVD-MECFS-005/007 cite other sources)
   phenotypes:
     - id: "mecfs_metabolic_dysfunction"
       name: "ME/CFS Metabolic Blunting"
+      canonical_status: "canonical"  # canonical HM effect; tier-D time constants remain experimental
+      evidence_tier: "B"             # Davenport 2019 human CPET data (parameter-level below)
+      evidence_e_level: "E2-E3"
+      source_claim_ids: null         # FLAG: Davenport 2019 not in EVIDENCE_REGISTRY (cf. EVD-MECFS-005/007)
       description: "Severe depletion of metabolic reserve capacity, impaired autonomic response time constants, and delayed recovery kinetics."
       parameters_perturbed:
         - symbol: "HM"
@@ -47,7 +57,11 @@ disease:
             citation: "Davenport et al., Front Pediatr 2019;7:82, Table 4 (ME/CFS n=47 vs controls n=35; % predicted HR at VAT 92.4% CPET-1, 90.6% CPET-2 vs 95.0%/101.1% controls; repo nominal x0.92)"
             evidence_level: "Level 2"
             evidence_tier: "B"
+            evidence_e_level: "E2-E3"
+            source_claim_ids: null  # FLAG: Davenport 2019 not in EVIDENCE_REGISTRY; nearest claims EVD-MECFS-005/007 cite Nelson 2019/2026 instead
             review_status: "NEEDS REVIEW - source metric is % of predicted HR at ventilatory anaerobic threshold (serial CPET), not absolute HRmax; applied proportionally to model ceiling HM"
+          canonical_status: "canonical"
+          uncertainty: "% predicted HR at VAT 92.4%/90.6% (ME/CFS) vs 95.0%/101.1% (controls), n=47/35; indirect, semi-quantitative mapping to HM ceiling"
       unverified_parameters:
         # MACHINE-PROPOSED hypotheses. No supporting source found for either
         # time-constant change; require human review.
@@ -59,7 +73,11 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: no quantitative ME/CFS time-constant source found
             review_status: "UNRESOLVED - no supporting source found; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - no quantitative ME/CFS baroreflex time-constant data"
         - symbol: "taur"
           normal_value: 12.5
           perturbed_value: 25.0
@@ -68,4 +86,8 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: no quantitative ME/CFS vasoconstriction time-constant source found
             review_status: "UNRESOLVED - no supporting source found; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - no quantitative ME/CFS vasoconstriction time-constant data"

@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/autoimmune.yaml
-  sha256: 8c2a3b0a9f1b1319cc89d52d786009361639d4701752cd44be0ae9f98e359870
+  sha256: 5c156e92391bc26246d92ab1a6b496778c44b2b3c5143a75a9c00161b2a44cf3
 review_history:
 - review_id: rev-40d885ee-f89f-403d-a959-169129c64a5a
   reviewed_at: '2026-09-11T00:45:41.636356+00:00'
@@ -53,3 +53,21 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-d27aea29-3f67-4e49-b19f-7f0b2942b334
+  reviewed_at: '2026-09-15T03:58:59.600972+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - canonical_status
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: added canonical_status + tier->E-level harmonization
+    fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
+    values changed. Registry claim_ids only where citation matches unambiguously;
+    else null+FLAG. Human L3 review still pending.'

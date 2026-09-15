@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/pots.yaml
-  sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
+  sha256: a61ac436daf499da7dc63d09a6c6e21c7676912fa897cebb986d0d056ae04253
 review_history:
 - review_id: rev-d0a780ae-22a5-47f3-9759-6f0a3a387147
   reviewed_at: '2026-09-11T00:45:41.632839+00:00'
@@ -71,3 +71,21 @@ review_history:
     \ dV_veno_max=75) \u2014 flat dose-response documented, strict-xfail, requires\
     \ model-structure revision (bounded stress-relaxation or tilt-onset gain application).\
     \ Human L3 pending."
+- review_id: rev-b7c24118-1587-4096-9269-c89d0a821e89
+  reviewed_at: '2026-09-15T03:58:59.437250+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - canonical_status
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: added canonical_status + tier->E-level harmonization
+    fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
+    values changed. Registry claim_ids only where citation matches unambiguously;
+    else null+FLAG. Human L3 review still pending.'

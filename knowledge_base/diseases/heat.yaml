@@ -31,9 +31,19 @@ disease:
   name: "Environmental Heat Stress"
   abbreviation: "HEAT"
   description: "Physiological shifts under elevated ambient temperatures, inducing cutaneous and systemic vasodilation, venous pooling, and orthostatic susceptibility."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; no value changes) ---
+  canonical_status: "canonical"  # tier-B parameters_perturbed canonical-eligible; Cal below stays EXPERIMENTAL
+  evidence_tier: "B"             # human heat-stress data (Ganio 2012), semi-quantitative
+  evidence_e_level: "E2-E3"
+  provenance:
+    source_claim_ids: null  # FLAG: Ganio 2012 (SVC +73%) not represented in EVIDENCE_REGISTRY
   phenotypes:
     - id: "environmental_heat"
       name: "Heat-Induced Vasodilation"
+      canonical_status: "canonical"  # tier-B parameters canonical-eligible per their tiers
+      evidence_tier: "B"             # Ganio 2012 human heat-stress data (parameter-level below)
+      evidence_e_level: "E2-E3"
+      source_claim_ids: null         # FLAG: Ganio 2012 not represented in EVIDENCE_REGISTRY
       description: "Cutaneous vasodilation and increased compliance, mimicking mild volume depletion."
       parameters_perturbed:
         - symbol: "Raupm"
@@ -47,7 +57,11 @@ disease:
             citation: "Ganio et al., Am J Physiol Heart Circ Physiol 2012;302:H1756-61 (heat stress +1.2C core: SVC 0.094->0.163 l/min/mmHg => resistance x0.58; 11 healthy young men, whole-body systemic measure applied to compartmental bound)"
             evidence_level: "Level 2"
             evidence_tier: "B"  # human data, semi-quantitative; compartment mapping is an approximation
+            evidence_e_level: "E2-E3"
+            source_claim_ids: null  # FLAG: Ganio 2012 not represented in EVIDENCE_REGISTRY
             review_status: "NEEDS REVIEW - whole-body SVC applied to upper-compartment bound"
+          canonical_status: "canonical"
+          uncertainty: "SVC 0.094+/-0.018 -> 0.163+/-0.032 l/min/mmHg (SD, n=11 young men, supine LBNP); whole-body measure applied to compartmental bound"
         - symbol: "Ralpm"
           normal_value: 1.192
           perturbed_value: 0.688
@@ -59,7 +73,11 @@ disease:
             citation: "Ganio et al., Am J Physiol Heart Circ Physiol 2012;302:H1756-61 (resistance factor x0.58 derived as above)"
             evidence_level: "Level 2"
             evidence_tier: "B"
+            evidence_e_level: "E2-E3"
+            source_claim_ids: null  # FLAG: Ganio 2012 not represented in EVIDENCE_REGISTRY
             review_status: "NEEDS REVIEW - whole-body SVC applied to lower-compartment bound"
+          canonical_status: "canonical"
+          uncertainty: "SVC 0.094+/-0.018 -> 0.163+/-0.032 l/min/mmHg (SD, n=11 young men, supine LBNP); whole-body measure applied to compartmental bound"
       unverified_parameters:
         # MACHINE-PROPOSED hypothesis. No supporting source found; direction
         # additionally questionable (heating causes cutaneous venoconstriction,
@@ -72,4 +90,8 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: no source; direction disputed (heating causes cutaneous venoconstriction)
             review_status: "UNRESOLVED - no supporting source found; requires human review; direction of compliance change under heat not established"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - no quantitative source; direction of compliance change disputed"

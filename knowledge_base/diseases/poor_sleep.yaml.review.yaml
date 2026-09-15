@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/poor_sleep.yaml
-  sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
+  sha256: 335aa30d901418fa7dda7284889ab38018c816eb9e8df97437b06127ab611d70
 review_history:
 - review_id: rev-b6e6a6e7-b6a3-4553-ad24-0405f94f3739
   reviewed_at: '2026-09-11T00:45:41.631693+00:00'
@@ -53,3 +53,21 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-2e3ef94e-1925-4391-91b8-ef94dbf4efa7
+  reviewed_at: '2026-09-15T03:58:59.679102+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - canonical_status
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: added canonical_status + tier->E-level harmonization
+    fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
+    values changed. Registry claim_ids only where citation matches unambiguously;
+    else null+FLAG. Human L3 review still pending.'

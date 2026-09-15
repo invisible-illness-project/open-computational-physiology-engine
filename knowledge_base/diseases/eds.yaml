@@ -28,9 +28,16 @@ disease:
   name: "Hypermobile Ehlers-Danlos Syndrome"
   abbreviation: "hEDS"
   description: "A heritable connective tissue disorder characterized by joint hypermobility, skin hyperextensibility, and tissue fragility, often associated with severe orthostatic intolerance and venous pooling."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; no value changes) ---
+  canonical_status: "experimental"  # all perturbations tier-D; engine-inert in canonical mode
+  evidence_tier: "B"                # hEDS<->dysautonomia association is human data (qualitative)
+  evidence_e_level: "E2-E3"
+  provenance:
+    source_claim_ids: ["EVD-EDS-002"]  # registry lists Gazit 2003 (DOI verbatim match)
   phenotypes:
     - id: "heds_venous_pooling"
       name: "hEDS Vascular Laxity"
+      canonical_status: "experimental"  # parameters_perturbed empty; only tier-D unverified parameters
       description: "Severe vascular compliance elevation leading to lower limb venous pooling and blunted venous return."
       association_evidence:
         # Qualitative support for hEDS -> orthostatic intolerance/dysautonomia.
@@ -39,6 +46,8 @@ disease:
         pmid: "12867232"
         citation: "Gazit et al., Am J Med 2003;115(1):33-40 (48 JHS patients, 30 controls; orthostatic intolerance 78% vs 10%; adrenergic hyperresponsiveness)"
         evidence_tier: "B"  # human data, qualitative association only
+        evidence_e_level: "E2-E3"
+        source_claim_ids: ["EVD-EDS-002"]  # registry source lists Gazit 2003, Am J Med 115:33-40 (DOI verbatim match)
       parameters_perturbed: []
       unverified_parameters:
         # MACHINE-PROPOSED hypotheses. No supporting source found for either
@@ -55,7 +64,11 @@ disease:
             # imply source support for this magnitude.
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: no quantitative hEDS compliance source exists (EVD-EDS-003: mechanism untested)
             review_status: "UNRESOLVED - no supporting source for magnitude +75%; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - no quantitative human hEDS compliance data (EVD-EDS-003)"
         - symbol: "VMvl"
           normal_value: 700.0
           perturbed_value: 987.0
@@ -72,4 +85,8 @@ disease:
             # imply source support for this magnitude.
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: no quantitative hEDS venous-capacity source exists (EVD-EDS-003)
             review_status: "UNRESOLVED - no supporting source for magnitude +41%; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - x1.41 ratio machine-proposed; no human measurement (EVD-EDS-003)"

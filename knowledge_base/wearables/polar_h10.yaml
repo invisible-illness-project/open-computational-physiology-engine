@@ -4,6 +4,11 @@ sensor:
   name: "Polar H10 Heart Rate Sensor"
   type: "dry_electrode_ecg"
   manufacturer: "Polar Electro"
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; specs unchanged) ---
+  canonical_status: "canonical"     # human validation data vs 12-lead ECG (Schaffarczyk 2022)
+  evidence_tier: "B"                # human device-validation data, semi-quantitative (ICC/LoA)
+  evidence_e_level: "E2-E3"
+  source_claim_ids: ["EVD-SENS-002"]  # registry source lists Schaffarczyk 2022 (DOI verbatim match 10.3390/s22176536)
   specifications:
     sampling_frequency: 130.0 # internal ECG sampling frequency in Hz
     rr_resolution_ms: 1.0

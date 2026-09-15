@@ -11,5 +11,11 @@ intervention:
     height_cm: 25.0
     tilt_down_seconds: 14.0
   purpose: "Assess autonomic cardiovascular regulation and diagnose orthostatic intolerance syndromes such as POTS."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; protocol values unchanged) ---
+  canonical_status: "canonical"     # protocol mirrors the Geddes 2022 in-silico protocol
+  evidence_tier: "C"                # in-silico protocol definition
+  evidence_e_level: "E0-E1"
+  source_claim_ids: null            # FLAG: no EVIDENCE_REGISTRY claim for the in-silico protocol
   provenance:
     doi: "10.1098/rsif.2022.0220"
+    evidence_level: "Level 4"

@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/equations/definitions.yaml
-  sha256: 6d03ccccc7976a635976f8ba00546c3e8f1e1aa8c2b9660b81553c209bec7cd4
+  sha256: 42a220944fd3cff30a84b56921d3d62e14367f8b258388f6b770bfd265d8f766
 review_history:
 - review_id: rev-0c0b1d99-ed81-458d-8265-f0ee944d4c65
   reviewed_at: '2026-09-11T10:54:40.333558+00:00'
@@ -21,3 +21,18 @@ review_history:
     \ engine Ts/Tr equations still absent from registry (pre-existing gap, flagged\
     \ in Phase 0 audit). Literature-level verification of the 20 base equations remains\
     \ outstanding \u2014 human L3 + dedicated evidence cycle required."
+- review_id: rev-91f9eb1b-57f7-4c2b-844e-cb569ed6a5d3
+  reviewed_at: '2026-09-15T03:59:26.057483+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-10: file-level evidence block (canonical, tier C, E0-E1, Geddes
+    2022 provenance; claim_ids null+FLAG). No equation changes. Human L3 pending.'

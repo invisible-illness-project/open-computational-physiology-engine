@@ -30,9 +30,16 @@ disease:
   name: "Autoimmune Dysautonomia"
   abbreviation: "AIDA"
   description: "Autoimmune conditions (e.g., Sjogren's, Lupus) causing autoantibody-mediated receptor blockades or ganglionic neuropathy, directly impairing autonomic feedback loop gains."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; no value changes) ---
+  canonical_status: "experimental"  # all perturbations tier-D; engine-inert in canonical mode
+  evidence_tier: "B"                # mechanism-level human evidence (Vernino 2000)
+  evidence_e_level: "E2-E3"
+  provenance:
+    source_claim_ids: null  # FLAG: Vernino 2000 (ganglionic AChR) has no EVIDENCE_REGISTRY claim
   phenotypes:
     - id: "autoimmune_neuropathy"
       name: "Autoimmune Autonomic Neuropathy"
+      canonical_status: "experimental"  # parameters_perturbed empty; only tier-D unverified parameters
       description: "Antibody-mediated blunting of adrenergic and cholinergic autonomic gain coefficients."
       association_evidence:
         # Mechanism-level support ONLY: ganglionic alpha3-AChR autoantibodies
@@ -42,6 +49,8 @@ disease:
         pmid: "10995864"
         citation: "Vernino et al., N Engl J Med 2000;343:847-855 (ganglionic AChR autoantibodies -> autoimmune autonomic neuropathy); see also Sjogren's-AAG, Auton Neurosci 2009, PMID 19097826"
         evidence_tier: "B"  # human data, qualitative mechanism only
+        evidence_e_level: "E2-E3"
+        source_claim_ids: null  # FLAG: Vernino 2000 / Sjogren's-AAG not represented in EVIDENCE_REGISTRY
       parameters_perturbed: []
       unverified_parameters:
         # MACHINE-PROPOSED hypotheses. No quantitative gain data in any
@@ -56,7 +65,11 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: magnitude is a machine-proposed assumption, no source
             review_status: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - 40% gain reduction has no quantitative source"
         - symbol: "kH"
           normal_value: 25.0
           perturbed_value: 15.0
@@ -65,4 +78,8 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: magnitude is a machine-proposed assumption, no source
             review_status: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - 40% gain reduction has no quantitative source"

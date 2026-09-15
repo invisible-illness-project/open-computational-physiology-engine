@@ -3,6 +3,20 @@ sensor:
   id: "photoplethysmography"
   name: "Wearable Optical Photoplethysmography (PPG)"
   type: "optical_ppg"
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; specs unchanged) ---
+  # The validation metrics below carry NO source citation anywhere in the repo
+  # (CURRENT_IMPLEMENTATION_MAP 1.4). Per Global rule 2 this profile is
+  # EXPERIMENTAL until a cited device profile replaces it (W1-D sensor realism).
+  canonical_status: "experimental"
+  evidence_tier: "D"                # unattributed validation numbers; unresolved
+  evidence_e_level: "E0"
+  source_claim_ids: null            # FLAG: no citation for the ICC/bias values below
+  provenance:
+    evidence_level: "Level 4"
+    evidence_tier: "D"
+    evidence_e_level: "E0"
+    source_claim_ids: null
+    review_status: "UNRESOLVED - validation metrics (ICC 0.92/0.85, biases) have no source citation; requires human review or replacement with a cited registry-backed profile"
   specifications:
     sampling_frequency: 50.0 # Hz
     wavelengths: ["green", "red", "infrared"]

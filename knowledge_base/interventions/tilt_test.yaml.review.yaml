@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/interventions/tilt_test.yaml
-  sha256: 2465fa258eda966c9a917e4c8b00b09b863377a5301f263163cde1b82e6b66c3
+  sha256: 416584b0e85efaee8dd61bae4eed23cf121062a22466bcab8f8bebe76cbfe038
 review_history:
 - review_id: rev-7e69338f-dad1-48a4-ba93-6bc163e02284
   reviewed_at: '2026-09-11T00:45:41.638115+00:00'
@@ -15,3 +15,18 @@ review_history:
   verdict: PASSED
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+- review_id: rev-33657e81-cd4b-494a-8a22-cd852f893541
+  reviewed_at: '2026-09-15T03:59:26.131023+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-10: canonical_status canonical + tier C/E0-E1 metadata only; protocol
+    values unchanged (W1-C owns protocol metadata updates). Human L3 pending.'
