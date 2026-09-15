@@ -1,14 +1,16 @@
-version: "1.0"
+version: "1.1"
 sensor:
   id: "photoplethysmography"
   name: "Wearable Optical Photoplethysmography (PPG)"
   type: "optical_ppg"
   # --- Evidence governance (G-P0-08/G-P0-10, metadata only; specs unchanged) ---
-  # The validation metrics below carry NO source citation anywhere in the repo
-  # (CURRENT_IMPLEMENTATION_MAP 1.4). Per Global rule 2 this profile is
-  # EXPERIMENTAL until a cited device profile replaces it (W1-D sensor realism).
+  # Merge resolution (orchestrator): W1-D added dossier-cited `ppg:` parameter
+  # blocks below, but the legacy `validation:` metrics (ICC 0.92/0.85, biases)
+  # still carry NO source citation. Profile stays EXPERIMENTAL pending human L3;
+  # canonical builds should select the cited device profiles (apple_watch_ppg,
+  # empatica_e4) instead.
   canonical_status: "experimental"
-  evidence_tier: "D"                # unattributed validation numbers; unresolved
+  evidence_tier: "D"                # unattributed legacy validation numbers; unresolved
   evidence_e_level: "E0"
   source_claim_ids: null            # FLAG: no citation for the ICC/bias values below
   provenance:
@@ -16,7 +18,38 @@ sensor:
     evidence_tier: "D"
     evidence_e_level: "E0"
     source_claim_ids: null
-    review_status: "UNRESOLVED - validation metrics (ICC 0.92/0.85, biases) have no source citation; requires human review or replacement with a cited registry-backed profile"
+    review_status: "UNRESOLVED - legacy validation metrics (ICC 0.92/0.85, biases) have no source citation; ppg: parameter blocks are dossier-cited (W1-D); requires human L3 review"
+  ppg:
+    sampling_frequency_hz:
+      value: 50.0
+      units: Hz
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.3 (fs 25 Hz sufficient for HR; 64-128 Hz default for waveform/IBI)"
+      canonical_status: canonical
+      uncertainty: "cardiac band 0.7-3.5 Hz; performance degrades <20 Hz"
+      provisional: false
+    cardiac_band_hz:
+      value: [0.7, 3.5]
+      units: Hz
+      distribution: passband
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.3"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    perfusion_index_percent:
+      value: [0.5, 5.0]
+      units: percent (AC/DC ratio)
+      distribution: range (finger site; wrist lower)
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: canonical
+      uncertainty: "drops <0.3% with cold fingers"
+      provisional: false
   specifications:
     sampling_frequency: 50.0 # Hz
     wavelengths: ["green", "red", "infrared"]

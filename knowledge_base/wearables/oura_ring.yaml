@@ -1,0 +1,196 @@
+version: "1.0"
+sensor:
+  id: "oura_ring"
+  name: "Smart ring (Oura-ring-like class: TEMP + PPG + IMU)"
+  type: "finger_ring"
+  manufacturer: "Oura (class)"
+  temperature:
+    sampling_frequency_hz:
+      value: 1.0
+      units: Hz
+      distribution: point (1-min epoch aggregation)
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.5 (NTC thermistor, 1-min epoch)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    epoch_s:
+      value: 60.0
+      units: s
+      distribution: aggregation window
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.5"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    quantization_c:
+      value: 0.07
+      units: deg C
+      distribution: quantization (thermistor resolution)
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.5 (resolution 0.07 C)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    noise_sigma_c:
+      value: 0.05
+      range: [0.03, 0.1]
+      units: deg C
+      distribution: Gaussian
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4 (recommended simulator defaults)"
+      canonical_status: canonical
+      uncertainty: "iButton reference precision 0.05 C, accuracy -0.09 C"
+      provisional: false
+    accuracy_vs_ibutton_r:
+      value: 0.98
+      units: Pearson r (overnight, finger reference)
+      distribution: validation statistic
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.5 (Otago thesis validation, n=4)"
+      canonical_status: canonical
+      uncertainty: "small n; manufacturer r2>0.99 lab / >0.92 real-world claims treated cautiously (E2)"
+      provisional: false
+    ambient_leak_tau_s_range:
+      value: [120.0, 600.0]
+      units: s
+      distribution: uniform time constant (2-10 min) when exposed/off-body
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md sections 4/7 (ambient leak tau 2-10 min; off-body decay to ambient)"
+      canonical_status: canonical
+      uncertainty: "donning equilibration lag 15-30 min advised"
+      provisional: false
+    valid_on_body_band_c:
+      value: [25.0, 40.0]
+      units: deg C
+      distribution: on-body detector band
+      evidence_tier: E2
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.6"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+  ppg:
+    sampling_frequency_hz:
+      value: 50.0
+      units: Hz
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.2 (Oura ring 50 Hz)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    pulse_ac_amplitude:
+      value: 1.0
+      units: arbitrary (normalized pulse AC)
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: experimental
+      uncertainty: "simulation normalization; finger site has higher perfusion index than wrist"
+      provisional: true
+    dc_level:
+      value: 2.0
+      units: arbitrary
+      distribution: point
+      evidence_tier: E1
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2.1"
+      canonical_status: experimental
+      uncertainty: "simulation normalization"
+      provisional: true
+    adc_full_scale:
+      value: 4.0
+      units: arbitrary front-end units
+      distribution: point
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 2"
+      canonical_status: experimental
+      uncertainty: "modelling choice"
+      provisional: true
+    adc_bits: null
+  imu:
+    sampling_frequency_hz:
+      value: 50.0
+      units: Hz
+      distribution: point
+      evidence_tier: E4
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 5.2 (Oura 50 Hz)"
+      canonical_status: canonical
+      uncertainty: null
+      provisional: false
+    full_scale_range_g:
+      value: 16.0
+      units: g (+/-)
+      distribution: saturation threshold
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 5.1 (smartphone-class range; ring FSR not in dossier)"
+      canonical_status: experimental
+      uncertainty: "exact FSR not published in dossier"
+      provisional: true
+    noise_density_ug_per_sqrt_hz:
+      value: 160.0
+      units: ug/sqrt(Hz)
+      distribution: white + 1/f
+      evidence_tier: E3
+      source:
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 5.1 (BMI270-class)"
+      canonical_status: canonical
+      uncertainty: "device-class estimate"
+      provisional: false
+  physiology_anchors:
+    wrist_mesor_c:
+      value: 33.0
+      units: deg C
+      distribution: population mesor (wrist/hand)
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.3 (PMC11353769, n=65)"
+      canonical_status: canonical
+      uncertainty: "inter-individual resting differences up to ~0.5 C"
+      provisional: false
+    circadian_amplitude_c:
+      value: 1.3
+      range: [1.2, 1.4]
+      units: deg C
+      distribution: cosinor amplitude (wrist/hand); foot 1.8-2.2 C
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.3"
+      canonical_status: canonical
+      uncertainty: "acrophase ~04:00-07:00 distal"
+      provisional: false
+    luteal_shift_c:
+      value: 0.30
+      range: [0.18, 0.42]
+      units: deg C
+      distribution: 0.30 +/- 0.12 C luteal-follicular difference
+      evidence_tier: E3
+      source:
+        claim_id: EVD-SENS-007
+        dossier: "SENSOR_MODEL_EVIDENCE.md section 4.5 (Maijala, PMC6883568)"
+      canonical_status: canonical
+      uncertainty: "detectable by ring"
+      provisional: false
+  failure_modes:
+    - "Off-body decay toward ambient (used as on-body detector)"
+    - "Covering device raises reading"
+    - "Ambient temperature drives exposed-site readings outdoors"
+    - "Donning equilibration lag 15-30 min"
