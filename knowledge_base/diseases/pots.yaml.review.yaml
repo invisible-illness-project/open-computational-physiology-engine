@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/pots.yaml
-  sha256: a61ac436daf499da7dc63d09a6c6e21c7676912fa897cebb986d0d056ae04253
+  sha256: c270c162e9eba9b4483c053bd8d41a051cbb9f34d69f5255501f6389aadd609b
 review_history:
 - review_id: rev-d0a780ae-22a5-47f3-9759-6f0a3a387147
   reviewed_at: '2026-09-11T00:45:41.632839+00:00'
@@ -89,3 +89,17 @@ review_history:
     fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
     values changed. Registry claim_ids only where citation matches unambiguously;
     else null+FLAG. Human L3 review still pending.'
+- review_id: rev-512c3576-bff7-439b-ba16-3f517cd0ff26
+  reviewed_at: '2026-09-15T07:22:16.670286+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

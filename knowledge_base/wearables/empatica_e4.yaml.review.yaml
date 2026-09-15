@@ -1,0 +1,19 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/wearables/empatica_e4.yaml
+  sha256: cc13d278d3a9969730783d63e28f48b93cbc44daef8182b9ae296535abd0233b
+review_history:
+- review_id: rev-eb13e5f3-d5f9-4166-beaf-e49608e12063
+  reviewed_at: '2026-09-15T07:22:17.105357+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

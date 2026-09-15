@@ -1,0 +1,19 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/wearables/oura_ring.yaml
+  sha256: 12fe23c9e794282916aa6163258ac48f3e9bcad4132cc5bc3a49e5c527cea85a
+review_history:
+- review_id: rev-aae39c60-02cd-4552-a8f1-90af3928008b
+  reviewed_at: '2026-09-15T07:22:17.182205+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

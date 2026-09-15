@@ -322,22 +322,9 @@ def test_perturbation_normal_values_match_kb_nominals_where_consistent():
     assert checked > 0, "guard is vacuous: no consistent entries found"
 
 
-# KNOWN CONFLICT (W1-A report -> W1-B owns knowledge_base/**): the
-# hyperadrenergic_pots block in knowledge_base/diseases/pots.yaml declares
-# normal_value kR=23 / kH=27 / p2H=88.5, but the KB nominals in
-# equations/mathematical_models.yaml are kR=25 / kH=25 / p2H=88.66.  The
-# PerturbationManager's ratio-scaling then APPLIES 34.78/31.48/89.96 instead
-# of the documented 32/34/89.8.  This xfail is the load-time assertion of
-# G-P0-04: it XPASSes (strict -> failure) as soon as the KB is reconciled,
-# forcing removal of this guard and regeneration of acceptance numbers.
-@pytest.mark.xfail(
-    reason=("Engine-vs-KB conflict (G-P0-04, reported to orchestrator/W1-B): "
-            "hyperadrenergic_pots normal_value kR=23/kH=27/p2H=88.5 contradict "
-            "KB nominals 25/25/88.66 -> applied 34.78/31.48/89.96 instead of "
-            "documented 32/34/89.8. KB files are W1-B territory; this guard "
-            "xfails until the KB is reconciled."),
-    strict=True,
-)
+# G-P0-04 RECONCILED (orchestrator, this branch): pots.yaml normal_values now
+# equal KB nominals (25/25/88.66); applied values match documented 32/34/89.8.
+# Guard retained as a permanent regression test (was strict-xfail pending KB fix).
 def test_all_perturbation_normal_values_equal_kb_nominals():
     nominal = _kb_nominal_params()
     pm = PerturbationManager(kb_path=KB_PATH)

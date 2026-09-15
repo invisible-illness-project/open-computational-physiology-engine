@@ -167,7 +167,10 @@ disease:
           source: "Okamoto 2024 (PMID 39109428): hyperadrenergic biomarker is systolic pressor response; delta-HR is NOT larger than other POTS (34+/-8 vs 34+/-5 bpm) — if simulated delta-HR greatly exceeds neuropathic, that is a RED FLAG, not fidelity"
       parameters_perturbed:
         - symbol: "kR"
-          normal_value: 23.0
+          # G-P0-04 reconciled (orchestrator): normal_value aligned to KB nominal 25
+          # (mathematical_models.yaml) so ratio-scaling APPLIES the documented 32
+          # (was 23 -> applied 34.78). Geddes Table 3 source nominal was 23.
+          normal_value: 25.0
           perturbed_value: 32.0
           units: "dimensionless"
           mechanism: "Hypersensitive sympathetic resistance feedback gain (Geddes 2022 hyperadrenergic phenotype; concordant with Muenter Swift 2005 exaggerated MSNA reflex responses, HP-03)."
@@ -185,7 +188,9 @@ disease:
           canonical_status: "canonical"
           uncertainty: "in-silico Table 3 point value; gain direction tier B (Muenter Swift 2005, HP-03)"
         - symbol: "kH"
-          normal_value: 27.0
+          # G-P0-04 reconciled (orchestrator): normal_value aligned to KB nominal 25
+          # so ratio-scaling APPLIES the documented 34 (was 27 -> applied 31.48).
+          normal_value: 25.0
           perturbed_value: 34.0
           units: "dimensionless"
           mechanism: "Elevated heart-rate baroreflex gain; cardiac beta-hypersensitivity documented in hyperadrenergic POTS (HP-04: isoproterenol hypersensitivity, Jacob 1999)."
@@ -221,7 +226,9 @@ disease:
           canonical_status: "canonical"
           uncertainty: "in-silico Table 3 point value; no human distribution (tier C)"
         - symbol: "p2H"
-          normal_value: 88.5
+          # G-P0-04 reconciled (orchestrator): normal_value aligned to KB nominal 88.66
+          # so ratio-scaling APPLIES the documented 89.8 (was 88.5 -> applied 89.96).
+          normal_value: 88.66
           perturbed_value: 89.8
           units: "mmHg"
           mechanism: "Shifted half-saturation of heart-rate baroreflex control (Geddes 2022 Table 3)."

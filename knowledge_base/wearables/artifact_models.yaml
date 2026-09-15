@@ -1,4 +1,9 @@
 version: "1.0"
+# --- Evidence governance (G-P0-08/G-P0-10) ---
+canonical_status: "canonical"     # cited artifact classes (EVD-SENS-003/004/006); provisional blocks flagged per-block
+evidence_tier: "B"
+evidence_e_level: "E2-E3"
+source_claim_ids: ["EVD-SENS-003", "EVD-SENS-004", "EVD-SENS-006"]
 artifact_models:
   description: >
     Cross-device, state-dependent artifact model parameters for the OCPE

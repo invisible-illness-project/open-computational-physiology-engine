@@ -4,6 +4,11 @@ sensor:
   name: "Smart ring (Oura-ring-like class: TEMP + PPG + IMU)"
   type: "finger_ring"
   manufacturer: "Oura (class)"
+  # --- Evidence governance (G-P0-08/G-P0-10) ---
+  canonical_status: "canonical"     # temperature validation EVD-SENS-007 (manufacturer-adjacent, flagged in blocks)
+  evidence_tier: "B"
+  evidence_e_level: "E2"
+  source_claim_ids: ["EVD-SENS-007"]
   temperature:
     sampling_frequency_hz:
       value: 1.0

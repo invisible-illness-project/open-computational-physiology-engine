@@ -4,6 +4,11 @@ sensor:
   name: "Research wristband (Empatica-E4-like class: EDA + PPG + IMU + TEMP)"
   type: "multimodal_wristband"
   manufacturer: "Empatica (class)"
+  # --- Evidence governance (G-P0-08/G-P0-10) ---
+  canonical_status: "canonical"     # documented device class specs; EDA dynamics EVD-SENS-006
+  evidence_tier: "B"
+  evidence_e_level: "E2-E3"
+  source_claim_ids: ["EVD-SENS-006"]
   eda:
     sampling_frequency_hz:
       value: 4.0

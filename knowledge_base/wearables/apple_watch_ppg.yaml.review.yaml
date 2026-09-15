@@ -1,0 +1,19 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/wearables/apple_watch_ppg.yaml
+  sha256: e523f2bdd318f660de7c045eaa91127b9f18337b3b4c8595efd7f9704ccc1a5f
+review_history:
+- review_id: rev-09550c8a-dce6-4dae-8587-b6c69f3c9f58
+  reviewed_at: '2026-09-15T07:22:17.029102+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

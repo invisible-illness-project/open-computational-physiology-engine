@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/interventions/tilt_test.yaml
-  sha256: 416584b0e85efaee8dd61bae4eed23cf121062a22466bcab8f8bebe76cbfe038
+  sha256: 2b870b2b09cdd8737abf385e4648dd6d33e379fdfc9016514adb146ddf2e875c
 review_history:
 - review_id: rev-7e69338f-dad1-48a4-ba93-6bc163e02284
   reviewed_at: '2026-09-11T00:45:41.638115+00:00'
@@ -30,3 +30,17 @@ review_history:
   findings: []
   comments: 'G-P0-10: canonical_status canonical + tier C/E0-E1 metadata only; protocol
     values unchanged (W1-C owns protocol metadata updates). Human L3 pending.'
+- review_id: rev-a8d71c7e-90a5-41a2-a554-f6435a60b942
+  reviewed_at: '2026-09-15T07:22:16.775102+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

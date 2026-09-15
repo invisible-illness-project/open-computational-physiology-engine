@@ -4,6 +4,11 @@ sensor:
   name: "Consumer wrist PPG (Apple-Watch-like class)"
   type: "optical_ppg"
   manufacturer: "generic consumer smartwatch class"
+  # --- Evidence governance (G-P0-08/G-P0-10) ---
+  canonical_status: "canonical"     # cited parameter blocks (E5 HR meta EVD-SENS-001; E3 specs)
+  evidence_tier: "B"
+  evidence_e_level: "E2-E3"
+  source_claim_ids: ["EVD-SENS-001", "EVD-SENS-004"]
   ppg:
     sampling_frequency_hz:
       value: 64.0

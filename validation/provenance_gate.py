@@ -240,6 +240,10 @@ def gate_kb_file(target_path: Path, mode: str = CANONICAL) -> FileGateResult:
                 f"{target_path.name}: missing top-level 'evidence' block"))
         else:
             _check_governed_block(ev, f"{target_path.name}:evidence", result.errors)
+    elif target_path.name == "artifact_models.yaml":
+        # Cross-device artifact library (W1-D): non-standard root key
+        # `artifact_models:`; governance metadata lives at the top level.
+        _check_governed_block(data or {}, f"{target_path.name}", result.errors)
     elif "interventions" in parts or "wearables" in parts:
         body = (data or {}).get("intervention") or (data or {}).get("sensor") or {}
         _check_governed_block(body, f"{target_path.name}", result.errors)

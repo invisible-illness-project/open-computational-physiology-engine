@@ -1,0 +1,19 @@
+review_manifest_version: 1.0.0
+target_file:
+  path: knowledge_base/wearables/artifact_models.yaml
+  sha256: 29dda5fba261a408e8e8af86a9be95d00357ca798d006ebf9e30f788490b2733
+review_history:
+- review_id: rev-c10b393e-da7c-4586-b3a6-b197ec8a4c4a
+  reviewed_at: '2026-09-15T07:22:17.264158+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''

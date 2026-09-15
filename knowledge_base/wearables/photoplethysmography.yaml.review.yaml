@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/wearables/photoplethysmography.yaml
-  sha256: 8ca8548dd7ea552659d5c4f10540ba91f60929c0139417760f8632b070f67468
+  sha256: 5568c0c1d507a24638439a65fe3fd83a95ffdcbb6b36b9a8ff7f2d93cfe42305
 review_history:
 - review_id: rev-e7a9fb48-d15e-4dcb-b254-742f417c697d
   reviewed_at: '2026-09-11T00:45:41.639839+00:00'
@@ -32,3 +32,17 @@ review_history:
     experimental, tier D/E0, UNRESOLVED provenance flag. Canonical-mode dataset builds
     must refuse this profile until W1-D installs a cited registry-backed device profile.
     Human L3 pending.'
+- review_id: rev-2621f5d3-1312-46bc-92be-04533a5e7565
+  reviewed_at: '2026-09-15T07:22:16.953565+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: ocpe-swarm-orchestrator
+      model_name: ocpe-swarm-orchestrator
+  scope:
+  - integration
+  - governance
+  verdict: 'G-P0-04/10 integration: merge-resolved, metadata completed, normal_values
+    reconciled (pots.yaml); AI review only - human L3 still pending'
+  findings: []
+  comments: ''
