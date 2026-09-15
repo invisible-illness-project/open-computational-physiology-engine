@@ -34,12 +34,40 @@ def git_revision(cwd: Optional[str] = None) -> str:
     return "unknown"
 
 
-def kb_bundle_sha256(kb_dir: str) -> str:
-    """SHA-256 of the knowledge-base bundle (kb_version).
+def _hash_file_into(h: "hashlib._Hash", label: str, fpath: Path) -> None:
+    h.update(label.encode("utf-8"))
+    h.update(b"\0")
+    with open(fpath, "rb") as fh:
+        while True:
+            chunk = fh.read(65536)
+            if not chunk:
+                break
+            h.update(chunk)
+    h.update(b"\0")
 
-    Deterministic digest over every governed file: sorted relative paths +
-    file contents, INCLUDING review sidecars (governance state is part of
-    the KB version that produced the data).
+
+def kb_bundle_sha256(kb_dir: str, extra_files: Optional[list] = None) -> str:
+    """SHA-256 of the consumed knowledge-base bundle (kb_version).
+
+    Canonical digest over sorted relative paths + file CONTENTS of every
+    consumed KB data file (``.yaml``/``.yml``/``.md``) under ``kb_dir``.
+
+    Determinism contract (adversarial review F5/F13): review SIDECARS
+    (``*.review.yaml``) are EXCLUDED from the digest.  Sidecars carry
+    volatile fields (random review UUIDs, wall-clock ``reviewed_at``,
+    absolute paths) stamped fresh on every closure rebuild; hashing them
+    made ``kb_version`` non-reproducible across byte-identical rebuilds.
+    Sidecar coverage note: review freshness/governance state is still
+    enforced at build time by the provenance-gate preflight (STALE /
+    UNREVIEWED refuse the build); the bundle hash versions the governed
+    CONTENT, not the review ledger.
+
+    Completeness contract (review F5): ``extra_files`` must list every KB
+    file consumed by the build that lives OUTSIDE ``kb_dir`` (e.g. the
+    wearables/artifact-models files the closure excludes for missing
+    upstream governance metadata but that ``sensor_models`` still loads
+    read-only from the repository KB).  They are hashed under an
+    ``external:<path>`` label so a content change flips ``kb_version``.
     """
     h = hashlib.sha256()
     base = Path(kb_dir)
@@ -47,17 +75,14 @@ def kb_bundle_sha256(kb_dir: str) -> str:
         for fname in sorted(files):
             if not fname.endswith((".yaml", ".yml", ".md")):
                 continue
+            if fname.endswith(".review.yaml"):
+                continue  # volatile governance ledger; see docstring
             fpath = Path(root) / fname
             rel = fpath.relative_to(base).as_posix()
-            h.update(rel.encode("utf-8"))
-            h.update(b"\0")
-            with open(fpath, "rb") as fh:
-                while True:
-                    chunk = fh.read(65536)
-                    if not chunk:
-                        break
-                    h.update(chunk)
-            h.update(b"\0")
+            _hash_file_into(h, rel, fpath)
+    for entry in sorted(extra_files or []):
+        label, fpath = entry
+        _hash_file_into(h, label, Path(fpath))
     return h.hexdigest()
 
 

@@ -44,9 +44,11 @@ import numpy as np
 import yaml
 
 from dataset.cohort import CohortSampler, Subject, stable_seed
+from dataset.kb_closure import externally_consumed_kb_files
 from dataset.protocols import ProtocolSpec, parse_protocol
 from dataset.rr_source import generate_rr_series, hrv_module_status, FALLBACK_HONESTY_FLAGS
 from dataset import schema as recschema
+from dataset.sensor_governance import audit_sensor_experimental_blocks
 from dataset.provenance import (
     git_revision,
     kb_bundle_sha256,
@@ -148,6 +150,18 @@ class DatasetBuilder:
         self.engine_cfg = dict(self.config.get("engine", {}) or {})
         self.subjects: List[Subject] = []
         self._preflight_report = None
+        self._sensor_audit: Optional[Dict[str, Any]] = None
+
+    # ------------------------------------------------------------------
+    def kb_version(self) -> str:
+        """Consumed-KB bundle hash: closure/kb_dir data files (review
+        sidecars excluded -- volatile UUID/wall-clock fields, review F5)
+        PLUS the externally consumed wearable/artifact files
+        (artifact_models.yaml et al.) that sensor_models loads read-only
+        from the repo KB (review F13 completeness)."""
+        return kb_bundle_sha256(
+            self.kb_dir,
+            extra_files=externally_consumed_kb_files(self.kb_dir))
 
     # ------------------------------------------------------------------
     # Governance
@@ -178,6 +192,13 @@ class DatasetBuilder:
                 raise BuildError(f"unknown phenotype id {pid!r}")
             gate_phenotype_selection(
                 pheno, mode=self.mode, allow_experimental=self.allow_experimental)
+
+        # Dataset-side per-block experimental audit (review F8): the gate
+        # checks sensor-LEVEL canonical_status; experimental parameter
+        # blocks INSIDE canonical-status device/artifact files are refused
+        # or strip-and-flagged here (fail-closed in canonical mode).
+        self._sensor_audit = audit_sensor_experimental_blocks(
+            self.kb_dir, self.sensor_configs, mode=self.mode)
         self._preflight_report = report
         return report
 
@@ -207,6 +228,24 @@ class DatasetBuilder:
         # Expected blood volume for THIS subject (post-prior, pre-perturbation);
         # the hypovolemia deficit draw is relative to this (Raj 2005 semantics).
         expected_vol_ml = float(model.params.get("TotalVol", 4500.0))
+        # Nadler body-size hook (dataset-hardening W4-2, review F2): when the
+        # cohort sampled height+BMI, replace the engine's repo-legacy sex/BMI
+        # TotalVol prior with the Nadler expectation + between-person residual
+        # (provisional E4 residual; honesty-flagged).  Healthy subjects then
+        # vary in TotalVol with body size instead of sharing one point value.
+        if subject.blood_volume_expected_ml is not None:
+            evidence["blood_volume_nadler"] = {
+                "parameter": "TotalVol",
+                "engine_prior_value_ml": round(expected_vol_ml, 1),
+                "applied_value_ml": round(subject.blood_volume_expected_ml, 1),
+                "method": ("Nadler 1962 height/weight/sex equation + "
+                           "between-person residual (CV 0.06, provisional E4); "
+                           "weight = sampled BMI x sampled height^2"),
+                "evidence": evidence_block("nadler_blood_volume"),
+                "honesty_flag": "blood_volume_nadler_provisional_residual_cv",
+            }
+            expected_vol_ml = float(subject.blood_volume_expected_ml)
+            model.params["TotalVol"] = expected_vol_ml
         evidence["rhr_calibration"] = {
             "target_rhr_bpm": round(subject.rhr_bpm, 2),
             "hm_applied": round(target_hm, 4),
@@ -399,6 +438,22 @@ class DatasetBuilder:
     # ------------------------------------------------------------------
     # Sensor execution
     # ------------------------------------------------------------------
+    def _sensor_configs_for(self, subject: Subject) -> List[Dict[str, Any]]:
+        """Sensor configs active for THIS subject.  When the cohort sampler
+        assigned a per-subject device (matched nuisance distribution across
+        groups, review F2), only that device runs; otherwise the dataset-
+        level sensor list applies (legacy behavior)."""
+        if subject.device_id is None:
+            return self.sensor_configs
+        matched = [sc for sc in self.sensor_configs
+                   if sc["sensor_id"] == subject.device_id]
+        if not matched:
+            raise BuildError(
+                f"subject {subject.subject_id} assigned device "
+                f"{subject.device_id!r} which is not in the dataset sensor "
+                f"configuration {[sc['sensor_id'] for sc in self.sensor_configs]}")
+        return matched
+
     def _run_sensors(self, subject: Subject, obs: Dict[str, Any]):
         """Run the configured KB-driven device models over the observable
         coupling.  Returns (channels, device_configs).  All inputs pass the
@@ -424,7 +479,7 @@ class DatasetBuilder:
                 if arr.dtype == object:
                     continue
                 channels[f"{prefix}__{k}"] = arr
-        for scfg in self.sensor_configs:
+        for scfg in self._sensor_configs_for(subject):
             sid = scfg["sensor_id"]
             regime = scfg.get("regime", "on_device")
             seed = self._channel_seed(subject, "sensor", sid)
@@ -648,12 +703,22 @@ class DatasetBuilder:
                 experimental_items.append(f"{pert['phenotype_id']}:{sym}")
         weak = sorted(f for f in flags if any(tok in f for tok in (
             "tierC", "machine_fitted", "engineering_judgment", "E0",
-            "resampled", "provisional")))
+            "resampled", "provisional", "machine_calibrated")))
         extrapolated = sorted(f for f in flags if any(tok in f for tok in (
             "extrapolated", "E0", "fallback", "unresolved")))
         limitations = sorted(set(protocol.honesty_flags()) | {
             f for f in flags if "proxy" in f or "approximated" in f
             or "inactive" in f or "unvalidated" in f})
+        # Sensor experimental-block audit dispositions (review F8):
+        # consumed neutral no-ops are weakly evidenced; blocks excluded by
+        # channel selection are recorded as governance limitations.
+        audit = self._sensor_audit or {}
+        weak = sorted(set(weak) | {
+            f for f in audit.get("flags", [])
+            if f.startswith("experimental_block_consumed_as_neutral_noop")})
+        limitations = sorted(set(limitations) | {
+            f for f in audit.get("flags", [])
+            if f.startswith("experimental_block_excluded_by_channel")})
         if "hyperadrenergic_pots" in subject.phenotypes:
             limitations.append(
                 "hyperadrenergic_pots upright delta-SBP pressor criterion "
@@ -751,7 +816,7 @@ class DatasetBuilder:
                 "sensor_seeds": {d["sensor_id"]: d["seed"] for d in devices},
             },
             "ocpe_commit": git_revision(),
-            "kb_version": kb_bundle_sha256(self.kb_dir),
+            "kb_version": self.kb_version(),
             "registry_version": registry_version(),
             "model_version": model_version(),
             "schema_version": recschema.SCHEMA_VERSION,
@@ -873,10 +938,11 @@ class DatasetBuilder:
     def _write_cohort_csv(self) -> str:
         path = os.path.join(self.output_dir, "cohort.csv")
         cols = ["subject_id", "cohort_id", "condition", "phenotypes",
-                "age_years", "sex", "bmi", "fitness", "rhr_bpm_target",
-                "ln_rmssd_ms", "pooling_capacity_ml",
+                "age_years", "sex", "bmi", "fitness", "height_cm",
+                "device_id", "rhr_bpm_target", "ln_rmssd_ms",
+                "pooling_capacity_ml", "blood_volume_expected_ml",
                 "blood_volume_deficit_ml", "comorbidities", "severity",
-                "cohort_frame", "subject_seed"]
+                "cohort_frame", "demographics_matched_to", "subject_seed"]
         with open(path, "w", encoding="utf-8", newline="") as f:
             w = csv.writer(f, lineterminator="\n")
             w.writerow(cols)
@@ -886,10 +952,12 @@ class DatasetBuilder:
                     s.subject_id, s.cohort_id, s.condition,
                     "*".join(s.phenotypes), meta["demographics"]["age_years"],
                     s.sex, meta["demographics"]["bmi"], s.fitness,
+                    meta["demographics"]["height_cm"], s.device_id,
                     meta["population_traits"]["rhr_bpm_target"],
                     meta["population_traits"]["ln_rmssd_ms"],
                     meta["population_traits"]["pooling_capacity_ml"],
+                    meta["population_traits"]["blood_volume_expected_ml"],
                     meta["population_traits"]["blood_volume_deficit_ml"],
                     "*".join(s.comorbidities), s.severity, s.cohort_frame,
-                    s.subject_seed])
+                    s.demographics_matched_to, s.subject_seed])
         return path

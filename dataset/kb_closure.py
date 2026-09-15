@@ -30,7 +30,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple  # noqa: F401 (Tuple used in API)
 
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_REPO_ROOT, "tools"))
@@ -55,6 +55,33 @@ CLOSURE_DISCLOSURE = (
     "sensor_models.profiles; content is byte-identical to the gated "
     "closure's source."
 )
+
+
+def externally_consumed_kb_files(kb_dir: str,
+                                 src_kb: Optional[str] = None,
+                                 excludes: Tuple[str, ...] = DEFAULT_EXCLUDES,
+                                 ) -> List[Tuple[str, str]]:
+    """(label, absolute_path) pairs for KB files the build consumes that are
+    NOT inside ``kb_dir`` (adversarial review F5/F13 completeness fix).
+
+    ``sensor_models.profiles`` loads device/artifact parameters read-only
+    from the REPOSITORY ``knowledge_base/wearables`` regardless of the
+    gated ``--kb-dir``/closure, so the excluded wearable files (notably
+    ``wearables/artifact_models.yaml`` -- dropout/contact-loss/clock models
+    consumed by every sensor channel) are build inputs whose content MUST
+    be folded into ``kb_version``.  Returns an empty list when the files
+    already live under ``kb_dir`` (they are then hashed in-place).
+    """
+    src = Path(src_kb or os.path.join(_REPO_ROOT, "knowledge_base"))
+    base = Path(kb_dir)
+    out: List[Tuple[str, str]] = []
+    for rel in excludes:
+        if (base / rel).exists():
+            continue  # already covered by the in-tree bundle hash
+        spath = src / rel
+        if spath.exists():
+            out.append((f"external:knowledge_base/{rel}", str(spath)))
+    return out
 
 
 def prepare_kb_closure(dst_kb: str, src_kb: Optional[str] = None,

@@ -40,6 +40,32 @@ except ImportError as exc:  # pragma: no cover - depends on merge timing
 FALLBACK_HONESTY_FLAGS = ["rr_fallback_no_structured_hrv",
                           "hrv_structure_unresolved_E0"]
 
+#: HRV generator parameters (simulation/hrv.py default_params()) whose
+#: realized values scale the beat-to-beat modulation amplitude, and hence
+#: RMSSD, ~linearly.  Used by the trait-calibration path below.
+HRV_AMPLITUDE_KEYS = ("rsa_amplitude_0p1Hz", "mayer_amplitude",
+                      "fractal_amplitude")
+
+#: Bounds of the trait amplitude gain (documented guard): the sampled
+#: ln-RMSSD trait is a POPULATION target; gains outside [0.2, 5] would push
+#: the IPFM modulator into its rate-clip nonlinearity and are clamped, with
+#: the clamp recorded in provenance.
+TRAIT_GAIN_MIN, TRAIT_GAIN_MAX = 0.2, 5.0
+
+#: Documented tolerance of the realized-vs-target RMSSD check (generator
+#: stochasticity + ectopy + gain clamp): tests assert |realized - target|
+#: <= TRAIT_RMSSD_TOLERANCE * target.
+TRAIT_RMSSD_TOLERANCE = 0.30
+
+TRAIT_HONESTY_FLAG = "hrv_trait_amplitude_gain_machine_calibrated"
+
+
+def _rmssd_ms(rr_intervals_ms) -> float:
+    rr = np.asarray(rr_intervals_ms, dtype=float)
+    if rr.size < 3:
+        return float("nan")
+    return float(np.sqrt(np.mean(np.diff(rr) ** 2)))
+
 
 def hrv_module_status() -> dict:
     """Report which RR source is active (for manifests and reports)."""
@@ -63,9 +89,21 @@ def generate_rr_series(hrv_inputs: dict, seed: int, config: dict | None = None) 
     seed : int
         Per-subject RR-seed (seed hierarchy: dataset -> subject -> channel).
     config : dict, optional
-        Passed through to the W2-E generator (e.g. subject traits such as
-        the sampled ln-RMSSD coupling).  Ignored by the fallback except for
-        provenance echo.
+        Passed through to the W2-E generator.  Recognized keys:
+        ``subject_params`` (explicit HRVConfig parameter overrides, per the
+        documented simulation/hrv.py override keys), ``age_years``,
+        ``fitness_rsa_gain``, ``ectopy_enabled``, and ``subject_traits``
+        with ``ln_rmssd_ms``: the cohort-sampled HRV trait (dataset-hardening
+        W4-2, review F9/F11).  When present, the generator is first run
+        once with the unmodified config, and the three modulation-amplitude
+        parameters (``rsa_amplitude_0p1Hz``, ``mayer_amplitude``,
+        ``fractal_amplitude`` -- the documented HRVConfig subject_params
+        override keys) are then scaled by ``exp(ln_rmssd_ms) /
+        realized_baseline_rmssd`` so the realized RMSSD tracks the sampled
+        trait within TRAIT_RMSSD_TOLERANCE (30%).  This is a machine
+        calibration (ratio method, tier C): it is recorded in
+        ``provenance["trait_calibration"]`` and honesty-flagged.  Ignored
+        by the fallback except for provenance echo.
 
     Returns
     -------
@@ -74,14 +112,80 @@ def generate_rr_series(hrv_inputs: dict, seed: int, config: dict | None = None) 
     labels) -- all length-aligned -- plus ``provenance`` dict.
     """
     if HRV_MODULE_AVAILABLE:
-        out = _w2e_generate_rr_series(
-            hrv_inputs, seed, config=_to_hrv_config(config))
-        out = dict(out)
-        out = _align_beats(out)
-        out.setdefault("provenance", {})
-        out["provenance"].setdefault("source", "simulation.hrv.generate_rr_series")
-        return out
+        cfg_dict = dict(config or {})
+        traits = cfg_dict.pop("subject_traits", None) or {}
+        target_ln_rmssd = traits.get("ln_rmssd_ms")
+        if target_ln_rmssd is None:
+            out = _w2e_generate_rr_series(
+                hrv_inputs, seed, config=_to_hrv_config(config))
+            out = dict(out)
+            out = _align_beats(out)
+            out.setdefault("provenance", {})
+            out["provenance"].setdefault("source", "simulation.hrv.generate_rr_series")
+            return out
+        return _generate_with_rmssd_trait(
+            hrv_inputs, seed, cfg_dict, float(target_ln_rmssd), traits)
     return _fallback_rr_series(hrv_inputs, seed, config=config)
+
+
+def _generate_with_rmssd_trait(hrv_inputs, seed, cfg_dict: dict,
+                               target_ln_rmssd: float, traits: dict) -> dict:
+    """Two-pass amplitude calibration wiring the cohort ln-RMSSD trait into
+    the IPFM generator (review F11: the trait previously landed in an
+    ignored subject_params key and never reached the RR series).
+
+    Pass 1 realizes the unmodified config; pass 2 overrides the three
+    amplitude subject_params with gain = target/baseline.  The age factor
+    is NOT additionally applied (``age_years`` intentionally unset): the
+    Lifelines trait marginal is already age/sex-specific, so applying the
+    generator's age-decline factor would double-count age.
+    """
+    target_rmssd = float(np.exp(target_ln_rmssd))
+    base = _w2e_generate_rr_series(
+        hrv_inputs, seed, config=_to_hrv_config(cfg_dict))
+    rmssd0 = _rmssd_ms(base["rr_intervals_ms"])
+    if not np.isfinite(rmssd0) or rmssd0 <= 0.0:
+        raise ValueError(
+            f"baseline RR series has no measurable RMSSD ({rmssd0}); "
+            "cannot calibrate the ln-RMSSD trait")
+    gain = float(np.clip(target_rmssd / rmssd0,
+                         TRAIT_GAIN_MIN, TRAIT_GAIN_MAX))
+    realized = base.get("provenance", {}).get("parameters", {})
+    overrides = dict(cfg_dict.get("subject_params") or {})
+    for key in HRV_AMPLITUDE_KEYS:
+        param_prov = realized.get(key) or {}
+        if "value_used" in param_prov:
+            overrides[key] = float(param_prov["value_used"]) * gain
+    cal_cfg = dict(cfg_dict)
+    cal_cfg["subject_params"] = overrides
+    out = _w2e_generate_rr_series(
+        hrv_inputs, seed, config=_to_hrv_config(cal_cfg))
+    out = dict(out)
+    out = _align_beats(out)
+    prov = dict(out.get("provenance", {}))
+    prov.setdefault("source", "simulation.hrv.generate_rr_series")
+    prov["trait_calibration"] = {
+        "method": ("two-pass amplitude-gain ratio calibration (tier C "
+                   "machine-calibrated): subject_params[amplitude] *= "
+                   "target_rmssd / baseline_rmssd"),
+        "target_ln_rmssd_ms": round(target_ln_rmssd, 4),
+        "target_rmssd_ms": round(target_rmssd, 2),
+        "baseline_rmssd_ms": round(rmssd0, 2),
+        "amplitude_gain": round(gain, 4),
+        "gain_clamped": bool(abs(target_rmssd / rmssd0 - gain) > 1e-12),
+        "gain_bounds": [TRAIT_GAIN_MIN, TRAIT_GAIN_MAX],
+        "amplitude_keys_scaled": list(HRV_AMPLITUDE_KEYS),
+        "age_factor_note": ("HRVConfig.age_years intentionally unset: the "
+                            "Lifelines ln-RMSSD trait marginal is already "
+                            "age/sex-specific (POP A.2); applying the "
+                            "generator age-decline would double-count age"),
+        "tolerance": TRAIT_RMSSD_TOLERANCE,
+        "trait_echo": dict(traits),
+    }
+    prov["honesty_flags"] = sorted(set(prov.get("honesty_flags", []))
+                                   | {TRAIT_HONESTY_FLAG})
+    out["provenance"] = prov
+    return out
 
 
 def _to_hrv_config(config: dict | None):
@@ -89,15 +193,19 @@ def _to_hrv_config(config: dict | None):
 
     Integration seam (orchestrator): ``dataset`` passes plain dicts; the
     W2-E generator expects an ``HRVConfig`` dataclass.  Recognized keys:
-    ``subject_traits``/``subject_params`` -> ``subject_params``,
-    ``age_years``, ``fitness_rsa_gain``, ``ectopy_enabled``.  Unknown keys
-    are ignored (never silently applied).
+    ``subject_params`` -> ``subject_params`` (explicit HRV-parameter
+    overrides only), ``age_years``, ``fitness_rsa_gain``,
+    ``ectopy_enabled``.  ``subject_traits`` is handled by
+    ``generate_rr_series`` (trait calibration), NEVER mapped into
+    subject_params (unknown keys would be silently ignored by the
+    generator -- the review-F11 defect).  Unknown keys are ignored (never
+    silently applied).
     """
     if config is None:
         return None
     from simulation.hrv import HRVConfig
     known = {}
-    subj = config.get("subject_params") or config.get("subject_traits")
+    subj = config.get("subject_params")
     if subj is not None:
         known["subject_params"] = dict(subj)
     for key in ("age_years", "fitness_rsa_gain", "ectopy_enabled"):
