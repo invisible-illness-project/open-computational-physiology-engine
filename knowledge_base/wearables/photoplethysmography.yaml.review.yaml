@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/wearables/photoplethysmography.yaml
-  sha256: 7d591e8f4f26f72447f5f157a75ee5b7c14b46ae1653c8fbacc5760fbd7ad750
+  sha256: 8ca8548dd7ea552659d5c4f10540ba91f60929c0139417760f8632b070f67468
 review_history:
 - review_id: rev-e7a9fb48-d15e-4dcb-b254-742f417c697d
   reviewed_at: '2026-09-11T00:45:41.639839+00:00'
@@ -15,3 +15,20 @@ review_history:
   verdict: PASSED
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+- review_id: rev-e54f156a-9b27-49d0-b960-97c77a023313
+  reviewed_at: '2026-09-15T03:59:26.282921+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - governance
+  verdict: NEEDS_REVISION
+  findings: []
+  comments: 'G-P0-10: validation metrics have NO source citation -> canonical_status
+    experimental, tier D/E0, UNRESOLVED provenance flag. Canonical-mode dataset builds
+    must refuse this profile until W1-D installs a cited registry-backed device profile.
+    Human L3 pending.'

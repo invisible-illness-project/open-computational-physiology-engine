@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/equations/mathematical_models.yaml
-  sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+  sha256: 98e502748d50b9c054f9b5d30de361ff1b5077b8006cbbce7e72f77f48a5ea0f
 review_history:
 - review_id: rev-25694558-eba5-4145-8fb3-239a8a250f16
   reviewed_at: '2026-09-11T00:45:41.630756+00:00'
@@ -33,3 +33,25 @@ review_history:
     \ 2004 verified real and on-topic; magnitudes honestly labeled tier-C machine-proposed.\
     \ Initial verdict NEEDS_REVISION (DOI digit transposition 00886->00086) \u2014\
     \ fixed and full 12-DOI audit clean. Human L3 pending."
+- review_id: rev-6a934e93-474b-4fef-a2c5-54d279cabcda
+  reviewed_at: '2026-09-15T03:59:25.981870+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - dead_data_removal
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: removed 4 dead inline phenotypes blocks (kR=40/kH=40
+    hyperadrenergic, RalpM=6.5 neuropathic contradicting diseases/pots.yaml v1.5 values
+    32/34/11.5; TotalVol=3500 hypovolemic concordant but equally dead). Verified dead:
+    models/baroreflex_model.py load_parameters() reads only nominal_value; validate_kb.py
+    ignores the key. Per-parameter harmonization: nested provenance, tier C + E0-E1
+    for all 36 params (in-silico sources), canonical_status canonical (de-facto formalization,
+    EVIDENCE_AUDIT_NOTES (e) defect 1), source_claim_ids null+FLAG. No nominal values
+    changed (verified by diff). Human L3 pending.'

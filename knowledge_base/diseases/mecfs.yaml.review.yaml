@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/mecfs.yaml
-  sha256: ce24bd0cc428c849b432e623cb9075f5a0d280df1b399a5641f5b24c5ad6fcf0
+  sha256: 6d592c2915e6585c093619d8c2e224f9e38351db860395a04da8f161befdf089
 review_history:
 - review_id: rev-4f7b7dfc-f72a-429b-9007-3b1ef86cf107
   reviewed_at: '2026-09-11T00:45:41.635458+00:00'
@@ -53,3 +53,37 @@ review_history:
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+- review_id: rev-ecca12f3-bdf2-4a45-bb1f-e3b68e1d4ae6
+  reviewed_at: '2026-09-15T03:58:59.841592+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - canonical_status
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: added canonical_status + tier->E-level harmonization
+    fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
+    values changed. Registry claim_ids only where citation matches unambiguously;
+    else null+FLAG. Human L3 review still pending.'
+- review_id: rev-2061c3fc-9111-4567-aca4-3e41081ede05
+  reviewed_at: '2026-09-15T04:00:16.907533+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: Added phenotype-level evidence_tier/e_level/claim-flag for the canonical
+    phenotype (derived from existing parameter-level annotations; no values changed).
+    Human L3 pending.

@@ -1,4 +1,19 @@
 version: "1.0"
+# --- Evidence governance (G-P0-08/G-P0-10, metadata only; no equation changes) ---
+# File-level evidence block: equations are MODEL STRUCTURE from in-silico
+# sources (Geddes 2022 base; Heldt 2002 / van Heusden 2006 cycle-2, per
+# per-equation description fields). No per-equation tier annotations exist, so
+# harmonization is file-level only ("as far as existing annotations allow").
+evidence:
+  canonical_status: "canonical"     # canonical model core, formalized; pending human L3
+  evidence_tier: "C"                # in-silico structural sources
+  evidence_e_level: "E0-E1"
+  source_claim_ids: null            # FLAG: no EVIDENCE_REGISTRY claims for model-structure equations
+  provenance:
+    doi: "10.1098/rsif.2022.0220"
+    pmid: "36069002"
+    citation: "Geddes et al., J R Soc Interface 2022;19:20220220 (base equations); cycle-2 equations cite Heldt 2002 (10.1152/japplphysiol.00241.2001) and van Heusden 2006 (10.1152/ajpheart.01268.2004) in their description fields"
+    evidence_level: "Level 4"
 equations:
   - id: "upper_arterial_pressure"
     label: "Upper Arterial Pressure"

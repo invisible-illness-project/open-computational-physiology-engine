@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/diseases/eds.yaml
-  sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
+  sha256: b882b48b4f045ac350bc9149572286510dd0faf1a9a8c6f380204e3be12422f5
 review_history:
 - review_id: rev-e2d5e97f-af89-414c-84cd-6fe0dbde3ee8
   reviewed_at: '2026-09-11T00:45:41.633691+00:00'
@@ -68,3 +68,21 @@ review_history:
   findings: []
   comments: Tier-D unverified VMvl re-referenced to rescaled canonical 700 mL (x1.41
     ratio preserved). Engine-inert block; no DOI on unverified values.
+- review_id: rev-1841b5b6-ffa7-47a0-b7d9-ba343099a285
+  reviewed_at: '2026-09-15T03:58:59.520927+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: w1b-evidence-governance
+      provider: Moonshot Kimi (OCPE swarm W1-B)
+      model_name: w1b-evidence-governance
+  scope:
+  - evidence_harmonization
+  - canonical_status
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: 'G-P0-08/G-P0-10: added canonical_status + tier->E-level harmonization
+    fields (evidence_e_level, source_claim_ids, uncertainty); metadata only, no parameter
+    values changed. Registry claim_ids only where citation matches unambiguously;
+    else null+FLAG. Human L3 review still pending.'

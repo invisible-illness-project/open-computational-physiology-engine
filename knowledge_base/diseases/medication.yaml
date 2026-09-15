@@ -40,9 +40,16 @@ disease:
   name: "Medication Perturbations"
   abbreviation: "MEDS"
   description: "Pharmacological modifications to cardiovascular and fluid homeostatic parameters."
+  # --- Evidence governance (G-P0-08/G-P0-10, metadata only; no value changes) ---
+  canonical_status: "canonical"  # fludrocortisone (acute phase) canonical-eligible; beta_blocker phenotype stays EXPERIMENTAL
+  evidence_tier: "B"             # direction/time-course from human data (Chobanian 1979; Epstein 1965)
+  evidence_e_level: "E2-E3"
+  provenance:
+    source_claim_ids: null  # FLAG: Chobanian 1979 / Epstein 1965 not represented in EVIDENCE_REGISTRY (EVD-POTS-015 covers other agents; fludrocortisone graded E0 there)
   phenotypes:
     - id: "beta_blocker"
       name: "Beta-Adrenergic Blockade"
+      canonical_status: "experimental"  # parameters_perturbed empty; only tier-D unverified parameters
       description: "Blunts chronotropic and inotropic sympathetic responses, limiting maximum heart rate."
       association_evidence:
         # Direction-level support ONLY: beta-blockade blunts maximal/exercise
@@ -52,6 +59,8 @@ disease:
         secondary_doi: "10.2165/00007256-198502060-00002"
         citation: "Epstein et al., J Clin Invest 1965;44:1745-53 (beta-blockade blunts maximal exercise HR — direction); Tesch, Sports Med 1985;2:389-412 (review)"
         evidence_tier: "B"  # human data, direction only
+        evidence_e_level: "E2-E3"
+        source_claim_ids: null  # FLAG: Epstein 1965 / Tesch 1985 not represented in EVIDENCE_REGISTRY
       parameters_perturbed: []
       unverified_parameters:
         # MACHINE-PROPOSED hypotheses. REQUIRE HUMAN REVIEW before promotion to
@@ -65,7 +74,11 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: ~132 bpm cap has no accessible quantitative source
             review_status: "UNRESOLVED - magnitude 2.2 bps (~132 bpm) has no accessible quantitative source; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - 132 bpm ceiling is a machine-proposed assumption"
         - symbol: "kH"
           normal_value: 25.0
           perturbed_value: 12.0
@@ -74,9 +87,17 @@ disease:
           provenance:
             evidence_level: "Level 4"
             evidence_tier: "D"
+            evidence_e_level: "E0"
+            source_claim_ids: null  # FLAG: gain halving has no source; parameter mapping itself questioned
             review_status: "UNRESOLVED - gain reduction 25->12 has no supporting source found; parameter mapping questioned; requires human review"
+          canonical_status: "experimental"
+          uncertainty: "unresolved - 25->12 gain reduction has no source; mapping conflates receptor blockade with loop gain"
     - id: "fludrocortisone"
       name: "Fludrocortisone Fluid Expansion"
+      canonical_status: "canonical"  # tier-B acute-phase perturbation canonical-eligible; chronic phase NOT encodable (schema limitation, P2)
+      evidence_tier: "B"             # Chobanian 1979 human data (parameter-level below)
+      evidence_e_level: "E2-E3"
+      source_claim_ids: null         # FLAG: Chobanian 1979 not in EVIDENCE_REGISTRY; fludrocortisone-in-POTS graded E0 (EVD-POTS-015)
       description: "Mineralocorticoid receptor agonist that increases blood volume and sodium retention."
       # SCHEMA LIMITATION / EXTENSION REQUIRED: the perturbation schema cannot
       # express TIME-VARYING (phase-dependent) drug effects. Per Chobanian 1979,
@@ -105,4 +126,8 @@ disease:
             citation: "Chobanian et al., N Engl J Med 1979;301:68-73 (7 orthostatic-hypotension patients; transient volume expansion, chronic TPR-mediated hypertension, enhanced norepinephrine pressor responsiveness). Supports acute-phase direction AND time course; the +500 ml magnitude itself remains an assumption."
             evidence_level: "Level 2"
             evidence_tier: "B"  # direction/time-course from human data; +500 ml magnitude is an assumption (noted in review_status)
+            evidence_e_level: "E2-E3"
+            source_claim_ids: null  # FLAG: Chobanian 1979 not in EVIDENCE_REGISTRY; registry grades fludrocortisone-in-POTS E0 (EVD-POTS-015, different population)
             review_status: "NEEDS REVIEW - +500 ml magnitude unverified; chronic-phase representation blocked on schema extension"
+          canonical_status: "canonical"  # acute/early phase only (see application.temporal_scope)
+          uncertainty: "+500 ml magnitude is an assumption with no quantitative source; direction and time course from Chobanian 1979 (n=7)"
