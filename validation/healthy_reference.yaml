@@ -1,0 +1,234 @@
+# FROZEN protocol-conditioned healthy orthostatic reference (G-P0-09).
+#
+# Binding contract: SWARM_SPEC "Agent W1-C" + Global rules.
+# Human-readable companion: docs/orthostatic_reference.md.
+# Evidence: docs/evidence_package/EVENT_PROTOCOLS.yaml (EV-active-stand,
+# EV-head-up-tilt, EV-nasa-lean), CONTRADICTION_AUDIT.md Target 1,
+# HEALTHY_PHYSIOLOGY_EVIDENCE.md section 3, EVIDENCE_REGISTRY.yaml claims
+# EVD-HLTH-004 / EVD-POTS-001 / EVD-POTS-005 / EVD-POTS-018.
+#
+# MANDATORY policy (CONTRADICTION_AUDIT Target 1): the orthostatic delta-HR
+# response is encoded PER PROTOCOL. Tilt != stand != NASA lean. The healthy
+# false-positive rate at the 30-bpm POTS boundary is a PROTOCOL PROPERTY
+# (~<5% casual stand; ~33% NASA lean / lab stand; ~40-60% 10-min tilt) and
+# must be preserved as an explicit tail - never collapse to a single
+# threshold. The >=30 bpm criterion is licensed only for standardized 10-min
+# active-stand or 10-min tilt protocols; it is not a physiological boundary.
+metadata:
+  name: "OCPE protocol-conditioned healthy orthostatic reference (FROZEN)"
+  version: "1.0.0"
+  frozen_by: "Agent W1-C (branch fix/orthostatic-reference)"
+  gap_ids: ["G-P0-09"]
+  metric_semantics:
+    sustained_delta_HR: "mean(HR, minutes 5-10 of tilt) - mean(HR, final 5 min supine)"
+    initial_transient: "max(HR, first 30 s post-onset) - mean(HR, final 5 min supine)"
+    semantics_note: >
+      ONE definition, used identically by model, tests, evaluator and the
+      dataset generator (W2-F). The initial transient (seconds) and the
+      sustained response (minutes) are different physiological phases and
+      are NEVER conflated. Implemented in validation/evaluator.py
+      (compute_orthostatic_metrics).
+  criterion_licensing:
+    pots_sustained_30bpm:
+      licensed_protocols: ["active_stand_lab_10min", "hut_60_70_10min"]
+      adolescents_12_19_bpm: 40
+      note: >
+        Clinical threshold with acceptable specificity only under the
+        standardized 10-min active-stand or 10-min tilt protocols used in
+        POTS clinics (CONTRADICTION_AUDIT Target 1; EVD-POTS-001, E5
+        consensus: HRS 2015, CCS 2020, NIH 2021). Adolescent criterion
+        >=40 bpm (97.5th percentile of healthy stand/tilt delta-HR is
+        41-52.7 bpm). NOT licensed for casual stands, NASA lean, or
+        prolonged (>=20-30 min) tilt.
+
+# Each entry: distribution, protocol (angle/duration/method), source
+# claim_id/PMID, evidence level, and the false-positive TAIL at the 30-bpm
+# boundary (preserved as a range; never collapsed).
+protocols:
+  active_stand_casual_10min:
+    method: "active_stand"
+    angle_degrees: [90, 90]
+    required_tilt_duration_s: 600
+    max_supine_rest_s: 3599   # <1 h supine rest distinguishes casual from lab stand
+    protocol: >
+      Free-living / short-notice casual active stand: brief supine baseline
+      (minutes, NOT the >=1 h Vanderbilt lab rest), stand unaided within ~3 s
+      with muscle pump engaged, remain motionless 10 min. Record supine-rest
+      duration, fasting state, time of day (mandatory covariates).
+    sustained_delta_HR_bpm:
+      distribution: "normal"
+      mean: 12.0
+      sd: 5.0
+      tail_cap_bpm: 28.0
+    fraction_exceeding_30bpm:
+      min: 0.0
+      max: 0.05
+      point: 0.02
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "HEALTHY_PHYSIOLOGY_EVIDENCE.md section 3 implementation recommendation (Normal(+12,5), cap >95% below 30; validate >30 fraction ~2-5% for stand)"
+        pmid: null
+      - claim_id: "EVD-POTS-001"
+        ref: "CONTRADICTION_AUDIT.md Target 1 (casual stand false-positive rate ~2-5%)"
+        pmid: null
+
+  active_stand_lab_10min:
+    method: "active_stand"
+    angle_degrees: [90, 90]
+    required_tilt_duration_s: 600
+    min_supine_rest_s: 3600   # >=1 h supine rest (Vanderbilt POTS-lab protocol)
+    protocol: >
+      POTS-lab active stand: >=1 h supine rest, fasting, morning (Vanderbilt
+      protocol), stand unaided, 10 min upright. The long supine rest, fasting
+      and morning scheduling each inflate delta-HR vs a casual stand
+      (>10 bpm mean shift; AM +8-10 bpm bias).
+    sustained_delta_HR_bpm:
+      distribution: "normal_approx"
+      mean: 25.0
+      sd: 3.0
+      dispersion_note: "reported +/-3 is the SEM of the n=15 control mean; the between-subject SD is wider (33% of controls exceed 30 bpm) - the fraction_exceeding_30bpm tail is the BINDING calibration target"
+      time_course_bpm:
+        5min: {mean: 23.0, sd: 3.0}
+        10min: {mean: 25.0, sd: 3.0}
+        30min: {mean: 26.0, sd: 3.0}
+      alternative_estimate:
+        name: "Seeley 2025 review (J Clin Med 14:8139)"
+        median: 15.0
+        iqr: [9.0, 20.0]
+        note: "Healthy stand mean itself ranges ~12-25 bpm across protocols (supine-rest duration, fasting, time of day, max-so-far vs point estimate)"
+    fraction_exceeding_30bpm:
+      min: 0.10
+      max: 0.33
+      point: 0.33
+      note: "Plash 2013 stand-10min specificity of the 30-bpm criterion = 67% (i.e. 33% of healthy controls exceed 30 bpm); Seeley review implies ~10%. Optimal stand-10min cutoff 29 bpm."
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "Plash et al. 2013, 'Diagnosing POTS: tilt vs stand' (n=15 Vanderbilt controls: stand 23+/-3 / 25+/-3 / 26+/-3 at 5/10/30 min)"
+        pmc: "PMC3478101"
+      - claim_id: "EVD-POTS-005"
+        ref: "EVENT_PROTOCOLS.yaml EV-active-stand (lab stand +23-26 bpm; ~10-33% exceed 30 bpm)"
+        pmc: "PMC3478101"
+
+  hut_60_70_10min:
+    method: "head_up_tilt"
+    angle_degrees: [60, 70]
+    required_tilt_duration_s: 600
+    protocol: >
+      Passive head-up tilt (muscle pump removed): supine baseline >=10 min
+      (POTS-lab >=1 h), motorized tilt to 60-70 deg over ~14 s, remain 10 min;
+      no voluntary muscle contraction; fasting, morning typical. Maximal
+      hydrostatic stress; initial transient attenuated vs active stand.
+    sustained_delta_HR_bpm:
+      distribution: "normal_approx"
+      mean: 34.0
+      sd: 3.0
+      dispersion_note: "reported +/-3 is the SEM of the n=15 control mean; the between-subject SD is materially wider (mean 34 with ~60% above 30 bpm implies SD ~15 bpm) - the fraction_exceeding_30bpm tail is the BINDING calibration target, not the moment approximation"
+      time_course_bpm:
+        5min: {mean: 27.0, sd: 3.0}
+        10min: {mean: 34.0, sd: 3.0}
+        30min: {mean: 40.0, sd: 4.0}
+    fraction_exceeding_30bpm:
+      min: 0.40
+      max: 0.60
+      point: 0.60
+      note: "~60% of healthy controls exceed 30 bpm at 10-min tilt (Plash 2013 specificity tilt-10min = 40%). Optimal tilt-10min cutoff ~37-38 bpm."
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "Plash et al. 2013 (tilt 27+/-3 / 34+/-3 / 40+/-4 at 5/10/30 min; 60% of controls >30 bpm at 10 min)"
+        pmc: "PMC3478101"
+      - claim_id: "EVD-POTS-001"
+        ref: "EVIDENCE_REGISTRY.yaml (in controls, 60% met >=30 bpm at 10-min tilt)"
+        pmc: "PMC3478101"
+
+  hut_60_70_30min:
+    method: "head_up_tilt"
+    angle_degrees: [60, 70]
+    required_tilt_duration_s: 1800
+    sustained_window_s: [1500, 1800]
+    protocol: >
+      Prolonged passive head-up tilt (VVS-provocation duration), 60-70 deg,
+      30 min upright. The 30-bpm criterion is largely meaningless on
+      prolonged tilt in healthy young adults.
+    sustained_delta_HR_bpm:
+      distribution: "normal_approx"
+      mean: 40.0
+      sd: 4.0
+      dispersion_note: "reported +/-4 is the SEM of the n=15 control mean; the fraction_exceeding_30bpm tail is the BINDING calibration target"
+    fraction_exceeding_30bpm:
+      min: 0.60
+      max: 0.80
+      point: 0.80
+      note: "Plash 2013 tilt-30min specificity = 20% (i.e. 80% of healthy controls exceed 30 bpm). Optimal tilt-30min cutoff 47 bpm."
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "Plash et al. 2013 (tilt-30min 40+/-4 bpm; 80% of controls >30 bpm; specificity 20%)"
+        pmc: "PMC3478101"
+
+  nasa_lean_10min:
+    method: "nasa_lean"
+    angle_degrees: [90, 90]
+    required_tilt_duration_s: 600
+    protocol: >
+      NASA lean test (aggressive passive stand variant): supine baseline,
+      then stand with back against wall, feet ~15 cm from wall, shoulders
+      touching wall, no muscle activity, 10 min. Muscle pump removed while
+      fully upright - the most aggressive stand variant. Fasting inflates
+      the response (record).
+    sustained_delta_HR_bpm:
+      distribution: "moment_approx_non_gaussian"
+      mean: 34.0
+      sd: 8.0
+      shape_warning: >
+        Mean/SD (+34+/-8) frozen per SWARM_SPEC G-P0-09. A Gaussian with
+        these moments does NOT reproduce the verified upper tail; use
+        fraction_exceeding_30bpm as the BINDING calibration target, not the
+        moment approximation.
+    fraction_exceeding_30bpm:
+      min: 0.33
+      max: 0.33
+      point: 0.33
+      note: "33% of healthy controls met delta-HR >30 bpm by 10 min (Lee 2020); 49% of healthy controls showed a POTS OR orthostatic-hypotension pattern. High-sensitivity, poor-specificity protocol - use for specificity stress-testing of synthetic cohorts."
+    evidence_level: "E2"
+    sources:
+      - claim_id: "EVD-POTS-018"
+        ref: "Lee et al. 2020 NASA Lean Test, J Transl Med 18:314 (33% healthy false positives)"
+        pmc: "PMC7429890"
+      - claim_id: "EVD-POTS-001"
+        ref: "EVENT_PROTOCOLS.yaml EV-nasa-lean (MANDATORY separate modality; healthy false-positive ~33%)"
+        pmc: "PMC7429890"
+
+# Initial-transient reference (seconds timescale; recorded separately from
+# sustained - never conflated).
+initial_transient_reference:
+  active_stand:
+    bp_dip_nadir_s: 10.0
+    bp_dip_abnormal: "SBP fall >40 or DBP fall >25 mmHg (initial OH, Wieling criteria)"
+    bp_recovery_s: [20, 30]
+    hr_onset_s: 3.0
+    hr_peak_s: [10, 15]
+    hr_peak_rise_bpm: [20, 30]
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "HEALTHY_PHYSIOLOGY_EVIDENCE.md section 3.1 (initial transient)"
+  head_up_tilt:
+    note: "Smaller initial transient than active stand (no muscle-pump exercise reflex) - active stand and tilt are NOT interchangeable."
+    evidence_level: "E3"
+    sources:
+      - claim_id: "EVD-HLTH-004"
+        ref: "EVENT_PROTOCOLS.yaml EV-head-up-tilt / HEALTHY section 3.1"
+
+# Mandatory protocol covariates for every orthostatic event record (W2-F
+# dataset generator must carry these per record).
+mandatory_covariates:
+  - "method (active_stand | head_up_tilt | nasa_lean)"
+  - "tilt_angle_degrees"
+  - "upright_duration_s"
+  - "supine_rest_duration_s"
+  - "fasting_state"
+  - "time_of_day"
+  - "metric_window (sustained minutes 5-10 vs short-protocol proxy)"

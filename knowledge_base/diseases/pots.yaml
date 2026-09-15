@@ -18,6 +18,20 @@
 # unchanged [Stewart] or even LOWER [Freeman]). Therefore mvl and VMvl must NOT
 # be perturbed upward in ANY POTS phenotype — do so only via the venomotor
 # capacity parameter dV_veno_max (neuropathic) below.
+#
+# FORMAL SCOPING ANNOTATION (G-P0-03, Agent W1-C, fix/orthostatic-reference;
+# COMMENT ONLY — no value changes): neuropathic_pots is scoped
+# EXPERIMENTAL-XFAIL. It is engine-falsified against its own acceptance
+# criterion (sustained delta-HR 21.2 bpm vs >=30 bpm; flat dose-response
+# 18.5->21.7 over denervation factor 0-0.5). Canonical dataset generation MUST
+# reject neuropathic POTS. SCHEMA INTERFACE REQUEST to W1-B (provenance gate /
+# G-P0-08): add a dataset-level exclusion marker, e.g.
+# `canonical_status: experimental` + `dataset_exclusion: "G-P0-03
+# engine-falsified vs >=30 bpm sustained criterion"` on the neuropathic
+# phenotype block, and have the canonical-mode gate fail closed on it. This
+# file deliberately does NOT add those keys (schema owned by W1-B); see
+# docs/orthostatic_reference.md section 5 and
+# tests/test_orthostatic_response.py::test_neuropathic_experimental_sustained_criterion.
 version: "1.5"
 disease:
   id: "pots"
@@ -26,6 +40,17 @@ disease:
   description: "A form of orthostatic intolerance characterized by an excessive increase in heart rate upon standing, in the absence of orthostatic hypotension. Phenotypes are composable (Angeli 2024: 41.7% dual-diagnosis overlap) — see file header."
   phenotypes:
     - id: "neuropathic_pots"
+      # SCOPING (G-P0-03; comment only): EXPERIMENTAL-XFAIL phenotype.
+      # Engine-falsified: sustained tilt delta-HR 21.2 bpm vs >=30 bpm
+      # criterion; dose-response flat (18.5->21.7 bpm, factor 0-0.5) because
+      # pooling is hydrostatic-gate-limited and stress-relaxation creep
+      # re-expands capacity. Model-adequacy failure, NOT evidence failure
+      # (denervation direction is tier A, Jacob 2000). Remediation paths:
+      # bounded stress-relaxation creep per van Heusden 2006 and/or Geddes
+      # 2022 Eq. 2.16 tilt-onset application semantics. Canonical dataset
+      # generation must reject this phenotype (see file-header interface
+      # request to W1-B). Strict-xfail acceptance gate:
+      # tests/test_orthostatic_response.py (G-P0-03).
       name: "Neuropathic POTS"
       description: "Characterized by partial distal sympathetic denervation leading to impaired peripheral arterial vasoconstriction AND blunted reflex venoconstriction (venomotor tone), particularly in the lower body. Central baroreflex gain is intact (Jacob 2019, NP-07); the defect is peripheral effector failure (Jacob 2000, NP-01)."
       association_evidence:
@@ -104,6 +129,13 @@ disease:
         # Model-level acceptance signature for this phenotype (Okamoto 2024,
         # tier A): the hyperadrenergic simulation must show BOTH the generic
         # POTS criterion AND an orthostatic pressor response.
+        # DISCLOSED LIMITATION (G-P1-01; comment only, Agent W1-C): the
+        # delta-SBP >= +10 mmHg pressor criterion below is NOT met in silico
+        # (simulated -4.0 mmHg; 0-D windkessel pulse pressure narrows on
+        # tilt). validation/evaluator.py discloses this failure in every
+        # hyperadrenergic report ("limitations" list) - never silently
+        # passed; strict-xfail test_hyperadrenergic_sbp_pressor_criterion is
+        # the acceptance gate for any future fix.
         - criterion: "tilt delta-HR >= 30 bpm (POTS criterion)"
           tier: "A"
         - criterion: "upright delta-SBP >= +10 mmHg (vs <= 0 mmHg expected in neuropathic phenotype)"
