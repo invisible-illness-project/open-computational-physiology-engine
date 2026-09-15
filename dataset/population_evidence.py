@@ -163,6 +163,82 @@ POPULATION_EVIDENCE = {
         "canonical_status": "canonical",
         "uncertainty": "down-weight magnitude is guidance, not measurement",
     },
+    # --- Anthropometrics (dataset-hardening W4-2; PROVISIONAL) --------------
+    "bmi_distribution": {
+        "value": {"mean": 26.0, "sd": 4.5, "min": 17.0, "max": 45.0},
+        "units": "kg/m^2",
+        "distribution": "truncated normal N(26.0, 4.5^2) on [17, 45]",
+        "evidence_tier": "E4",
+        "source": ("NHANES-informed adult BMI marginal (adult mean ~26-29, "
+                   "sd ~4.5-5); the POP dossier documents only the U-shaped "
+                   "BMI->RHR link (Quer 2020, E2), NOT a BMI marginal -> "
+                   "PROVISIONAL distribution parameter"),
+        "canonical_status": "canonical",
+        "provisional": True,
+        "uncertainty": ("provisional: NHANES-informed, not registry-anchored; "
+                        "identical distribution MUST be used for every group "
+                        "(matched nuisance)"),
+    },
+    "height_adult_cm": {
+        "value": {"male": {"mean": 178.0, "sd": 7.0},
+                  "female": {"mean": 164.0, "sd": 6.6},
+                  "min_cm": 145.0, "max_cm": 205.0},
+        "units": "cm",
+        "distribution": "sex-specific truncated normal",
+        "evidence_tier": "E4",
+        "source": ("NHANES-informed adult height marginals (used only to "
+                   "derive weight = BMI*h^2 for the Nadler blood-volume "
+                   "hook); PROVISIONAL - not registry-anchored"),
+        "canonical_status": "canonical",
+        "provisional": True,
+        "uncertainty": "provisional: NHANES-informed sex-specific marginals",
+    },
+    "nadler_blood_volume": {
+        "value": {"male_coeff": {"h3": 0.3669, "w": 0.03219, "c": 0.6041},
+                  "female_coeff": {"h3": 0.3561, "w": 0.03308, "c": 0.1833},
+                  "between_person_cv": 0.06},
+        "units": "L (h in m, weight in kg)",
+        "distribution": ("Nadler equation (male: 0.3669*h^3+0.03219*w+0.6041; "
+                         "female: 0.3561*h^3+0.03308*w+0.1833) x (1 + CV*z), "
+                         "CV=0.06 between-person residual"),
+        "evidence_tier": "E2 (equation) / E4 (residual CV, provisional)",
+        "source": ("Nadler, Hidalgo & Bloch 1962 (Surgery 51:224-232) "
+                   "prediction of blood volume from height/weight/sex; "
+                   "between-person residual CV ~5-8% of predicted volume "
+                   "(PROVISIONAL magnitude)"),
+        "canonical_status": "canonical",
+        "provisional": True,
+        "uncertainty": ("replaces the engine's repo-legacy sex/BMI TotalVol "
+                        "prior when height+BMI are sampled; residual CV is "
+                        "provisional"),
+    },
+    # --- Fitness spectrum (dataset-hardening W4-2; PROVISIONAL) -------------
+    "fitness_category_distribution": {
+        "value": {"sedentary": 0.25, "average": 0.55, "athletic": 0.20},
+        "units": "probability",
+        "distribution": "categorical over engine fitness classes",
+        "evidence_tier": "E4",
+        "source": ("POP factor model (fitness latent factor; Copenhagen Male "
+                   "Study RHR-fitness r=-0.34, E2); category PROPORTIONS are "
+                   "PROVISIONAL (no registry-anchored marginal)"),
+        "canonical_status": "canonical",
+        "provisional": True,
+        "uncertainty": ("provisional proportions; identical distribution MUST "
+                        "be used for every group (matched nuisance)"),
+    },
+    "fitness_rhr_effect_bpm": {
+        "value": {"sedentary": 4.0, "average": 0.0, "athletic": -5.0},
+        "units": "bpm (additive on the RHR trait mean)",
+        "distribution": "per-category additive shift",
+        "evidence_tier": "E2 (direction) / E4 (magnitude, provisional)",
+        "source": ("POP factor model: RHR-fitness r=-0.34 (Copenhagen Male "
+                   "Study, Heart 99:882, E2); VO2max-RHR path; category shift "
+                   "magnitudes PROVISIONAL (~0.5 SD of RHR per extreme "
+                   "category)"),
+        "canonical_status": "canonical",
+        "provisional": True,
+        "uncertainty": "provisional magnitudes; direction evidence-anchored",
+    },
     # --- Tanaka HRmax residual (POP B/D) ------------------------------------
     "hrmax_tanaka_residual_sd_bpm": {
         "value": 10.7, "units": "bpm", "distribution": "normal(0, sd)",
@@ -179,6 +255,11 @@ PROVISIONAL_HONESTY_FLAGS = {
     "pooling_capacity_range_ml": "pooling_capacity_tierC_machine_fitted",
     "pots_hypovolemic_branch_fraction": "subtype_mixture_weight_E0_scenario",
     "pots_blood_volume_deficit_ml": "severity_resampled_from_evidence_distribution",
+    "bmi_distribution": "bmi_distribution_provisional_nhanes_informed",
+    "height_adult_cm": "height_distribution_provisional_nhanes_informed",
+    "nadler_blood_volume": "blood_volume_nadler_provisional_residual_cv",
+    "fitness_category_distribution": "fitness_spectrum_provisional_proportions",
+    "fitness_rhr_effect_bpm": "fitness_rhr_effect_provisional_magnitude",
 }
 
 

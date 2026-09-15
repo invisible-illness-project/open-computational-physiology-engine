@@ -621,3 +621,421 @@ class TestBenchBuild:
                     "subjects/healthy-001/hut60_mini/record.yaml",
                     "cohort.csv"):
             assert (outs[0] / rel).read_bytes() == (outs[1] / rel).read_bytes(), rel
+
+
+# ---------------------------------------------------------------------------
+# Dataset-hardening (adversarial review W3-A; W4-2 fixes)
+# F1 demographic leakage / F2 cohort homogeneity / F3 trait propagation /
+# F4 kb_version hashing / F5 latent laundering / F6 provenance freshness
+# ---------------------------------------------------------------------------
+
+import subprocess
+
+from dataset.cohort import (
+    METADATA_NEGATIVE_CONTROL_EPSILON,
+    metadata_negative_control,
+    nadler_blood_volume_ml,
+)
+from dataset.kb_closure import (
+    DEFAULT_EXCLUDES,
+    externally_consumed_kb_files,
+    prepare_kb_closure,
+)
+from dataset.provenance import git_revision, kb_bundle_sha256
+from dataset.sensor_governance import audit_sensor_experimental_blocks
+
+
+def _pilot_config():
+    """Import the shipped pilot config (the artifact under test)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "generate_pilot_dataset",
+        os.path.join(REPO_ROOT, "examples", "generate_pilot_dataset.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.PILOT_CONFIG
+
+
+def _matched_pilot_like_cohorts(n_per_group=3):
+    cfg = _pilot_config()
+    for c in cfg["cohorts"]:
+        c["n_subjects"] = n_per_group
+    return cfg
+
+
+class TestDemographicMatching:
+    """F1 (CRITICAL): sex/age-matched groups; the shipped pilot config must
+    make the metadata negative control hold BY CONSTRUCTION."""
+
+    def test_pilot_config_enforces_matching(self):
+        cfg = _pilot_config()
+        healthy = cfg["cohorts"][0]
+        pots = cfg["cohorts"][1]
+        # Balance enforced in the cohort config (stratified exact-count sex
+        # sampling + explicit case-control matching), not left to chance.
+        assert healthy["sex"].get("enforce_exact") is True
+        assert pots.get("match_demographics") == healthy["cohort_id"]
+
+    def test_pairwise_demographic_identity(self):
+        subs = CohortSampler(_matched_pilot_like_cohorts(), 20260601).sample()
+        by_cohort = {}
+        for s in subs:
+            by_cohort.setdefault(s.cohort_id, []).append(s)
+        rows = list(by_cohort.values())
+        assert len(rows) == 2
+        for a, b in zip(*rows):
+            for attr in ("sex", "age", "bmi", "fitness", "height_cm",
+                         "device_id"):
+                assert getattr(a, attr) == getattr(b, attr), attr
+
+    def test_pilot_metadata_negative_control_exact(self):
+        """The negative-control guard on the shipped pilot config: a
+        metadata-only classifier (sex/age/BMI/fitness/device) must sit at
+        AUC <= 0.5+epsilon -- here exactly 0.5 via pairwise matching."""
+        subs = CohortSampler(_pilot_config(), 20260601).sample()
+        nc = metadata_negative_control(subs)
+        assert nc["status"] == "evaluated"
+        assert nc["passed"] is True
+        assert nc["multivariate_auc"] == pytest.approx(0.5)
+        assert all(v == pytest.approx(0.5)
+                   for v in nc["per_feature_auc"].values())
+
+    def test_negative_control_guard_large_unmatched(self):
+        """Guard at scale WITHOUT pairwise matching: identical nuisance
+        distributions across groups must still defeat a metadata-only
+        classifier (AUC <= 0.5+epsilon).  Fails the build if violated."""
+        base = {"age": {"dist": "uniform", "min": 20, "max": 45},
+                "sex": {"female_fraction": 0.5, "enforce_exact": True},
+                "bmi": {"dist": "nhanes_provisional"},
+                "fitness": {"dist": "spectrum"},
+                "height": {"dist": "sex_specific_population"},
+                "device": "polar_h10",
+                "orthostatic_axis": {"enabled": False},
+                "comorbidities": {"frame": "off"}}
+        cfg = {"cohorts": [
+            dict({"cohort_id": "h", "condition": "healthy",
+                  "n_subjects": 150}, **base),
+            dict({"cohort_id": "p", "condition": "pots",
+                  "n_subjects": 150}, **base)]}
+        subs = CohortSampler(cfg, 777).sample()
+        nc = metadata_negative_control(subs)
+        assert nc["passed"] is True, (
+            f"metadata negative control violated: {nc}")
+        assert nc["multivariate_auc"] <= 0.5 + METADATA_NEGATIVE_CONTROL_EPSILON
+
+    def test_negative_control_detects_leakage(self):
+        """The guard is not vacuous: a sex-confounded cohort (the F1
+        defect) must FAIL the control."""
+        cfg = {"cohorts": [
+            {"cohort_id": "h", "condition": "healthy", "n_subjects": 30,
+             "sex": {"female_fraction": 0.0},
+             "orthostatic_axis": {"enabled": False}},
+            {"cohort_id": "p", "condition": "pots", "n_subjects": 30,
+             "sex": {"female_fraction": 1.0},
+             "orthostatic_axis": {"enabled": False}}]}
+        subs = CohortSampler(cfg, 5).sample()
+        nc = metadata_negative_control(subs)
+        assert nc["passed"] is False
+        assert nc["per_feature_auc"]["sex_female"] == pytest.approx(1.0)
+
+
+class TestNuisanceVariation:
+    """F2 (MAJOR): realistic anthropometric/fitness/device sampling."""
+
+    def _subjects(self, n=200):
+        cfg = {"cohorts": [
+            {"cohort_id": "h", "condition": "healthy", "n_subjects": n,
+             "sex": {"female_fraction": 0.5},
+             "bmi": {"dist": "nhanes_provisional"},
+             "fitness": {"dist": "spectrum"},
+             "height": {"dist": "sex_specific_population"},
+             "device": {"dist": "categorical",
+                        "choices": {"polar_h10": 0.5, "dev_b": 0.3,
+                                    "dev_c": 0.2}},
+             "orthostatic_axis": {"enabled": False}}]}
+        return CohortSampler(cfg, 42).sample()
+
+    def test_bmi_sampled_from_population(self):
+        subs = self._subjects()
+        bmis = np.array([s.bmi for s in subs])
+        assert len(set(np.round(bmis, 1))) > 50  # not a point value
+        assert bmis.min() >= 17.0 and bmis.max() <= 45.0  # truncation
+        assert abs(bmis.mean() - 26.0) < 1.0     # NHANES-informed (provisional)
+        assert 3.0 < bmis.std() < 6.0
+
+    def test_fitness_spectrum_and_rhr_effect(self):
+        subs = self._subjects()
+        cats = {s.fitness for s in subs}
+        assert cats == {"sedentary", "average", "athletic"}
+        # Provisional RHR shift: sedentary > average > athletic on average.
+        mean_rhr = {c: np.mean([s.rhr_bpm for s in subs if s.fitness == c])
+                    for c in cats}
+        assert mean_rhr["sedentary"] > mean_rhr["average"]
+        assert mean_rhr["average"] > mean_rhr["athletic"]
+
+    def test_device_assignment_matched_distribution(self):
+        """Same device distribution in every group (matched nuisance)."""
+        cfg = {"cohorts": [
+            {"cohort_id": c, "condition": cond, "n_subjects": 300,
+             "device": {"dist": "categorical",
+                        "choices": {"polar_h10": 0.5, "dev_b": 0.3,
+                                    "dev_c": 0.2}},
+             "orthostatic_axis": {"enabled": False}}
+            for c, cond in (("h", "healthy"), ("p", "pots"))]}
+        subs = CohortSampler(cfg, 42).sample()
+        freq = {}
+        for cid in ("h", "p"):
+            devs = [s.device_id for s in subs if s.cohort_id == cid]
+            freq[cid] = {d: devs.count(d) / len(devs)
+                         for d in ("polar_h10", "dev_b", "dev_c")}
+        for d in freq["h"]:
+            assert abs(freq["h"][d] - freq["p"][d]) < 0.1
+
+    def test_height_and_nadler_blood_volume(self):
+        subs = self._subjects()
+        heights = np.array([s.height_cm for s in subs])
+        assert 145.0 <= heights.min() and heights.max() <= 205.0
+        men = [s.height_cm for s in subs if s.sex == "male"]
+        women = [s.height_cm for s in subs if s.sex == "female"]
+        assert np.mean(men) > np.mean(women) + 8.0  # sex-specific marginals
+        bvs = np.array([s.blood_volume_expected_ml for s in subs])
+        assert bvs.std() > 200.0  # between-person variation (F2)
+        # Nadler equation hook: scales with body size.
+        s0 = subs[0]
+        w = s0.bmi * (s0.height_cm / 100.0) ** 2
+        expected = nadler_blood_volume_ml(s0.height_cm, w, s0.sex)
+        assert abs(s0.blood_volume_expected_ml - expected) < 0.35 * expected
+        # Larger subject -> larger expected volume (same sex).
+        males = sorted((s for s in subs if s.sex == "male"),
+                       key=lambda s: s.height_cm)
+        small, tall = males[0], males[-1]
+        assert tall.blood_volume_expected_ml > small.blood_volume_expected_ml
+
+    def test_provisional_honesty_flags_present(self):
+        subs = self._subjects(5)
+        flags = set().union(*(s.honesty_flags for s in subs))
+        assert "bmi_distribution_provisional_nhanes_informed" in flags
+        assert "fitness_spectrum_provisional_proportions" in flags
+        assert "blood_volume_nadler_provisional_residual_cv" in flags
+        assert any("bmi_distribution" == p["constant"]
+                   for s in subs for p in s.provenance)
+
+
+class TestTraitPropagation:
+    """F3/F11 (MAJOR): the cohort ln-RMSSD trait must reach the IPFM RR
+    series (realized RMSSD within 30% of the sampled target)."""
+
+    def _hrv_inputs(self, n=900, hr=65.0):
+        t = np.arange(n, dtype=float)
+        return {"time_s": t, "mean_hr_bpm": np.full(n, hr),
+                "vagal_drive": np.full(n, 0.5),
+                "sympathetic_drive": np.full(n, 0.3),
+                "respiration_rate_brpm": np.full(n, 15.0),
+                "sleep_stage_code": np.zeros(n, dtype=int)}
+
+    def _rmssd(self, rr):
+        rr = np.asarray(rr, dtype=float)
+        return float(np.sqrt(np.mean(np.diff(rr) ** 2)))
+
+    def test_trait_reaches_rr_series(self):
+        from dataset.rr_source import TRAIT_RMSSD_TOLERANCE
+        for target in (20.0, 45.0, 87.0):  # 87 ms = the review's pots-002 case
+            out = generate_rr_series(
+                self._hrv_inputs(), seed=11,
+                config={"subject_traits": {"ln_rmssd_ms": float(np.log(target)),
+                                           "rhr_bpm": 65.0}})
+            realized = self._rmssd(out["rr_intervals_ms"])
+            assert abs(realized - target) <= TRAIT_RMSSD_TOLERANCE * target, (
+                f"target {target} ms, realized {realized:.1f} ms")
+
+    def test_trait_calibration_provenance_and_flag(self):
+        out = generate_rr_series(
+            self._hrv_inputs(), seed=3,
+            config={"subject_traits": {"ln_rmssd_ms": float(np.log(60.0))}})
+        cal = out["provenance"]["trait_calibration"]
+        assert cal["target_rmssd_ms"] == pytest.approx(60.0)
+        assert cal["baseline_rmssd_ms"] > 0
+        assert cal["amplitude_gain"] > 0
+        assert "hrv_trait_amplitude_gain_machine_calibrated" in \
+            out["provenance"]["honesty_flags"]
+
+    def test_trait_changes_output_and_is_deterministic(self):
+        base = generate_rr_series(self._hrv_inputs(), seed=7)
+        a = generate_rr_series(
+            self._hrv_inputs(), seed=7,
+            config={"subject_traits": {"ln_rmssd_ms": float(np.log(90.0))}})
+        b = generate_rr_series(
+            self._hrv_inputs(), seed=7,
+            config={"subject_traits": {"ln_rmssd_ms": float(np.log(90.0))}})
+        assert self._rmssd(a["rr_intervals_ms"]) > 1.3 * self._rmssd(
+            base["rr_intervals_ms"])
+        assert np.array_equal(a["beat_times_s"], b["beat_times_s"])
+        assert np.array_equal(a["rr_intervals_ms"], b["rr_intervals_ms"])
+
+
+class TestKBVersionHashing:
+    """F4/F5/F13 (MAJOR): kb_version deterministic across closure rebuilds,
+    complete over consumed files (artifact_models included)."""
+
+    def test_closure_rebuilds_identical_kb_version(self, tmp_path):
+        kb1 = prepare_kb_closure(str(tmp_path / "kb1"))
+        kb2 = prepare_kb_closure(str(tmp_path / "kb2"))
+        # Sidecars carry fresh UUIDs/wall-clock per rebuild (verified input
+        # to this test) but must NOT perturb kb_version.
+        v1 = kb_bundle_sha256(kb1, extra_files=externally_consumed_kb_files(kb1))
+        v2 = kb_bundle_sha256(kb2, extra_files=externally_consumed_kb_files(kb2))
+        assert v1 == v2
+
+    def test_content_change_flips_kb_version(self, tmp_path):
+        kb = prepare_kb_closure(str(tmp_path / "kb"))
+        v1 = kb_bundle_sha256(kb, extra_files=externally_consumed_kb_files(kb))
+        target = Path(kb) / "diseases" / "pots.yaml"
+        with open(target, "a", encoding="utf-8") as f:
+            f.write("\n# content change\n")
+        v2 = kb_bundle_sha256(kb, extra_files=externally_consumed_kb_files(kb))
+        assert v1 != v2
+
+    def test_externally_consumed_files_cover_artifact_models(self, tmp_path):
+        kb = prepare_kb_closure(str(tmp_path / "kb"))
+        extras = dict(externally_consumed_kb_files(kb))
+        labels = "\n".join(extras)
+        assert "external:knowledge_base/wearables/artifact_models.yaml" in labels
+        # Every DEFAULT_EXCLUDES file absent from the closure is covered.
+        for rel in DEFAULT_EXCLUDES:
+            assert not (Path(kb) / rel).exists()
+            assert f"external:knowledge_base/{rel}" in labels
+
+    def test_artifact_models_content_change_flips_kb_version(self, tmp_path):
+        """The artifact/dropout models are consumed by every sensor channel;
+        their content must be inside kb_version even though the closure
+        excludes the file for governance reasons."""
+        src = tmp_path / "src_kb"
+        shutil.copytree(os.path.join(REPO_ROOT, "knowledge_base"), src)
+        kb = prepare_kb_closure(str(tmp_path / "kb"), src_kb=str(src))
+        extras = externally_consumed_kb_files(kb, src_kb=str(src))
+        v1 = kb_bundle_sha256(kb, extra_files=extras)
+        art = src / "wearables" / "artifact_models.yaml"
+        with open(art, "a", encoding="utf-8") as f:
+            f.write("\n# dropout model change\n")
+        v2 = kb_bundle_sha256(kb, extra_files=extras)
+        assert v1 != v2
+
+    def test_review_sidecar_change_does_not_flip_kb_version(self, tmp_path):
+        kb = prepare_kb_closure(str(tmp_path / "kb"))
+        v1 = kb_bundle_sha256(kb)
+        sidecars = list(Path(kb).rglob("*.review.yaml"))
+        assert sidecars, "closure must record review sidecars"
+        with open(sidecars[0], "a", encoding="utf-8") as f:
+            f.write("\n# governance ledger append\n")
+        assert kb_bundle_sha256(kb) == v1
+
+
+class TestCommitFreshness:
+    """F4/F6 (CRITICAL): the recorded ocpe_commit must be the TRUE current
+    commit and must contain the dataset-generation code."""
+
+    def test_git_revision_is_head(self):
+        rev = git_revision()
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT,
+            capture_output=True, text=True, check=True).stdout.strip()
+        assert rev == head
+
+    def test_recorded_commit_exists_and_contains_dataset_code(self):
+        rev = git_revision()
+        assert rev != "unknown"
+        subprocess.run(["git", "cat-file", "-e", f"{rev}^{{commit}}"],
+                       cwd=REPO_ROOT, check=True)
+        tree = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", rev], cwd=REPO_ROOT,
+            capture_output=True, text=True, check=True).stdout
+        for required in ("dataset/runner.py", "dataset/cohort.py",
+                         "examples/generate_pilot_dataset.py"):
+            assert required in tree.splitlines(), (
+                f"recorded commit {rev[:8]} lacks {required}; provenance "
+                "chain broken (review F4)")
+
+    def test_built_record_carries_current_commit(self, governed_kb,
+                                                 tmp_path):
+        out = tmp_path / "ds_commit"
+        b = DatasetBuilder(_multiday_config(seed=919), kb_dir=str(governed_kb),
+                           output_dir=str(out))
+        b.build()
+        rec = yaml.safe_load(open(
+            out / "subjects" / "healthy-001" / "day1" / "record.yaml"))
+        rev = rec["ocpe_commit"]
+        subprocess.run(["git", "cat-file", "-e", f"{rev}^{{commit}}"],
+                       cwd=REPO_ROOT, check=True)
+        tree = subprocess.run(
+            ["git", "ls-tree", rev, "dataset/"], cwd=REPO_ROOT,
+            capture_output=True, text=True, check=True).stdout
+        assert tree.strip(), f"record ocpe_commit {rev[:8]} lacks dataset/"
+
+
+class TestSensorExperimentalAudit:
+    """F8 (MAJOR): experimental parameter blocks inside canonical-status
+    devices are refused or strip-and-flagged in canonical mode."""
+
+    def test_canonical_rr_build_passes_with_honesty_flags(self, governed_kb,
+                                                          tmp_path):
+        out = tmp_path / "ds_audit"
+        b = DatasetBuilder(_multiday_config(seed=313), kb_dir=str(governed_kb),
+                           output_dir=str(out))
+        result = b.build()
+        audit = b._sensor_audit
+        assert audit is not None and audit["status"].startswith("passed")
+        # polar_h10 ecg.adc_full_scale_mv: excluded by channel selection.
+        assert any(f.startswith(
+            "experimental_block_excluded_by_channel_selection:polar_h10:ecg.")
+            for f in audit["flags"])
+        # artifact dropout/contact-loss/ectopy experimental blocks consumed
+        # only as verified neutral no-ops.
+        assert any(f.startswith(
+            "experimental_block_consumed_as_neutral_noop:artifact_models:")
+            for f in audit["flags"])
+        rec = yaml.safe_load(open(
+            out / "subjects" / "healthy-001" / "day1" / "record.yaml"))
+        assert any(f.startswith("experimental_block_consumed_as_neutral_noop")
+                   for f in rec["honesty"]["weakly_evidenced_features"])
+        assert any(f.startswith("experimental_block_excluded_by_channel")
+                   for f in rec["honesty"]["validation_limitations"])
+        assert result.manifest["sensor_governance_audit"]["status"].startswith(
+            "passed")
+
+    def test_consuming_channel_refused(self, governed_kb):
+        """Configuring the polar_h10 ECG channel (which consumes the
+        experimental ecg.adc_full_scale_mv block) must be REFUSED in
+        canonical mode -- the review-F8 laundering path."""
+        cfg = _multiday_config(seed=314)
+        cfg["sensors"] = [{"sensor_id": "polar_h10", "channels": ["ecg"]}]
+        b = DatasetBuilder(cfg, kb_dir=str(governed_kb), output_dir="/tmp/unused")
+        b.sample_cohort()
+        with pytest.raises(ExperimentalPerturbationError, match="F8"):
+            b.preflight()
+
+    def test_unregistered_experimental_block_refused(self):
+        """oura_ring (sensor-level canonical) carries UNREGISTERED
+        experimental blocks (ppg.pulse_ac_amplitude, E1): refuse."""
+        with pytest.raises(ExperimentalPerturbationError,
+                           match="pulse_ac_amplitude|NOT registered"):
+            audit_sensor_experimental_blocks(
+                os.path.join(REPO_ROOT, "knowledge_base"),
+                [{"sensor_id": "oura_ring", "channels": ["temp"]}],
+                mode="canonical")
+
+    def test_neutral_value_divergence_refused(self, tmp_path):
+        """If a registered neutral no-op block's KB value diverges from the
+        sensor_models fallback, it becomes load-bearing -> refuse."""
+        kb = tmp_path / "kb"
+        (kb / "wearables").mkdir(parents=True)
+        src = Path(REPO_ROOT) / "knowledge_base" / "wearables"
+        shutil.copyfile(src / "polar_h10.yaml", kb / "wearables" / "polar_h10.yaml")
+        art = yaml.safe_load(open(src / "artifact_models.yaml"))
+        art["artifact_models"]["dropout"]["motion_loss_gain"]["value"] = 1.5
+        with open(kb / "wearables" / "artifact_models.yaml", "w") as f:
+            yaml.safe_dump(art, f)
+        with pytest.raises(ExperimentalPerturbationError,
+                           match="load-bearing|fallback"):
+            audit_sensor_experimental_blocks(
+                str(kb), [{"sensor_id": "polar_h10", "channels": ["rr"]}],
+                mode="canonical")

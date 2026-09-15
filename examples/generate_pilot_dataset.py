@@ -16,9 +16,29 @@ Pilot design (mechanism-only separation, rule 4/5):
     overlap the healthy high-normal tail by construction.
   * Matched protocols (identical tilt-first bench protocol for every
     subject).
-  * Canonical mode: only the canonical chest-strap profile (polar_h10).
-    Wrist/ring/band profiles are canonical_status=experimental upstream
-    and require --mode experimental --allow-experimental.
+  * DEMOGRAPHIC MATCHING (adversarial review F1, release-blocking): the
+    POTS cohort copies the healthy cohort's demographic rows pairwise
+    (``match_demographics``) and the healthy cohort uses exact-count
+    stratified sex sampling -- a metadata-only classifier (sex/age/BMI/
+    fitness/device) sits at AUC 0.5 BY CONSTRUCTION.  The POTS cohort
+    intentionally does NOT use the epidemiological POTS sex/age recipe
+    for this matched case-control pilot (documented trade-off).
+  * REALISTIC NUISANCE VARIATION (review F2): BMI ~ truncated
+    N(26, 4.5) on [17, 45] (NHANES-informed, PROVISIONAL E4), fitness
+    spectrum (sedentary/average/athletic, provisional proportions) with a
+    provisional RHR shift, sex-specific height sampling feeding a Nadler
+    expected-blood-volume hook (between-person CV 0.06, provisional) so
+    healthy TotalVol varies with body size.  Nuisance distributions are
+    identical across groups.
+  * Canonical mode: only the canonical chest-strap profile (polar_h10) is
+    governance-clean today, so every subject is assigned polar_h10
+    (group-matched by construction).  Per-subject device randomization
+    across the 5 sensor profiles is implemented (cohort ``device`` spec)
+    but the wrist/ring/band profiles lack upstream governance metadata /
+    are experimental and are REFUSED in canonical mode (gate + dataset
+    sensor audit); randomization activates once W1-D/W1-B governance
+    lands.  Wrist/ring/band profiles require
+    --mode experimental --allow-experimental.
 
 The build is FAIL-CLOSED: the provenance gate preflight must pass before
 any simulation runs.  The integration-branch KB currently has STALE /
@@ -54,12 +74,28 @@ PILOT_CONFIG = {
     "cohorts": [
         {"cohort_id": "healthy", "condition": "healthy", "n_subjects": 3,
          "age": {"dist": "uniform", "min": 20, "max": 45},
+         # Exact-count stratified sex sampling (review F1): no binomial
+         # 3/0 confound at n=3.
+         "sex": {"female_fraction": 0.5, "enforce_exact": True},
+         # Realistic nuisance sampling (review F2); PROVISIONAL E4
+         # distributions, identical across groups.
+         "bmi": {"dist": "nhanes_provisional"},
+         "fitness": {"dist": "spectrum"},
+         "height": {"dist": "sex_specific_population"},
+         # Only canonical-governed device today; identical across groups.
+         "device": "polar_h10",
          "orthostatic_axis": {"enabled": True,
                               "quantiles": [0.15, 0.50, 0.90],
                               "reference_protocol": "hut_60_70_10min"},
          "comorbidities": {"frame": "off"}},
         {"cohort_id": "pots_hypovolemic", "condition": "pots", "n_subjects": 3,
          "phenotypes": ["hypovolemic_pots"],
+         # Case-control pairwise demographic matching (review F1): copies
+         # sex/age/BMI/fitness/height/device rows from the healthy cohort;
+         # the metadata negative control holds by construction.  The
+         # epidemiological POTS sex/age recipe is deliberately NOT used in
+         # this matched pilot (documented).
+         "match_demographics": "healthy",
          "orthostatic_axis": {"enabled": True, "quantiles": "random",
                               "reference_protocol": "hut_60_70_10min"},
          "comorbidities": {"frame": "population"}},

@@ -18,9 +18,9 @@ import numpy as np
 import yaml
 
 from dataset import schema as recschema
+from dataset.cohort import metadata_negative_control
 from dataset.provenance import (
     git_revision,
-    kb_bundle_sha256,
     model_version,
     registry_version,
 )
@@ -34,16 +34,27 @@ def _cohort_composition(subjects) -> List[Dict[str, Any]]:
             "cohort_id": s.cohort_id, "condition": s.condition,
             "phenotypes": sorted({p for p in s.phenotypes} ),
             "n_subjects": 0, "n_female": 0, "age_min": None, "age_max": None,
+            "bmi_min": None, "bmi_max": None, "devices": set(),
+            "demographics_matched_to": None,
             "cohort_frame": s.cohort_frame,
         })
         c["n_subjects"] += 1
         c["n_female"] += 1 if s.sex == "female" else 0
         c["age_min"] = s.age if c["age_min"] is None else min(c["age_min"], s.age)
         c["age_max"] = s.age if c["age_max"] is None else max(c["age_max"], s.age)
+        c["bmi_min"] = s.bmi if c["bmi_min"] is None else min(c["bmi_min"], s.bmi)
+        c["bmi_max"] = s.bmi if c["bmi_max"] is None else max(c["bmi_max"], s.bmi)
+        if s.device_id:
+            c["devices"].add(s.device_id)
+        if s.demographics_matched_to:
+            c["demographics_matched_to"] = s.demographics_matched_to
     out = []
     for c in comp.values():
         c["age_min"] = round(float(c["age_min"]), 1)
         c["age_max"] = round(float(c["age_max"]), 1)
+        c["bmi_min"] = round(float(c["bmi_min"]), 1)
+        c["bmi_max"] = round(float(c["bmi_max"]), 1)
+        c["devices"] = sorted(c["devices"])
         c["female_fraction"] = round(c["n_female"] / max(1, c["n_subjects"]), 3)
         out.append(c)
     return sorted(out, key=lambda c: c["cohort_id"])
@@ -100,7 +111,12 @@ def build_manifest(builder, records: List[Dict[str, Any]],
                              else "experimental"),
         "ocpe_commit": git_revision(),
         "kb_dir": builder.kb_dir,
-        "kb_version": kb_bundle_sha256(builder.kb_dir),
+        "kb_version": builder.kb_version(),
+        "kb_version_semantics": (
+            "sha256 over consumed KB data-file contents (review sidecars "
+            "excluded: volatile UUID/wall-clock fields; governance freshness "
+            "is gate-enforced at build time) + externally consumed wearable/"
+            "artifact files hashed under external: labels (review F5/F13)"),
         "registry_version": registry_version(),
         "model_version": model_version(),
         "generation_timestamp": builder.generation_timestamp,
@@ -139,8 +155,17 @@ def build_manifest(builder, records: List[Dict[str, Any]],
                      "(volume deficit, pooling axis, baroreflex); no label "
                      "conditioning of signals; >0.95 AUC = release failure"),
             "group_separation": _group_separation(records),
+            "metadata_negative_control": metadata_negative_control(
+                builder.subjects),
+            "metadata_negative_control_note": (
+                "sex/age/BMI/fitness/device metadata-only classifier must "
+                "sit at AUC <= 0.5+epsilon (review F1); enforced upstream "
+                "by matched/stratified cohort sampling, never by label "
+                "manipulation. Small-n note: per-feature AUC at n<=3/group "
+                "is exactly 0.5 only under pairwise-matched sampling."),
             "single_source_flags": single_source,
         },
+        "sensor_governance_audit": (builder._sensor_audit or {}),
         "kb_closure_note": builder.config.get("kb_closure_note"),
     }
     return recschema.normalize(manifest)
