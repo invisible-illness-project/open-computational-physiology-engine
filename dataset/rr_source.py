@@ -74,12 +74,57 @@ def generate_rr_series(hrv_inputs: dict, seed: int, config: dict | None = None) 
     labels) -- all length-aligned -- plus ``provenance`` dict.
     """
     if HRV_MODULE_AVAILABLE:
-        out = _w2e_generate_rr_series(hrv_inputs, seed, config=config)
+        out = _w2e_generate_rr_series(
+            hrv_inputs, seed, config=_to_hrv_config(config))
         out = dict(out)
+        out = _align_beats(out)
         out.setdefault("provenance", {})
         out["provenance"].setdefault("source", "simulation.hrv.generate_rr_series")
         return out
     return _fallback_rr_series(hrv_inputs, seed, config=config)
+
+
+def _to_hrv_config(config: dict | None):
+    """Adapt the dataset-level config dict to W2-E's ``HRVConfig``.
+
+    Integration seam (orchestrator): ``dataset`` passes plain dicts; the
+    W2-E generator expects an ``HRVConfig`` dataclass.  Recognized keys:
+    ``subject_traits``/``subject_params`` -> ``subject_params``,
+    ``age_years``, ``fitness_rsa_gain``, ``ectopy_enabled``.  Unknown keys
+    are ignored (never silently applied).
+    """
+    if config is None:
+        return None
+    from simulation.hrv import HRVConfig
+    known = {}
+    subj = config.get("subject_params") or config.get("subject_traits")
+    if subj is not None:
+        known["subject_params"] = dict(subj)
+    for key in ("age_years", "fitness_rsa_gain", "ectopy_enabled"):
+        if key in config:
+            known[key] = config[key]
+    return HRVConfig(**known)
+
+
+def _align_beats(out: dict) -> dict:
+    """Length-align the W2-E output to the dataset/sensor convention.
+
+    W2-E returns ``rr_intervals_ms`` with length N-1 (interval between
+    beats i and i+1) while ``beat_times_s``/``beat_types`` have length N.
+    The sensor device API requires aligned arrays where rr[i] is the
+    interval STARTING at beat[i]; drop the final beat (no successor).
+    """
+    bt = np.asarray(out["beat_times_s"])
+    rr = np.asarray(out["rr_intervals_ms"])
+    types = np.asarray(out["beat_types"])
+    if bt.size == rr.size:
+        return out  # already aligned
+    if bt.size == rr.size + 1:
+        out["beat_times_s"] = bt[:-1]
+        out["beat_types"] = types[:-1]
+        return out
+    raise ValueError(
+        f"W2-E RR output shape mismatch: beats={bt.size} rr={rr.size}")
 
 
 def _fallback_rr_series(hrv_inputs: dict, seed: int, config: dict | None = None) -> dict:
