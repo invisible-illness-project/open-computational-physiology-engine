@@ -16,10 +16,10 @@ context:
     height: 25.0
     angle: 60.0
     tsim_end: 310.0
-  n_healthy: 2
-  n_pots: 2
-  started: '2026-09-16T09:55:45'
-  ocpe_commit: 7651fa73211700f73416933ac6dc930cfe2b29d7
+  n_healthy: 4
+  n_pots: 4
+  started: '2026-09-16T11:08:21'
+  ocpe_commit: 5bf6e366a0edf68e6b25d38db4911177dd1a5bf4
 results:
 - gate: L1
   check: 1.5_determinism
@@ -106,7 +106,7 @@ results:
     perturbations_tagged: true
     tamper_refused: true
     tamper_detail: "refused as required: provenance gate REFUSED dataset build (1 refusal(s), mode=canonical):\n\
-      \  - /tmp/tmpa7munyht/kb/diseases/pots.yaml: file modified after last recorded review (reco"
+      \  - /tmp/tmpsybhaeyv/kb/diseases/pots.yaml: file modified after last recorded review (reco"
   status: pass
   evidence: "L1.6; EVIDENCE_AUDIT_NOTES \xA7e; ADR 0001"
   note: ''
@@ -246,9 +246,9 @@ results:
   measured:
     comparison:
       protocol_id: hut_60_70_10min
-      n_samples: 2
-      sample_mean_bpm: 38.226617
-      sample_sd_bpm: 5.160776
+      n_samples: 4
+      sample_mean_bpm: 39.661699
+      sample_sd_bpm: 3.686894
       sample_fraction_ge_30bpm: 1.0
       reference_mean_bpm: 34.0
       reference_sd_bpm: 3.0
@@ -269,49 +269,55 @@ results:
       - claim_id: EVD-POTS-001
         ref: EVIDENCE_REGISTRY.yaml (in controls, 60% met >=30 bpm at 10-min tilt)
         pmc: PMC3478101
-    n: 2
+    n: 4
     ci95_fraction_ge_30bpm:
-    - 0.158114
+    - 0.397635
     - 1.0
   status: unresolved
   evidence: healthy_reference.yaml hut_60_70_10min; Plash 2013 (EVD-HLTH-004); CONTRADICTION Target 1
-  note: 'n=2 < 8: tail band (0.40-0.60) not resolvable at this Monte-Carlo size; measured fraction 1.00 95% CI [0.16,
+  note: 'n=4 < 8: tail band (0.40-0.60) not resolvable at this Monte-Carlo size; measured fraction 1.00 95% CI [0.40,
     1.00]; mean check PASS'
 - gate: L3
   check: 3.1_hypovolemic_pots_rate
   target: hypovolemic-POTS >=30 bpm sustained rate >= 0.5 (severity mixture, tails reported) AND ascertainment-matched
     patient-minus-control +19.88 bpm within CI [15.24, 24.52]
   measured:
-    n_pots: 2
+    n_pots: 4
     rate_ge_30bpm: 1.0
     rate_ci95:
-    - 0.158114
+    - 0.397635
     - 1.0
     pots_samples_bpm:
-    - 43.770368
-    - 62.344896
+    - 37.278086
+    - 45.090039
+    - 61.155941
+    - 76.546524
     blood_volume_deficit_ml:
     - 260.904988
     - 105.888778
-    contrast_full_mixture_bpm_informational: 14.831015
+    - 354.0067
+    - 533.14509
+    contrast_full_mixture_bpm_informational: 15.355948
     contrast_stratum:
       definition: 'ascertainment-matched: simulated subjects meeting the >=30 bpm 10-min HUT diagnostic criterion
         (meta-analytic cohort composition)'
-      n: 2
-      contrast_bpm: 14.831015
+      n: 4
+      contrast_bpm: 15.355948
       stratum_samples_bpm:
-      - 43.770368
-      - 62.344896
+      - 37.278086
+      - 45.090039
+      - 61.155941
+      - 76.546524
     contrast_ci95_target:
     - 15.24
     - 24.52
-  status: fail
+  status: pass
   evidence: EVD-POTS-011 (E4, meta +19.88 [15.24-24.52]); EVD-POTS-004 (Raj 2005 severity mixture); CONTRADICTION
     Target 1/3
   note: 'severity-mixture branch: mild deficits overlap the healthy high-normal tail BY CONSTRUCTION (pilot design,
     anti-trivial-separability); the full-mixture contrast is reported as informational and the gate evaluates the
     ascertainment-matched stratum (gate re-specification W5, truncation caveat disclosed). ascertainment-matched
-    stratum n=2/2 (sustained dHR >= 30.0 bpm = the diagnostic criterion defining EVD-POTS-011 cohort membership)'
+    stratum n=4/4 (sustained dHR >= 30.0 bpm = the diagnostic criterion defining EVD-POTS-011 cohort membership)'
 - gate: L3
   check: 3.1_hyperadrenergic_dsbp_limitation
   target: evaluator surfaces the delta-SBP pressor-criterion failure as a DISCLOSED LIMITATION (not a pass)
@@ -332,9 +338,9 @@ results:
   target: 'Wasserstein(sim healthy tilt dHR, PRCP real dHR) <= 3.0 bpm (RECLASSIFIED: protocol-mismatched comparison
     - disclosed limitation, values reported)'
   measured:
-    wasserstein_bpm: 17.139102
+    wasserstein_bpm: 18.288232
     n_real_episodes: 11
-    n_sim_subjects: 2
+    n_sim_subjects: 4
     real_delta_hr_bpm:
     - 15.255837
     - 18.89208
@@ -348,8 +354,10 @@ results:
     - 16.960278
     - 18.509539
     sim_delta_hr_bpm:
-    - 28.512966
-    - 34.480562
+    - 28.993408
+    - 33.932834
+    - 35.280856
+    - 32.376479
     window_semantics: final 60 s of tilt hold vs final 120 s supine; simulated window minutes 2-3 post-ramp (PRCP
       hold ~3 min)
     protocol_mismatch: 'real: slow-ramp tilt, ~3-min hold; sim: licensed 10-min 70-degree HUT, Plash minutes 5-10
@@ -377,12 +385,14 @@ results:
   check: 4_resting_hrv_norms
   target: healthy resting RMSSD median within (19.0, 60.0) ms (ln-normal median ~35-42 ms young; EV-supine-rest)
   measured:
-    rmssd_median_ms: 56.020589
+    rmssd_median_ms: 55.701997
     rmssd_values_ms:
-    - 47.890469
-    - 64.150709
-    sdnn_median_ms: 90.589519
-    n: 2
+    - 49.304104
+    - 62.099889
+    - 44.183983
+    - 67.707275
+    sdnn_median_ms: 84.20711
+    n: 4
   status: pass
   evidence: EV-supine-rest (EVD-HLTH-001/002); published norms (literature-constraint tier, no download)
   note: ''
@@ -409,8 +419,8 @@ results:
   check: NC2_trivial_separability_auc
   target: healthy-vs-hypovolemic-POTS LOOCV logistic AUC < 0.95; honest band (0.75, 0.85) reported (NC2)
   measured:
-    auc_full_features: 0.5
-    auc_resting_features_only: 0.5
+    auc_full_features: 0.8125
+    auc_resting_features_only: 0.875
     features:
     - baseline_hr_bpm
     - sustained_dhr_bpm
@@ -419,8 +429,8 @@ results:
     - sdnn_ms
     - dfa_alpha1
     - lf_hf_ratio
-    n_healthy: 2
-    n_disease: 2
+    n_healthy: 4
+    n_disease: 4
     n_features: 7
     ceiling: 0.95
     honest_band_NC2:
@@ -436,18 +446,18 @@ results:
     not nuisance parity
   measured:
     healthy:
-      n: 2
-      age_mean: 36.189204
+      n: 4
+      age_mean: 35.535276
       female_fraction: 0.5
     hypovolemic_pots:
-      n: 2
-      age_mean: 23.011688
-      female_fraction: 1.0
+      n: 4
+      age_mean: 22.562662
+      female_fraction: 0.75
   status: pass
   evidence: EVD-POP-006; dataset/cohort.py recipes
   note: 'informational: POTS demographics differ BY EVIDENCE; classifier uses signal features only'
 summary:
-  pass: 19
-  fail: 1
+  pass: 20
+  fail: 0
   unresolved: 2
   disclosed_limitation: 2
