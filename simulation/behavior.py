@@ -41,11 +41,14 @@ class BehaviorModel:
 
     def trigger_behavior(self, activity, start_s=0.0, rng=None,
                          exercise_duration_s=300.0, exertion_intensity=0.7,
-                         kernel_time_scale=1.0):
+                         kernel_time_scale=1.0, baseline_params=None):
         """Switch behavior.  Non-rest behaviors register an event kernel at
         ``start_s`` (absolute simulation seconds).  ``kernel_time_scale``
         compresses kernel timing for short protocol runs (timing only,
-        never magnitudes)."""
+        never magnitudes).  ``baseline_params`` (optional) is the engine's
+        immutable baseline snapshot, forwarded to the exercise kernel so
+        its baroreflex-reset factor is derived from the run's actual
+        controller constants (KB nominals are the documented fallback)."""
         if activity not in ["rest", "exercise", "meal", "sleep", "stress"]:
             return
         if activity == self.current_activity and activity != "rest":
@@ -58,7 +61,8 @@ class BehaviorModel:
         elif activity == "exercise":
             self.kernels.add_kernel(
                 make_exercise_kernel(start_s, duration_s=exercise_duration_s,
-                                     intensity=exertion_intensity), rng)
+                                     intensity=exertion_intensity,
+                                     baseline_params=baseline_params), rng)
         elif activity == "stress":
             self.kernels.add_kernel(make_stress_kernel(start_s), rng)
 

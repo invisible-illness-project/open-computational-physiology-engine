@@ -289,7 +289,8 @@ class SimulationEngine:
             active_behavior, start_s=0.0, rng=pem_rng,
             exercise_duration_s=tilt_params.get("exercise_duration_s", 300.0),
             exertion_intensity=tilt_params.get("exertion_intensity", 0.7),
-            kernel_time_scale=tilt_params.get("kernel_time_scale", 1.0))
+            kernel_time_scale=tilt_params.get("kernel_time_scale", 1.0),
+            baseline_params=self.baseline_params)
 
         # Read initial values
         y_init = list(self.model.initial_state)

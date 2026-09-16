@@ -101,6 +101,81 @@ def test_exercise_kernel_es_bounded():
     assert eff["Es"] == ES_NOMINAL
 
 
+def test_exercise_kernel_baroreflex_reset_and_autonomic_drive():
+    """W5 autonomic channel: the exercise kernel resets the cardiovagal
+    Hill midpoint p2H upward, intensity-scaled with PRESERVED gain
+    (EVD-AUTN-008: sigmoid shift, kH untouched), and carries latent
+    vagal-withdrawal/sympathetic offsets.  The reset factor is derived
+    open-loop from the cited HR-reserve relation (EVD-HLTH-005) - for the
+    KB nominal controller at intensity 0.7 it is ~1.1036 - and everything
+    returns EXACTLY to baseline after recovery (G-P0-01)."""
+    from simulation.event_kernels import exercise_p2h_reset_factor
+    base = _baseline()
+    # Monotonic intensity scaling, > 1 (upward/rightward reset).
+    factors = [exercise_p2h_reset_factor(base, i) for i in (0.0, 0.3, 0.7, 0.9)]
+    assert factors[0] == pytest.approx(1.0, rel=1e-12)
+    assert all(f2 > f1 for f1, f2 in zip(factors, factors[1:]))
+    # Pin the open-loop derivation at the reference intensity (guards the
+    # formula, not a tuned value: HR_ss = Hr + (HM-Hr)*I inverted through
+    # the Hill target).
+    assert exercise_p2h_reset_factor(base, 0.7) == pytest.approx(1.1036, abs=1e-3)
+    # Gain preserved: the kernel never touches kH.
+    mgr = EventKernelManager()
+    k = mgr.add_kernel(make_exercise_kernel(start_s=0.0, duration_s=120.0,
+                                            intensity=0.7,
+                                            baseline_params=base))
+    t_plateau = 60.0
+    eff = mgr.compute_parameter_overlay(base, t_plateau)
+    assert eff["kH"] == base["kH"]
+    assert eff["p2H"] == pytest.approx(
+        base["p2H"] * factors[2], rel=1e-12)
+    # Latent autonomic signature: vagal withdrawal + sympathetic elevation,
+    # intensity-scaled, additive in effect space, zero after recovery.
+    off = mgr.compute_latent_offsets(t_plateau)
+    assert off["parasympathetic_tone"] < 0.0
+    assert off["sympathetic_tone"] > 0.0
+    assert off["parasympathetic_tone"] == pytest.approx(-0.4 * 0.7, rel=1e-12)
+    assert mgr.compute_latent_offsets(k.t_end + 1.0) == {}
+    # Exact baseline restoration for every touched parameter.
+    eff_end = mgr.compute_parameter_overlay(base, k.t_end + 1.0)
+    for sym in ("Es", "p2H", "kH"):
+        assert eff_end[sym] == base[sym]
+
+
+def test_engine_exercise_bout_elevates_hr_and_recovers():
+    """Engine-level regression for the L2 2.1_exercise_response defect
+    (bout dHR was -1.86 bpm pre-fix): a constant-load bout must ELEVATE
+    mean HR through the autonomic drive, and HR must fall back toward
+    baseline after the bout (recovery below plateau)."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        model = BaroreflexPOTSModel(kb_path=KB_PATH)
+        pre = copy.deepcopy(model.params)
+        engine = SimulationEngine(model, seed=123)
+        start, dur = 60.0, 120.0
+        engine.behavior.kernels.add_kernel(
+            make_exercise_kernel(start, duration_s=dur,
+                                 baseline_params=model.params),
+            np.random.default_rng(7))
+        res = engine.run({"tup": 1.0e30, "tend": 9e9, "height": 25.0,
+                          "angle": 60.0, "tsim_end": 320.0})
+    t = np.asarray(res["time"])
+    hr = np.asarray(res["Hc"]) * 60.0
+
+    def wm(lo, hi):
+        m = (t >= lo) & (t < hi)
+        return float(np.mean(hr[m]))
+    base_hr = wm(start - 60.0, start)
+    plateau_hr = wm(start + 40.0, start + 30.0 + dur - 10.0)
+    rec_hr = wm(start + 30.0 + dur + 80.0, start + 30.0 + dur + 110.0)
+    d_bout = plateau_hr - base_hr
+    # Healthy constant-load elevation band (EV-exercise-constant-load);
+    # recovery must sit below the bout plateau.
+    assert 5.0 < d_bout < 70.0, f"bout dHR {d_bout:.2f} bpm"
+    assert rec_hr - base_hr < d_bout
+    for key, val in pre.items():
+        assert np.isclose(model.params[key], val, rtol=1e-12, atol=1e-12), key
+
+
 def test_kernels_compose_against_baseline_not_modified_params():
     """Two simultaneous kernels touching the same parameter compose
     multiplicatively against BASELINE: eff = base * (1+env1*(m1-1)) *

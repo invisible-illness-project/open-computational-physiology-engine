@@ -186,13 +186,22 @@ def run(ctx: dict) -> list:
             f"bout HR elevation within {EXERCISE_HR_BAND} bpm; recovery "
             "below bout plateau (EV-exercise-constant-load / EV-recovery)",
             {"bout_dhr_bpm": dhr, "late_recovery_dhr_bpm": rec,
-             "es_plateau_bounded": ex.get("es_plateau_bounded")},
+             "es_plateau_bounded": ex.get("es_plateau_bounded"),
+             "hr_drive": ("cardiovagal p2H reset x"
+                          f"{ex.get('p2h_reset_factor', float('nan')):.4f} "
+                          "(open-loop HR-reserve request) + latent "
+                          "vagal/sympathetic offsets")},
             STATUS_PASS if ok else STATUS_FAIL,
-            evidence="EV-exercise-constant-load (EVD-TEMP-004/EVD-HLTH-005)",
-            note=("the Es x1.30 contractility kernel couples only weakly to "
-                  "HR in the ODE (+~6 bpm), and the window comparisons are "
-                  "dominated by the engine baseline oscillation (see 2.2 "
-                  "gates); reported, not tuned")))
+            evidence="EV-exercise-constant-load (EVD-TEMP-004/EVD-HLTH-005); "
+                     "EVD-AUTN-008 (baroreflex resetting form)",
+            note=("bout HR rise is driven by the W5 autonomic channel: "
+                  "intensity-scaled cardiovagal p2H operating-point reset "
+                  "(EVD-AUTN-008 form; magnitude derived open-loop from the "
+                  "cited HR-reserve relation, EVD-HLTH-005) plus latent "
+                  "vagal-withdrawal/sympathetic offsets; Es x1.30 "
+                  "contractility kept (repo-legacy, bounded). Closed-loop "
+                  "response settles below the open-loop request; measured "
+                  "values reported, never tuned.")))
 
     # --- 2.2 timescale signatures -------------------------------------------
     rr = ctx.get("timescale_rr")
@@ -208,8 +217,11 @@ def run(ctx: dict) -> list:
         results.append(CheckResult(
             "L2", "2.2_dfa_alpha1",
             f"DFA-alpha1 (4-16 beats) in {DFA_ALPHA1_BAND} healthy awake",
-            {"dfa_alpha1": a1}, STATUS_PASS if ok else STATUS_FAIL,
-            evidence="EVD-TEMP-001 (E4)"))
+            {"dfa_alpha1": a1, "n_beats": int(len(rr["rr_intervals_ms"])),
+             "record_length_s": rr.get("record_length_s")},
+            STATUS_PASS if ok else STATUS_FAIL,
+            evidence="EVD-TEMP-001 (E4); Task Force 1996 5-min short-term "
+                     "record"))
         freqs, P, lf, hf = band_powers(rr["rr_intervals_ms"])
         resp_hz = float(rr["respiration_rate_brpm"]) / 60.0
         pk = peak_freq(freqs, P, 0.15, 0.40) if freqs.size else float("nan")
@@ -219,9 +231,12 @@ def run(ctx: dict) -> list:
             "RSA/HF spectral peak tracks respiration rate "
             "(|f_peak - f_resp| <= 0.05 Hz)",
             {"hf_peak_hz": pk, "respiration_hz": resp_hz,
+             "n_beats": int(len(rr["rr_intervals_ms"])),
+             "record_length_s": rr.get("record_length_s"),
              "lf_hf_ratio": (lf / hf if hf > 0 else None)},
             STATUS_PASS if ok else STATUS_FAIL,
-            evidence="EVD-TEMP-003; TEMPORAL §1 (RSA confound built-in)"))
+            evidence="EVD-TEMP-003; TEMPORAL §1 (RSA confound built-in); "
+                     "Task Force 1996 5-min short-term record"))
 
     # --- 2.2 circadian amplitude (run_multiday) ------------------------------
     circ = ctx.get("circadian_multiday")

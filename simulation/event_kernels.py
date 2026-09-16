@@ -27,7 +27,10 @@ global honesty rules.  Magnitudes that are repo-legacy (uncited) are flagged
 ``provisional`` in provenance rather than silently presented as evidence.
 """
 
+import os
+
 import numpy as np
+import yaml
 from dataclasses import dataclass, field
 
 
@@ -392,37 +395,150 @@ def make_meal_kernel(start_s, rng=None, time_scale=1.0):
     )
 
 
-def make_exercise_kernel(start_s, duration_s=None, intensity=0.7, rng=None):
-    """Exercise-bout kernel: transiently elevated ventricular contractility.
+# Supine mean carotid setpoint (mmHg) used to evaluate the resting HR of
+# the cardiovagal Hill target.  This is the SAME documented state-
+# initialization heuristic used by
+# models/baroreflex_model.initialize_steady_state (pcm0); it is read here
+# only to invert the Hill target for the exercise resetting factor, never
+# to overwrite model parameters.
+_PCM0_SUPINE_MMHG = 93.333
 
-    Plateau factor Es x1.30 is the repo-legacy one-shot value (provisional);
-    bounded by construction (kernel plateau), fixing the unbounded
-    x1.30/heart-beat compounding of G-P0-01.  Recovery phase follows the slow
-    (sympathetic-withdrawal) HRR component, tau ~2-10 min (EVD-HLTH-005).
+
+def _kb_nominal_params():
+    """KB nominal parameter set (single source of truth:
+    knowledge_base/equations/mathematical_models.yaml, same file
+    models/baroreflex_model.load_parameters reads)."""
+    kb_file = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "knowledge_base", "equations", "mathematical_models.yaml")
+    with open(kb_file, "r", encoding="utf-8") as f:
+        model_data = yaml.safe_load(f)
+    for model in model_data.get("models", []):
+        if model.get("model_id") == "pots_baroreflex_response_model":
+            return {p["symbol"]: p["nominal_value"]
+                    for p in model.get("parameters", [])}
+    raise ValueError("pots_baroreflex_response_model not found in KB")
+
+
+def exercise_p2h_reset_factor(params, intensity):
+    """Multiplicative baroreflex operating-point reset factor for p2H.
+
+    Mechanism (EVD-AUTN-008, E4; REL-BAROREFLEX-RESETTING): exercise
+    resets the cardiovagal baroreflex sigmoid upward/rightward with
+    PRESERVED maximal gain via central command + the exercise pressor
+    reflex.  Implemented exactly as prescribed: an intensity-dependent
+    shift of the Hill midpoint p2H (kH untouched -> gain preserved).
+
+    Magnitude derivation (no fitted constant): the cited steady-state
+    HR-reserve relation (HEALTHY_PHYSIOLOGY_EVIDENCE 4.2 implementation
+    recommendation, E1/E4; EVD-HLTH-005) is
+
+        HR_ss = HR_rest + (HR_max - HR_rest) * intensity,
+
+    with HR_max the model's own controller ceiling HM and HR_rest the
+    Hill target at the documented supine carotid setpoint.  Inverting
+    the Hill target H(p2H) = (HM-Hm)*p2H^kH/(pcm^kH+p2H^kH)+Hm at fixed
+    supine pcm gives the p2H multiplier that requests HR_ss open-loop:
+
+        R = [ (HM-Hr)(Ht-Hm) / ((Hr-Hm)(HM-Ht)) ]^(1/kH)
+
+    The closed loop settles BELOW this open-loop request (arterial
+    pressure feedback); the measured response is reported, never tuned.
+    ``intensity`` is clipped to [0, 0.99] (at 1.0 the request equals the
+    controller ceiling and the inversion is singular).
+    """
+    HM = float(params["HM"])
+    Hm = float(params["Hm"])
+    kH = float(params["kH"])
+    p2H = float(params["p2H"])
+    I = min(max(float(intensity), 0.0), 0.99)
+    Hr = (HM - Hm) * p2H ** kH / (_PCM0_SUPINE_MMHG ** kH + p2H ** kH) + Hm
+    Ht = Hr + I * (HM - Hr)
+    return float(((HM - Hr) * (Ht - Hm) / ((Hr - Hm) * (HM - Ht)))
+                 ** (1.0 / kH))
+
+
+def make_exercise_kernel(start_s, duration_s=None, intensity=0.7, rng=None,
+                         baseline_params=None):
+    """Exercise-bout kernel: contractility + autonomic chronotropic drive.
+
+    Two mechanistic components:
+
+    1. Es x1.30 contractility plateau (repo-legacy one-shot value,
+       provisional; bounded by construction, fixing the unbounded
+       x1.30/heart-beat compounding of G-P0-01).
+    2. Autonomic HR drive (W5): constant-load exercise raises HR via
+       vagal withdrawal + sympathetic activation (central command /
+       exercise pressor reflex).  Implemented as
+         a. an intensity-scaled multiplicative reset of the cardiovagal
+            Hill midpoint p2H with preserved gain
+            (:func:`exercise_p2h_reset_factor`; EVD-AUTN-008 form,
+            magnitude from the cited HR-reserve steady-state relation,
+            EVD-HLTH-005), and
+         b. latent autonomic offsets (parasympathetic down / sympathetic
+            up, scaled by intensity) so the HRV generator sees the bout's
+            vagal withdrawal; offset magnitudes are E5 engineering
+            (evidence fixes direction and timescale, not a number),
+            bounded by the latent [0, 1] clamps.
+
+    Onset ~30 s (sympathetic slow component, EVD-HLTH-005); recovery
+    follows the slow HRR component, tau ~2-10 min (EVD-HLTH-005).
+    ``baseline_params`` (optional) supplies the run's actual baseline
+    controller constants for the reset-factor derivation; when omitted
+    the KB nominal set is used (same YAML the model loads).
     """
     duration_s = 300.0 if duration_s is None else float(duration_s)
+    intensity = float(intensity)
+    params = baseline_params if baseline_params is not None \
+        else _kb_nominal_params()
+    p2h_reset = exercise_p2h_reset_factor(params, intensity)
     return EventKernel(
         event_id="exercise_bout",
         trigger={"type": "exercise_start", "time_s": float(start_s),
-                 "intensity": float(intensity)},
+                 "intensity": intensity},
         onset_distribution=DistributionSpec("constant", {"value": 30.0}),
         duration_distribution=DistributionSpec("constant", {"value": duration_s}),
         magnitude_distribution=DistributionSpec("constant", {"value": 1.0}),
         affected_parameters=[
             {"symbol": "Es", "mode": "multiplicative", "magnitude": 1.30},
+            # Cardiovagal baroreflex operating-point reset (central
+            # command / exercise pressor reflex), gain preserved:
+            # p2H x R(intensity), R derived open-loop from the cited
+            # HR-reserve steady-state relation - see
+            # exercise_p2h_reset_factor (EVD-AUTN-008, EVD-HLTH-005).
+            {"symbol": "p2H", "mode": "multiplicative",
+             "magnitude": p2h_reset},
         ],
-        mechanism=("Exercise raises ventricular contractility (sympathetic "
-                   "drive + cardiac drift); onset tau ~30-45 s (slow "
-                   "component, EVD-HLTH-005)."),
+        latent_effects={
+            # Vagal withdrawal + sympathetic elevation during the bout
+            # (EVD-HLTH-005 mechanism; E5 engineering magnitudes, scaled
+            # by intensity, bounded by the latent [0, 1] clamps).
+            "parasympathetic_tone": -0.4 * intensity,
+            "sympathetic_tone": 0.4 * intensity,
+        },
+        mechanism=("Constant-load exercise: vagal withdrawal + sympathetic "
+                   "activation raise HR (central command resets the "
+                   "carotid-cardiac arc; EVD-AUTN-008); contractility rises "
+                   "(Es x1.30, repo-legacy); onset tau ~30-45 s (slow "
+                   "component), recovery HRR tau ~2-10 min (EVD-HLTH-005)."),
         interaction_rules={"compose": "multiplicative_vs_baseline"},
         recovery_kernel={"shape": "linear", "time_s": 300.0},
         evidence_tier="E5",
         provenance={
-            "claim_ids": ["EVD-HLTH-005"],
+            "claim_ids": ["EVD-HLTH-005", "EVD-AUTN-008"],
             "status": "provisional",
-            "note": ("Structure E5 (engineering); Es x1.30 plateau is a "
+            "note": ("Structure E5 (engineering). Es x1.30 plateau is a "
                      "repo-legacy uncited factor kept for continuity, now "
-                     "bounded by the kernel envelope."),
+                     "bounded by the kernel envelope. p2H reset factor "
+                     f"{p2h_reset:.4f} at intensity {intensity:.2f}: FORM "
+                     "evidence-anchored (EVD-AUTN-008 sigmoid midpoint "
+                     "shift, gain preserved), magnitude derived open-loop "
+                     "from the cited HR-reserve relation HR_ss = HR_rest + "
+                     "(HRmax-HR_rest)*intensity (HEALTHY 4.2/EVD-HLTH-005); "
+                     "the closed-loop response settles below the request "
+                     "and is reported, never tuned. Latent autonomic "
+                     "offsets are E5 engineering magnitudes (evidence "
+                     "fixes direction/timescale only)."),
         },
     )
 
