@@ -156,6 +156,7 @@ def _licensed_subject_worker(job):
         "condition": job["condition"],
         "phenotypes": list(job.get("phenotypes") or []),
         "age": job["age"], "sex": job["sex"],
+        "blood_volume_deficit_ml": job.get("blood_volume_deficit_ml"),
         "baseline_hr_bpm": om["baseline_hr_bpm"],
         "sustained_dhr_bpm": om["sustained_delta_HR_bpm"],
         "sustained_window_kind": om["sustained_window_kind"],
