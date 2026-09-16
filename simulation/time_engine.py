@@ -113,6 +113,16 @@ class SleepWakeStateMachine:
 class TimeEngine:
     """Continuous wall-time + circadian + sleep + drift engine.
 
+    Class constants
+    ---------------
+    RESP_WITHIN_SUBJECT_SD_BRPM : float
+        Within-subject breath-to-breath jitter of the instantaneous
+        respiration rate (brpm) around the occasion mean.  E5 engineering
+        value (0.5): the cited stage distributions (EVD-HLTH-010) are
+        between-subject/occasion spreads and are drawn ONCE per stage
+        epoch; quiet breathing is stable within a record, so the
+        within-subject jitter is much smaller than the population sd.
+
     Parameters
     ----------
     start_hour : float
@@ -136,6 +146,8 @@ class TimeEngine:
     seed : int or None
         Seed for the OU/fragmentation randomness.
     """
+
+    RESP_WITHIN_SUBJECT_SD_BRPM = 0.5  # E5 engineering (see class docstring)
 
     def __init__(self, start_hour=8.0, circadian_enabled=True,
                  second_harmonic=False, ou_enabled=True, ou_tau_days=5.0,
@@ -162,6 +174,12 @@ class TimeEngine:
 
         # OU baseline-drift state (bpm, additive on resting HR)
         self.ou_state_bpm = 0.0
+
+        # Respiration occasion state: the stage-conditioned population
+        # distribution (EVD-HLTH-010) is drawn ONCE per stage epoch, not
+        # per beat (W5 category-error fix; see autonomic_state).
+        self._resp_stage = None
+        self._resp_mean_brpm = None
 
         # Exertion history: list of dicts (start_s, end_s, intensity, dose)
         self.exertion_history = []
@@ -328,15 +346,34 @@ class TimeEngine:
         symp = float(min(1.0, max(0.0, symp)))
 
         # Respiration: awake N(15.5, 2.3); N3 ~13 low CV; REM ~16 high CV
-        # (EVD-HLTH-010 / PARAMETER_SPEC respiration_rate, E2-E3)
+        # (EVD-HLTH-010 / PARAMETER_SPEC respiration_rate, E2-E3).
+        # Defect fix (W5): these stage distributions are BETWEEN-subject/
+        # occasion spreads, but they were previously resampled i.i.d. on
+        # EVERY call (i.e. every heartbeat) - a category error that made
+        # the instantaneous breathing rate jump +/-2.3 brpm between
+        # successive beats.  The resulting RSA phase diffusion smeared the
+        # RSA line across the HF band (the L2 2.2_rsa_peak gate then
+        # locked onto the engine's residual ~0.17 Hz mean-HR rhythm at
+        # 0.165 Hz instead of the respiration frequency 0.259 Hz).  Now
+        # the occasion mean rate is drawn ONCE from the evidence
+        # distribution (re-drawn on sleep-stage transitions), and the
+        # instantaneous rate adds only a small within-subject
+        # breath-to-breath jitter (sd 0.5 brpm - E5 engineering value;
+        # quiet-breathing rate is stable within a record, the cited sd
+        # describes across-occasion spread).
         if stage in ("N2", "N3"):
-            rr = self.rng.normal(13.0, 1.2) if stage == "N3" else self.rng.normal(14.0, 1.5)
+            mu, sd = (13.0, 1.2) if stage == "N3" else (14.0, 1.5)
         elif stage == "REM":
-            rr = self.rng.normal(16.0, 3.0)
+            mu, sd = 16.0, 3.0
         elif stage == "N1":
-            rr = self.rng.normal(14.5, 1.8)
+            mu, sd = 14.5, 1.8
         else:
-            rr = self.rng.normal(15.5, 2.3)
+            mu, sd = 15.5, 2.3
+        if self._resp_stage != stage:
+            self._resp_stage = stage
+            self._resp_mean_brpm = float(self.rng.normal(mu, sd))
+        rr = self._resp_mean_brpm + float(
+            self.rng.normal(0.0, self.RESP_WITHIN_SUBJECT_SD_BRPM))
         rr = float(min(24.0, max(8.0, rr)))
         return vagal, symp, rr
 
