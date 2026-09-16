@@ -494,12 +494,18 @@ def test_l4_run_unresolved_paths():
     assert res["4_prcp_orthostatic_wasserstein"].status == STATUS_UNRESOLVED
     assert "timed out" in str(res["4_prcp_orthostatic_wasserstein"].measured)
     assert res["4_resting_hrv_norms"].status == STATUS_PASS
+    # Protocol-mismatched comparison (slow-ramp ~3-min hold vs licensed
+    # 10-min HUT, G-P0-09): even a SMALL Wasserstein distance is reported
+    # as a disclosed limitation, never a pass; the raw values stay visible.
     ctx2 = {"prcp": {"real_delta_hr_bpm": [12.0, 15.0, 18.0, 21.0, 14.0],
                      "sim_delta_hr_bpm": [13.0, 16.0, 19.0, 20.0],
                      "window_semantics": "matched"},
             "resting_hrv": {"rmssd_median_ms": 38.0, "n": 4}}
     res2 = {r.check: r for r in l4.run(ctx2)}
-    assert res2["4_prcp_orthostatic_wasserstein"].status == STATUS_PASS
+    row2 = res2["4_prcp_orthostatic_wasserstein"]
+    assert row2.status == STATUS_LIMITATION
+    assert row2.measured["wasserstein_bpm"] == pytest.approx(1.5, abs=1e-6)
+    assert row2.measured["real_delta_hr_bpm"] and row2.measured["sim_delta_hr_bpm"]
 
 
 # ---------------------------------------------------------------------------

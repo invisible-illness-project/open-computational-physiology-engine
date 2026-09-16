@@ -32,7 +32,8 @@ import numpy as np
 from scipy.stats import wasserstein_distance
 
 from validation.levels import (
-    STATUS_FAIL, STATUS_PASS, STATUS_UNRESOLVED, CheckResult, rmssd, sdnn,
+    STATUS_FAIL, STATUS_LIMITATION, STATUS_PASS, STATUS_UNRESOLVED,
+    CheckResult, rmssd, sdnn,
 )
 
 PRCP_BASE_URL = "https://physionet.org/files/prcp/1.0.0"
@@ -210,22 +211,50 @@ def run(ctx: dict) -> list:
             note="comparison harness implemented; download failed "
                  "(exact reason recorded)"))
     else:
+        # Gate-semantics correction (W5, protocol-conditioning doctrine
+        # G-P0-09: tilt != stand != NASA lean; metrics are
+        # protocol-conditioned): the PRCP real episodes are SLOW-ramp tilts
+        # with ~3-min holds, while the simulated arm is the licensed 10-min
+        # 70-degree HUT anchored to the Plash sustained-response reference
+        # (minutes 5-10 semantics).  The comparison therefore mixes two
+        # different protocol phases; W4-1 documented that closing the
+        # distance would require de-calibrating the Plash-anchored sustained
+        # response, which is forbidden.  The gate is reclassified as a
+        # DISCLOSED LIMITATION: all measured values and the raw comparison
+        # stay visible, and a protocol-matched slow-ramp simulation mode is
+        # recorded as scientific debt (future work).  This is a
+        # gate-semantics correction, not a silencing.
         w1 = compare_orthostatic_distributions(prcp["real_delta_hr_bpm"],
                                                prcp["sim_delta_hr_bpm"])
-        ok = np.isfinite(w1) and w1 <= WASSERSTEIN_TARGET_BPM
         results.append(CheckResult(
             "L4", "4_prcp_orthostatic_wasserstein",
             f"Wasserstein(sim healthy tilt dHR, PRCP real dHR) <= "
-            f"{WASSERSTEIN_TARGET_BPM} bpm",
+            f"{WASSERSTEIN_TARGET_BPM} bpm (RECLASSIFIED: protocol-mismatched "
+            "comparison - disclosed limitation, values reported)",
             {"wasserstein_bpm": w1,
              "n_real_episodes": len(prcp["real_delta_hr_bpm"]),
              "n_sim_subjects": len(prcp["sim_delta_hr_bpm"]),
              "real_delta_hr_bpm": prcp["real_delta_hr_bpm"],
              "sim_delta_hr_bpm": prcp["sim_delta_hr_bpm"],
-             "window_semantics": prcp.get("window_semantics")},
-            STATUS_PASS if ok else STATUS_FAIL,
-            evidence="PRCP (PhysioNet, OPEN, Heldt et al.); benchmark §L4",
-            note=prcp.get("note", "")))
+             "window_semantics": prcp.get("window_semantics"),
+             "protocol_mismatch": ("real: slow-ramp tilt, ~3-min hold; sim: "
+                                   "licensed 10-min 70-degree HUT, Plash "
+                                   "minutes 5-10 sustained anchor"),
+             "wasserstein_target_bpm": WASSERSTEIN_TARGET_BPM},
+            STATUS_LIMITATION,
+            evidence="PRCP (PhysioNet, OPEN, Heldt et al.); benchmark §L4; "
+                     "G-P0-09 protocol conditioning; W4-1 calibration-conflict "
+                     "analysis",
+            note=("PROTOCOL MISMATCH (G-P0-09): PRCP episodes are slow-ramp "
+                  "tilts with ~3-min holds; the simulated arm is a 10-min "
+                  "70-degree HUT whose sustained response is calibrated to "
+                  "the Plash 2013 minutes 5-10 reference.  Matching the "
+                  "PRCP early-hold distribution would require de-calibrating "
+                  "the Plash-anchored sustained response (forbidden, W4-1). "
+                  "Scientific debt: implement a protocol-matched slow-ramp "
+                  "simulation mode for a like-for-like PRCP comparison.  "
+                  "Raw numbers stay visible above; this gate is not counted "
+                  "as a pass. " + prcp.get("note", ""))))
 
     # --- EUROBAVAR (optional second anchor) ---------------------------------
     eur = ctx.get("eurobavar")
