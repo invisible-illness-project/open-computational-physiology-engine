@@ -8,21 +8,31 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.baroreflex_model import BaroreflexPOTSModel
 from simulation.engine import SimulationEngine
 from simulation.population import VirtualSubject
+from simulation.perturbations import enable_experimental_mode
 from validation.validation_suite import AdvancedValidationSuite
 
-def run_advanced_scenario(subject, phenotype, behavior_trigger, label):
+def run_advanced_scenario(subject, phenotype, behavior_trigger, label, include_experimental=False):
     print("======================================================================")
     print(f"  SCENARIO: {label}")
     print(f"  Subject: Age={subject.age}, Sex={subject.sex}, Fitness={subject.fitness}")
     print(f"  Composed Phenotype: {phenotype or 'Healthy Baseline'}")
     print(f"  Active Behavior: {behavior_trigger}")
+    if include_experimental:
+        print("  Mode: EXPERIMENTAL (includes tier-D unverified parameters; "
+              "hypothesis-illustrative, not canonical)")
+    else:
+        print("  Mode: canonical (reviewed parameters only)")
     print("======================================================================")
-    
+
     # 1. Initialize the Mechanistic Model with Demographic Priors and Composed Phenotypes
     model = BaroreflexPOTSModel(phenotype=phenotype, subject=subject)
-    
-    # 2. Configure Simulation Engine
-    engine = SimulationEngine(model, dt=0.01, hrv_noise=0.02)
+
+    # 1b. Optionally enable experimental perturbations (tier-D unverified parameters)
+    if include_experimental:
+        enable_experimental_mode(model)
+
+    # 2. Configure Simulation Engine (fixed seed for reproducible HRV noise)
+    engine = SimulationEngine(model, dt=0.01, hrv_noise=0.02, seed=42)
     
     # Define tilt protocol and behavioral parameters
     tilt_params = {
@@ -85,19 +95,27 @@ def main():
             "subject": VirtualSubject(age=28, sex="female", bmi=20.0, fitness="sedentary"),
             "phenotype": "mecfs_metabolic_dysfunction * sleep_deprivation",
             "behavior": "rest",
-            "label": "ME_CFS + Sleep Deprivation"
+            "label": "ME_CFS + Sleep Deprivation",
+            # sleep_deprivation is tier-D/unverified: requires experimental mode
+            "include_experimental": True
         },
         {
             "subject": VirtualSubject(age=45, sex="female", bmi=25.5, fitness="average"),
             "phenotype": "heds_venous_pooling * fludrocortisone",
             "behavior": "meal",
-            "label": "hEDS + Splanchnic Postprandial Pooling + Fludrocortisone"
+            "label": "hEDS + Splanchnic Postprandial Pooling + Fludrocortisone",
+            # heds_venous_pooling is tier-D/unverified: requires experimental mode
+            "include_experimental": True
         }
     ]
-    
+
+    np.random.seed(42)  # reproducibility for any downstream stochastic layers
     reports = []
     for sc in scenarios:
-        rep = run_advanced_scenario(sc["subject"], sc["phenotype"], sc["behavior"], sc["label"])
+        rep = run_advanced_scenario(
+            sc["subject"], sc["phenotype"], sc["behavior"], sc["label"],
+            include_experimental=sc.get("include_experimental", False)
+        )
         reports.append(rep)
         
     print("======================================================================")

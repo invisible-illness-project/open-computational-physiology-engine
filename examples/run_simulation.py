@@ -16,8 +16,8 @@ def run_single_cohort(phenotype=None):
     # 1. Initialize model loading equations & parameters from Knowledge Base
     model = BaroreflexPOTSModel(phenotype=phenotype)
     
-    # 2. Run simulation engine
-    engine = SimulationEngine(model, dt=0.01, hrv_noise=0.02)
+    # 2. Run simulation engine (fixed seed for reproducible HRV noise)
+    engine = SimulationEngine(model, dt=0.01, hrv_noise=0.02, seed=42)
     tilt_params = {
         "tup": 200.0,       # Start tilt at 200s
         "tend": 300.0,      # End tilt/simulation at 300s
@@ -77,6 +77,7 @@ def run_single_cohort(phenotype=None):
     return report
 
 def main():
+    np.random.seed(42)  # reproducible sensor noise
     print("======================================================================")
     print("  OPEN COMPUTATIONAL PHYSIOLOGY SIMULATION PIPELINE")
     print("======================================================================")

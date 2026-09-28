@@ -11,10 +11,13 @@ class SimulationEngine:
     reproducing the original MATLAB solver structure but with Pythonic
     extensions, latent state extraction, behavioral/symptom loops, and temporal tracking.
     """
-    def __init__(self, model, dt=0.01, hrv_noise=0.02):
+    def __init__(self, model, dt=0.01, hrv_noise=0.02, seed=None):
         self.model = model
         self.dt = dt
         self.hrv_noise = hrv_noise
+        # Optional RNG seed for reproducible HRV noise. seed=None (default)
+        # preserves the previous non-deterministic behavior.
+        self.seed = seed
         
         # Instantiate architectural subsystems
         self.latent_state = LatentPhysiologyState()
@@ -32,6 +35,10 @@ class SimulationEngine:
           - angle: tilt angle (degrees)
           - active_behavior: optional string trigger (e.g. 'exercise', 'meal')
         """
+        # Seed the RNG for reproducible HRV noise if requested
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
         # Set up behavior if specified in tilt_params
         active_behavior = tilt_params.get("active_behavior", "rest")
         self.behavior.trigger_behavior(active_behavior)
@@ -252,6 +259,18 @@ class SimulationEngine:
             "pal": state_arr[:, 2] / self.model.params["Cal"],
             "pvu": state_arr[:, 1] / self.model.params["Cvu"],
         }
+
+        # Cycle 2 venomotor / stress-relaxation states and the resulting lower
+        # venous pressure (effective capacity = VMvl - Vvm + Vsr).
+        if state_arr.shape[1] >= 12:
+            Vvm_arr = state_arr[:, 10]
+            Vsr_arr = state_arr[:, 11]
+            VMvl_eff = (self.model.params["VMvl"] - Vvm_arr + Vsr_arr)
+            results["Vvm"] = Vvm_arr
+            results["Vsr"] = Vsr_arr
+            results["pvl"] = (1.0 / self.model.params["mvl"]) * np.log(
+                VMvl_eff / np.maximum(1.0, VMvl_eff - state_arr[:, 3])
+            )
         
         for k, v in output_series.items():
             results[k] = np.array(v)

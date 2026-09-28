@@ -1,7 +1,7 @@
 review_manifest_version: 1.0.0
 target_file:
   path: knowledge_base/physiology/variables.yaml
-  sha256: 2c5d5d8649fdfcabf2767ffb3cf56ec86e33b7852e3a86bba9a82467865fbdd9
+  sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
 review_history:
 - review_id: rev-631039e1-bb60-42cb-990f-07e85c27bd8b
   reviewed_at: '2026-09-11T00:45:41.625595+00:00'
@@ -40,3 +40,19 @@ review_history:
   verdict: REVIEWED
   findings: []
   comments: Cross-checked RMSSD and heart rate parameter ranges against PubMed metadata.
+- review_id: rev-f017dd74-f95f-4527-8f96-90bfaa79c326
+  reviewed_at: '2026-09-11T10:54:23.094049+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: independent-cycle2-reviewer
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: independent-cycle2-reviewer
+  scope:
+  - schema_conformance
+  - provenance
+  verdict: PASSED_WITH_WARNINGS
+  findings: []
+  comments: New venous-model variables (Vvm, Vsr, dV_veno_max, etc.) registered per
+    SCHEMA conventions with DOI/PMID provenance and machine-proposed labels. Human
+    L3 pending.

@@ -140,3 +140,24 @@ equations:
     inputs: ["qmv", "qav"]
     outputs: ["dVlv"]
     description: "Conservation of mass for left ventricular chamber."
+  - id: "lower_venous_effective_capacity"
+    label: "Effective Lower Venous Capacity (Cycle 2)"
+    latex: "V_{Mvl}^{eff}(t) = V_{Mvl} - V_{vm}(t) + V_{sr}(t)"
+    inputs: ["Vvm", "Vsr"]
+    parameters: ["VMvl"]
+    outputs: ["VMvl_eff"]
+    description: "Lower venous capacity reduced by baroreflex venoconstriction and increased by stress-relaxation creep; the logarithmic P-V law operates on this effective capacity."
+  - id: "venomotor_reflex"
+    label: "Venomotor Reflex (Cycle 2)"
+    latex: "\\frac{dV_{vm}}{dt} = \\frac{-V_{vm} + \\Delta V_{veno,max} \\cdot \\frac{p_{2V}^{k_V}}{p_{cm}^{k_V} + p_{2V}^{k_V}}}{\\tau_{veno}}"
+    inputs: ["pcm"]
+    parameters: ["dV_veno_max", "p2V", "kV", "tau_veno"]
+    outputs: ["dVvm"]
+    description: "Baroreflex-driven venoconstriction (Heldt 2002 structure, DOI 10.1152/japplphysiol.00241.2001); machine-proposed parameters (tier C)."
+  - id: "venous_stress_relaxation"
+    label: "Venous Stress-Relaxation Creep (Cycle 2)"
+    latex: "\\frac{dV_{sr}}{dt} = \\frac{-V_{sr} + G_{sr} \\cdot \\max(0, p_{vl} - p_{vl,sr0})}{\\tau_{sr}}"
+    inputs: ["pvl"]
+    parameters: ["G_sr", "tau_sr", "pvl_sr0"]
+    outputs: ["dVsr"]
+    description: "Slow viscoelastic creep of lower venous capacity under sustained venous load (van Heusden 2006, DOI 10.1152/ajpheart.01268.2004); machine-proposed gain within documented 60-300 s time-constant range (tier C)."

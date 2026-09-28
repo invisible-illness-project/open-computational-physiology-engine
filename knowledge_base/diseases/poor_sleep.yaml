@@ -1,4 +1,48 @@
-version: "1.0"
+# PROPOSED CORRECTION (not yet merged) — adversarial DOI review
+# Revision 2 (independent-review WARNING 2): the tier-D kH magnitude moved OUT
+# of canonical parameters_perturbed into unverified_parameters; the real
+# citation (Zhong 2005) now lives in a phenotype-level association_evidence
+# block so no unverified magnitude carries a parameter-level DOI implying
+# source support. PerturbationManager (simulation/perturbations.py:39,71)
+# reads ONLY parameters_perturbed, so the engine safely ignores these blocks.
+#
+# OLD citation 10.5665/sleep.2894 was a WRONG PAPER: it resolves (doi.org,
+# CrossRef, Europe PMC) to Chang et al. 2013, "Direct effects of light on
+# alertness, vigilance, and the waking EEG in humans depend on prior light
+# history," SLEEP 36(8) (PMID 23904684) — unrelated to sleep-deprivation
+# autonomic effects.
+#
+# REPLACEMENT citation: Zhong X, Hilton HJ, Gates GJ, Jelic S, Stern Y,
+# Bartels MN, Demeersman RE, Basner RC. "Increased sympathetic and decreased
+# parasympathetic cardiovascular modulation in normal humans with acute sleep
+# deprivation." J Appl Physiol 2005;98(6):2024-32. DOI
+# 10.1152/japplphysiol.00620.2004 (PMID 15718408 — abstract accessed):
+# 36-h total sleep deprivation, n=18 healthy subjects; increased sympathetic,
+# decreased parasympathetic cardiovascular modulation, and DECREASED baroreflex
+# sensitivity (BRS) at 24 h of deprivation.
+#
+# PARAMETER MISUSE FIXES:
+#  * REMOVED Hm 0.3 -> 0.8 bps. Hm is the model's heart-rate SATURATION FLOOR
+#    (0.3 bps = 18 bpm, a profound-bradycardia/vagal floor in the Geddes model),
+#    NOT resting HR. Raising the floor to 0.8 bps (48 bpm) does not produce
+#    "elevated resting heart rate" — the resting operating point (~1 bps) sits
+#    above the floor either way — and 48 bpm is bradycardic, the OPPOSITE of
+#    the claimed sympathetic-elevation mechanism. Zhong 2005 measured HRV/BPV/
+#    BRS, not resting-HR elevation; no quantitative source for a resting-HR
+#    shift was found. UNRESOLVED GAP: if an elevated resting HR is desired, it
+#    must be encoded by shifting the HR Hill curve (e.g. lowering p2H or
+#    raising HM/Hm jointly) — parameter mapping and magnitude require human
+#    review.
+#  * REMOVED kE 7.0 -> 5.0. kE is the Hill coefficient for end-diastolic
+#    ELASTANCE (cardiac contractility) control — a SYMPATHETIC effector in the
+#    Geddes model (section 2.4-2.6) — not "parasympathetic/vagal modulation" as
+#    the old mechanism text claimed. UNRESOLVED GAP: no model parameter directly
+#    encodes vagal withdrawal of contractility; the vagal limb acts on HR.
+#  * kH reduction retained as the directionally-correct encoding of the
+#    verified BRS decrease (shallower HR-per-mmHg baroreflex curve), but moved
+#    to unverified_parameters: the magnitude (25 -> 20) is a MACHINE-PROPOSED
+#    assumption (tier D); only the DIRECTION is supported (Zhong 2005, tier B).
+version: "1.1"
 disease:
   id: "poor_sleep"
   name: "Poor Sleep / Sleep Deprivation"
@@ -8,20 +52,36 @@ disease:
     - id: "sleep_deprivation"
       name: "Acute Sleep Deprivation"
       description: "Restricted sleep leading to elevated resting heart rate and reduced heart rate variability (vagal withdrawal)."
-      parameters_perturbed:
-        - symbol: "Hm"
-          normal_value: 0.3
-          perturbed_value: 0.8
-          units: "bps"
-          mechanism: "Elevated resting/minimum heart rate (approx 48 bpm) due to sustained sympathetic drive and vagal withdrawal."
-          provenance:
-            doi: "10.5665/sleep.2894"
-            evidence_level: "Level 2"
-        - symbol: "kE"
-          normal_value: 7.0
-          perturbed_value: 5.0
+      association_evidence:
+        # Direction-level support ONLY: acute sleep deprivation increases
+        # sympathetic and decreases parasympathetic cardiovascular modulation
+        # and decreases baroreflex sensitivity. No gain magnitudes reported.
+        doi: "10.1152/japplphysiol.00620.2004"
+        pmid: "15718408"
+        citation: "Zhong et al., J Appl Physiol 2005;98:2024-32 (36-h total sleep deprivation, n=18; decreased spontaneous BRS; increased sympathetic / decreased parasympathetic modulation)"
+        evidence_tier: "B"  # human data, direction only
+      parameters_perturbed: []
+      unverified_parameters:
+        # MACHINE-PROPOSED hypothesis. Direction supported by phenotype-level
+        # association_evidence (decreased BRS); MAGNITUDE has no source.
+        # REQUIRES HUMAN REVIEW before promotion to parameters_perturbed.
+        # Deliberately NO parameter-level DOI.
+        - symbol: "kH"
+          normal_value: 25.0
+          perturbed_value: 20.0
           units: "dimensionless"
-          mechanism: "Blunted parasympathetic/vagal modulation of cardiac elastance and compliance."
+          mechanism: "Shallower heart-rate baroreflex Hill curve encoding the decreased baroreflex sensitivity observed after acute sleep deprivation (Zhong 2005). DIRECTION supported; MAGNITUDE is a machine-proposed assumption."
           provenance:
-            doi: "10.5665/sleep.2894"
-            evidence_level: "Level 2"
+            evidence_level: "Level 4"
+            evidence_tier: "D"
+            review_status: "UNRESOLVED - magnitude 25->20 has no supporting source; direction (reduced BRS) supported by Zhong 2005; requires human review"
+      unresolved_gaps:
+        # Documented gaps replacing the removed, misapplied parameters.
+        - gap: "Elevated resting heart rate after sleep deprivation"
+          removed_parameter: "Hm 0.3 -> 0.8 bps"
+          reason: "Hm is the HR saturation floor (18 bpm), not resting HR; 0.8 bps = 48 bpm is bradycardic and contradicts the claimed mechanism. No quantitative resting-HR source found."
+          requires: "parameter mapping (p2H/HM/Hm shift) + magnitude; human review"
+        - gap: "Vagal withdrawal / blunted parasympathetic modulation of cardiac function"
+          removed_parameter: "kE 7.0 -> 5.0"
+          reason: "kE is sympathetic contractility (end-diastolic elastance) control, not parasympathetic; vagal withdrawal acts on HR control (kH/tauH) in this model."
+          requires: "human review"

@@ -1,0 +1,7 @@
+# Pinned to the exact versions verified against the test suite on 2026-09-20
+# (67 passed, 2 xfailed; Python 3.11). Addresses reviewer Major: an unpinned
+# scientific stack made green runs non-reproducible. Update deliberately and
+# re-run the suite when bumping.
+numpy==2.4.6
+scipy==1.17.1
+pyyaml==6.0.3

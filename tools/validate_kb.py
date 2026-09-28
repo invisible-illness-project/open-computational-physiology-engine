@@ -19,6 +19,35 @@ def print_ok(msg):
 def print_warn(msg):
     print(f"\033[93m[WARN]\033[0m {msg}")
 
+def is_data_yaml(filename):
+    """True for KB data YAML files; excludes ADR 0001 sidecar review manifests
+    (<file>.review.yaml), which are governance metadata, not data files."""
+    return filename.endswith('.yaml') and not filename.endswith('.review.yaml')
+
+# Known pre-existing referential defects in the knowledge base (documented in
+# the Phase 0 audit, §2.4/§5.3; a separate workstream owns the YAML fixes).
+# These emit WARNINGS instead of errors so the validator stays green while the
+# content is being repaired; any NEW unknown predicate/symbol is a hard error.
+KNOWN_REFERENTIAL_ISSUES = {
+    # semantic-relationship subjects/objects with no registered symbol
+    "RMSSD",
+    "rr_intervals",
+    # mechanistic-link relationship types absent from the predicate registry
+    "sigmoid_hill",
+    "gravity_hydrostatic",
+    "inverse_proportional",
+    "inverse_nonlinear",
+}
+
+def report_referential(msg, symbol, error_counter, warning_counter):
+    """Emit an error for unknown symbols, or a warning for known pre-existing
+    KB mis-citations. Returns updated (errors, warnings) counters."""
+    if symbol in KNOWN_REFERENTIAL_ISSUES:
+        print_warn(f"{msg} [known pre-existing issue]")
+        return error_counter, warning_counter + 1
+    print_err(msg)
+    return error_counter + 1, warning_counter
+
 def parse_frontmatter(filepath):
     """Parses YAML frontmatter from a Markdown file."""
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -43,6 +72,12 @@ def main():
     errors = 0
     warnings = 0
     validated_files = []
+    predicate_registry = set()
+    model_params = {}
+    phenotype_ids = set()
+    disease_ids = set()
+    sensor_ids = set()
+    sem_rels = []
 
     
     # 1. Load variable definitions
@@ -108,6 +143,28 @@ def main():
             sem_rels = semantic_rel_data.get('semantic_relationships', [])
             validated_files.append(Path(semantic_rel_file))
             print_ok(f"Loaded {len(sem_rels)} semantic relationships.")
+
+            # Predicate registry: predicates are defined in this same file
+            # under relationship_definitions.
+            predicate_registry = {
+                rd.get('predicate')
+                for rd in semantic_rel_data.get('relationship_definitions', [])
+                if rd.get('predicate')
+            }
+            print_ok(f"Loaded {len(predicate_registry)} predicate definitions (relationship registry).")
+
+            # Referential check: every predicate used in a semantic
+            # relationship must exist in the predicate registry.
+            for rel in sem_rels:
+                pred = rel.get('predicate')
+                subj = rel.get('subject', '?')
+                obj = rel.get('object', '?')
+                if pred not in predicate_registry:
+                    errors, warnings = report_referential(
+                        f"Semantic Relationship '{subj} -[{pred}]-> {obj}': "
+                        f"predicate '{pred}' is not defined in the predicate registry "
+                        f"(relationship_definitions).",
+                        pred, errors, warnings)
         except Exception as e:
             print_err(f"Failed to parse relationships.yaml: {e}")
             errors += 1
@@ -136,6 +193,15 @@ def main():
             if effect not in all_vars:
                 print_err(f"Mechanistic Link '{rid}': Effect variable '{effect}' is not registered.")
                 errors += 1
+            # Referential check: the relationship type must exist in the
+            # predicate registry (relationship_definitions in relationships.yaml).
+            rtype = rel.get('type')
+            if rtype not in predicate_registry:
+                errors, warnings = report_referential(
+                    f"Mechanistic Link '{rid}': relationship type '{rtype}' is not "
+                    f"defined in the predicate registry (ontology/relationships.yaml "
+                    f"relationship_definitions).",
+                    rtype, errors, warnings)
     except Exception as e:
         print_err(f"Failed to parse mechanistic_links.yaml: {e}")
         sys.exit(1)
@@ -178,17 +244,22 @@ def main():
         errors += 1
     else:
         try:
-            d_files = [f for f in os.listdir(diseases_dir) if f.endswith('.yaml')]
+            d_files = [f for f in os.listdir(diseases_dir) if is_data_yaml(f)]
             print_ok(f"Found {len(d_files)} disease registrations.")
             for df in d_files:
                 dpath = os.path.join(diseases_dir, df)
                 with open(dpath, 'r', encoding='utf-8') as f:
                     disease_data = yaml.safe_load(f)
                 validated_files.append(Path(dpath))
-                phenotypes = disease_data.get('disease', {}).get('phenotypes', [])
-                print_ok(f"  Loaded disease: {disease_data.get('disease', {}).get('name')} ({df}) with {len(phenotypes)} phenotypes.")
+                disease_block = disease_data.get('disease', {})
+                if disease_block.get('id'):
+                    disease_ids.add(disease_block['id'])
+                phenotypes = disease_block.get('phenotypes', [])
+                print_ok(f"  Loaded disease: {disease_block.get('name')} ({df}) with {len(phenotypes)} phenotypes.")
                 for pheno in phenotypes:
                     pid = pheno.get('id')
+                    if pid:
+                        phenotype_ids.add(pid)
                     for pert in pheno.get('parameters_perturbed', []):
                         psym = pert.get('symbol')
                         if psym not in model_params and psym != 'TotalVol':
@@ -232,7 +303,7 @@ def main():
     # 10. Load wearables
     wearables_dir = os.path.join(kb_dir, "knowledge_base", "wearables")
     if os.path.exists(wearables_dir):
-        w_files = [f for f in os.listdir(wearables_dir) if f.endswith('.yaml')]
+        w_files = [f for f in os.listdir(wearables_dir) if is_data_yaml(f)]
         print_ok(f"Found {len(w_files)} wearable sensor registrations.")
         for wf in w_files:
             try:
@@ -240,13 +311,39 @@ def main():
                 with open(wpath, 'r', encoding='utf-8') as f:
                     w_data = yaml.safe_load(f)
                 validated_files.append(Path(wpath))
-                print_ok(f"  Validated wearable specification: {w_data.get('sensor', {}).get('name')}")
+                sensor_block = w_data.get('sensor', {})
+                if sensor_block.get('id'):
+                    sensor_ids.add(sensor_block['id'])
+                print_ok(f"  Validated wearable specification: {sensor_block.get('name')}")
             except Exception as e:
                 print_err(f"Failed to parse wearable file {wf}: {e}")
                 errors += 1
     else:
         print_err("wearables/ directory not found")
         errors += 1
+
+    # 10b. Referential check: semantic-relationship subjects/objects must
+    # resolve against the known symbol universe (physiological variables,
+    # latent states, model parameters, registered diseases/phenotypes, and
+    # sensors). Unknown symbols are errors.
+    known_symbols = (
+        set(all_vars)
+        | set(model_params)
+        | disease_ids
+        | phenotype_ids
+        | sensor_ids
+    )
+    for rel in sem_rels:
+        pred = rel.get('predicate', '?')
+        for role in ('subject', 'object'):
+            sym = rel.get(role)
+            if sym and sym not in known_symbols:
+                errors, warnings = report_referential(
+                    f"Semantic Relationship '{rel.get('subject', '?')} -[{pred}]-> "
+                    f"{rel.get('object', '?')}': {role} symbol '{sym}' does not resolve "
+                    f"to any registered variable, latent state, model parameter, "
+                    f"disease/phenotype, or sensor.",
+                    sym, errors, warnings)
 
     # 11. Load and validate publication reviews
     pub_dir = os.path.join(kb_dir, "knowledge_base", "publications")
@@ -289,10 +386,6 @@ def main():
                     
             validated_files.append(Path(filepath))
             print_ok(f"Validated review: '{title}' ({pub_file})")
-            
-        except Exception as e:
-            print_err(f"Failed to parse frontmatter of {pub_file}: {e}")
-            errors += 1
             
         except Exception as e:
             print_err(f"Failed to parse frontmatter of {pub_file}: {e}")
