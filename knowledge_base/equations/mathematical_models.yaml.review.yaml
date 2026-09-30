@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/equations/mathematical_models.yaml
   sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
-review_history:
+reviews:
 - review_id: rev-25694558-eba5-4145-8fb3-239a8a250f16
   reviewed_at: '2026-09-11T00:45:41.630756+00:00'
   reviewer:
@@ -13,8 +13,10 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
 - review_id: rev-71c26866-2ff3-4538-91fb-e45ab913d283
   reviewed_at: '2026-09-11T10:54:23.004220+00:00'
   reviewer:
@@ -28,8 +30,50 @@ review_history:
   - model_correctness
   - governance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: "Cycle 2 venous extension reviewed: Heldt 2002/van Heusden 2006/Stewart\
     \ 2004 verified real and on-topic; magnitudes honestly labeled tier-C machine-proposed.\
     \ Initial verdict NEEDS_REVISION (DOI digit transposition 00886->00086) \u2014\
     \ fixed and full 12-DOI audit clean. Human L3 pending."
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+- review_id: rev-9b39da25-bff4-4a8e-b973-ad3bd3ce711f
+  reviewed_at: '2026-09-30T21:25:41.865694+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 1
+    supporting: 1
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 1 supporting, 0 disputing, 0 abstaining across 1 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

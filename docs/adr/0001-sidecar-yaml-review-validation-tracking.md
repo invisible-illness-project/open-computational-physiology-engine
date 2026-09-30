@@ -914,3 +914,14 @@ OCPE should operate according to the following principle:
 > **Agents may generate, test, reproduce, challenge, and accumulate scientific evidence autonomously. Humans determine when that evidence is sufficient for higher-consequence uses.**
 
 This allows the computational physiology knowledge base to continue developing continuously while preserving stronger governance boundaries around IIP production datasets, clinical applications, and other designated high-risk outputs.
+
+---
+
+# 20. Implementation Status
+
+* **Manifest Version:** `2.0.0`
+* **Core Engine:** `validation/sidecar_manifest.py` (Typed models, evidence aggregation, staleness detection, policy authorization layer)
+* **CLI Tooling:** `tools/review_tracker.py` and `tools/ocpe.py` (`validate`, `review`, `aggregate`, `challenge`, `authorize`, `explain`, `summary`, `migrate`)
+* **Test Suite:** `tests/test_evidence_layered_validation.py`
+* **Knowledge Base Validation:** `tools/validate_kb.py`
+

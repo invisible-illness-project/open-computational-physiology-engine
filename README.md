@@ -144,22 +144,33 @@ python3 tools/validate_kb.py
 python3 tools/validate_kb.py --record
 ```
 
-### 2. Trace & Record Review History (Sidecar Governance)
-To track and inspect who (human experts, AI models, or rule validators) reviewed target files over time:
+### 2. Trace & Record Review History (Evidence-Layered Governance v2.0.0)
+To track and inspect reviews, evidence aggregation, challenges, and downstream authorizations:
 
 ```bash
-# Record a human or AI review entry into a file's companion sidecar manifest:
-python3 tools/review_tracker.py record knowledge_base/physiology/variables.yaml \
-  --kind human \
-  --name "Dr. Jane Doe" \
-  --comments "Verified physiological baseline units." \
-  --scope "units,baseline_values"
+# Record an AI agent or human expert review entry into a sidecar manifest:
+python3 tools/ocpe.py review knowledge_base/physiology/variables.yaml \
+  --kind ai_agent \
+  --name "literature-verifier-v2" \
+  --provider "Google Gemini" \
+  --independence-group "lit-group-a" \
+  --verdict SUPPORTED \
+  --confidence 0.95 \
+  --comments "Cross-checked parameter ranges against PubMed metadata."
 
-# View chronological review history & SHA-256 freshness for a file:
-python3 tools/review_tracker.py history knowledge_base/physiology/variables.yaml
+# Generate a detailed human-readable validation report & provenance explanation:
+python3 tools/ocpe.py explain knowledge_base/physiology/variables.yaml
 
-# View directory-wide review coverage summary:
-python3 tools/review_tracker.py summary knowledge_base/
+# Check downstream usage policy authorization (e.g. iip_production, exploratory_research):
+python3 tools/ocpe.py authorize knowledge_base/physiology/variables.yaml --use iip_production
+
+# Record a scientific challenge against an asset or claim:
+python3 tools/ocpe.py challenge knowledge_base/physiology/variables.yaml \
+  --statement "Parameter range conflicts with recent cohort study" \
+  --severity CRITICAL
+
+# View directory-wide evidence aggregation summary:
+python3 tools/ocpe.py summary knowledge_base/
 ```
 
 ### 3. Run the Multi-Cohort Posture Simulation

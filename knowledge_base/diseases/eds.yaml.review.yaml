@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/diseases/eds.yaml
   sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
-review_history:
+reviews:
 - review_id: rev-e2d5e97f-af89-414c-84cd-6fe0dbde3ee8
   reviewed_at: '2026-09-11T00:45:41.633691+00:00'
   reviewer:
@@ -13,8 +13,10 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
 - review_id: rev-29751e52-6323-4650-afe6-fa9aaa4ba0cb
   reviewed_at: '2026-09-11T03:32:58.393257+00:00'
   reviewer:
@@ -28,6 +30,7 @@ review_history:
   - doi_verification
   - parameter_extraction
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Adversarial DOI re-review: 4/8 unique DOIs found fabricated and removed;
     9 perturbations misstated and corrected with verified sources (Geddes 2022, Vernino
@@ -35,6 +38,7 @@ review_history:
     unverified values structurally separated into unverified_parameters (engine-inert).
     Human L3 review still required. Details: ocpe_disease_doi_review.md + CHANGESET.md
     rev2.'
+  target_sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
 - review_id: rev-ec6226ee-15e9-456f-8072-d3140a58e1c9
   reviewed_at: '2026-09-11T03:32:58.471806+00:00'
   reviewer:
@@ -48,11 +52,13 @@ review_history:
   - independent_spot_check
   - governance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Independent review (separate agent): all diffs documented in CHANGESET,
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+  target_sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
 - review_id: rev-8c2f0e76-d931-488b-8a43-c472f3937fe0
   reviewed_at: '2026-09-11T10:54:23.363907+00:00'
   reviewer:
@@ -65,6 +71,48 @@ review_history:
   - consistency
   - governance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: Tier-D unverified VMvl re-referenced to rescaled canonical 700 mL (x1.41
     ratio preserved). Engine-inert block; no DOI on unverified values.
+  target_sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
+- review_id: rev-58431f85-6c22-4c74-8a05-40de100bfcd4
+  reviewed_at: '2026-09-30T21:25:41.884447+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: c2dfc69edec18b8159c103c74c3f9d3abe4ea35afbe760f140e38cea05f4cbd8
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 2
+    supporting: 3
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 3 supporting, 0 disputing, 0 abstaining across 2 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

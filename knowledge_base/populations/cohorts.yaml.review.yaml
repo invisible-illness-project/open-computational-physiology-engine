@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/populations/cohorts.yaml
   sha256: 10f6e1e9e89a8b2e53f8550c42bda8ff012143ba8a3c1100cebd1c70840da1f7
-review_history:
+reviews:
 - review_id: rev-5cc7b45f-e68d-4e92-b6a1-b82bf3344077
   reviewed_at: '2026-09-11T00:45:41.639037+00:00'
   reviewer:
@@ -13,5 +13,45 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 10f6e1e9e89a8b2e53f8550c42bda8ff012143ba8a3c1100cebd1c70840da1f7
+- review_id: rev-556ca6f2-d81c-438f-a748-0a13f9a43a5f
+  reviewed_at: '2026-09-30T21:25:41.914145+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 10f6e1e9e89a8b2e53f8550c42bda8ff012143ba8a3c1100cebd1c70840da1f7
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: DETERMINISTICALLY_VALID
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 0
+    supporting: 0
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/physiology/variables.yaml
   sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
-review_history:
+reviews:
 - review_id: rev-631039e1-bb60-42cb-990f-07e85c27bd8b
   reviewed_at: '2026-09-11T00:45:41.625595+00:00'
   reviewer:
@@ -13,20 +13,24 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
 - review_id: rev-d9cd28c6-eb47-48d2-bb44-0b29f01e9654
   reviewed_at: '2026-09-11T00:45:47.624155+00:00'
   reviewer:
     kind: human
     identity:
       name: Dr. Jane Doe
-  scope:
+  scope: &id001
   - units
   - baseline_values
-  verdict: REVIEWED
+  verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Verified physiological variable baseline units and valid ranges.
+  target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
 - review_id: rev-5210ffb2-5801-423f-bace-cce54567ebb5
   reviewed_at: '2026-09-11T00:46:03.555244+00:00'
   reviewer:
@@ -37,9 +41,11 @@ review_history:
       model_name: gemini-1.5-pro-002
   scope:
   - literature_fidelity
-  verdict: REVIEWED
+  verdict: SUPPORTED
+  confidence: 1.0
   findings: []
   comments: Cross-checked RMSSD and heart rate parameter ranges against PubMed metadata.
+  target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
 - review_id: rev-f017dd74-f95f-4527-8f96-90bfaa79c326
   reviewed_at: '2026-09-11T10:54:23.094049+00:00'
   reviewer:
@@ -52,7 +58,57 @@ review_history:
   - schema_conformance
   - provenance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: New venous-model variables (Vvm, Vsr, dV_veno_max, etc.) registered per
     SCHEMA conventions with DOI/PMID provenance and machine-proposed labels. Human
     L3 pending.
+  target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
+- review_id: rev-74189fbb-46bd-4df9-b666-bafec649b051
+  reviewed_at: '2026-09-30T21:25:41.842361+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 2
+    supporting: 2
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 2 supporting, 0 disputing, 0 abstaining across 2 distinct independence
+    groups.'
+  - 'Human expert review status: REVIEWED.'
+human_review:
+  status: REVIEWED
+  reviews:
+  - review_id: rev-d9cd28c6-eb47-48d2-bb44-0b29f01e9654
+    reviewer:
+      name: Dr. Jane Doe
+    scope: *id001
+    verdict: PASSED
+    reviewed_at: '2026-09-11T00:45:47.624155+00:00'
+    target_sha256: f3ddee05b28522287676036059d8525847cc3f889dc678da8d66126ee8a82c89
+    comments: Verified physiological variable baseline units and valid ranges.
+authorization: {}

@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/diseases/pots.yaml
   sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
-review_history:
+reviews:
 - review_id: rev-d0a780ae-22a5-47f3-9759-6f0a3a387147
   reviewed_at: '2026-09-11T00:45:41.632839+00:00'
   reviewer:
@@ -13,8 +13,10 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
 - review_id: rev-9ae2b746-8688-4ae2-ab66-74cb93f0e754
   reviewed_at: '2026-09-11T03:32:59.180951+00:00'
   reviewer:
@@ -28,6 +30,7 @@ review_history:
   - doi_verification
   - parameter_extraction
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Adversarial DOI re-review: 4/8 unique DOIs found fabricated and removed;
     9 perturbations misstated and corrected with verified sources (Geddes 2022, Vernino
@@ -35,6 +38,7 @@ review_history:
     unverified values structurally separated into unverified_parameters (engine-inert).
     Human L3 review still required. Details: ocpe_disease_doi_review.md + CHANGESET.md
     rev2.'
+  target_sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
 - review_id: rev-e47284d4-2dd9-44fb-8414-96030a7461e3
   reviewed_at: '2026-09-11T03:32:59.260717+00:00'
   reviewer:
@@ -48,11 +52,13 @@ review_history:
   - independent_spot_check
   - governance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Independent review (separate agent): all diffs documented in CHANGESET,
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+  target_sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
 - review_id: rev-3b661276-3211-409d-ac06-09c29ca78376
   reviewed_at: '2026-09-11T10:54:23.283671+00:00'
   reviewer:
@@ -65,9 +71,51 @@ review_history:
   - simulation_verification
   - phenotype_validity
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: "Re-curation verified by seeded simulation: hypovolemic 34.6 and hyperadrenergic\
     \ 34.2 sustained dHR >=30 bpm (canonical); neuropathic restored only to 21.2 (experimental\
     \ dV_veno_max=75) \u2014 flat dose-response documented, strict-xfail, requires\
     \ model-structure revision (bounded stress-relaxation or tilt-onset gain application).\
     \ Human L3 pending."
+  target_sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
+- review_id: rev-44432170-7de4-40f9-bba7-52e995543bb3
+  reviewed_at: '2026-09-30T21:25:41.877474+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 23ac622566f16ba2318431778540b1fc530b87669de98caa53f0ba6e2cb4f433
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 3
+    supporting: 3
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 3 supporting, 0 disputing, 0 abstaining across 3 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

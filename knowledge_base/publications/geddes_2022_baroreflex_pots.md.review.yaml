@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/publications/geddes_2022_baroreflex_pots.md
   sha256: 955fafc819a010623a6f6b53c52425ff512d34236de8bf3f34dd9c19b718f1c2
-review_history:
+reviews:
 - review_id: rev-f72a9cee-69b5-459d-ac95-34aa13b2a40b
   reviewed_at: '2026-09-11T00:45:41.642251+00:00'
   reviewer:
@@ -13,5 +13,45 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 955fafc819a010623a6f6b53c52425ff512d34236de8bf3f34dd9c19b718f1c2
+- review_id: rev-9341f161-28c2-446e-a9f6-67abec778bb2
+  reviewed_at: '2026-09-30T21:25:41.924739+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 955fafc819a010623a6f6b53c52425ff512d34236de8bf3f34dd9c19b718f1c2
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: DETERMINISTICALLY_VALID
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 0
+    supporting: 0
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

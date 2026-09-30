@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/ontology/mechanistic_links.yaml
   sha256: 90e42a30dab0ce6f754d8b6649bfb5d941eb350a29a2832ae1a80d9198b0dbfe
-review_history:
+reviews:
 - review_id: rev-2b876c98-ca2c-42f8-9120-fcd9a9882610
   reviewed_at: '2026-09-11T00:45:41.629880+00:00'
   reviewer:
@@ -13,8 +13,10 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 90e42a30dab0ce6f754d8b6649bfb5d941eb350a29a2832ae1a80d9198b0dbfe
 - review_id: rev-29a0e6ba-8b9d-4794-823c-b40b68cdde87
   reviewed_at: '2026-09-11T00:46:17.070685+00:00'
   reviewer:
@@ -25,6 +27,48 @@ review_history:
       model_name: claude-3-5-sonnet-20241022
   scope:
   - graph_causality
-  verdict: REVIEWED
+  verdict: SUPPORTED
+  confidence: 1.0
   findings: []
   comments: Verified causal links against physiology literature graph.
+  target_sha256: 90e42a30dab0ce6f754d8b6649bfb5d941eb350a29a2832ae1a80d9198b0dbfe
+- review_id: rev-26f22b0c-a242-423a-a31a-ee55b61847e8
+  reviewed_at: '2026-09-30T21:25:41.861421+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 90e42a30dab0ce6f754d8b6649bfb5d941eb350a29a2832ae1a80d9198b0dbfe
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 1
+    supporting: 1
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 1 supporting, 0 disputing, 0 abstaining across 1 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

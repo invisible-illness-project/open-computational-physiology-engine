@@ -1,8 +1,8 @@
-review_manifest_version: 1.0.0
+review_manifest_version: 2.0.0
 target_file:
   path: knowledge_base/diseases/poor_sleep.yaml
   sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
-review_history:
+reviews:
 - review_id: rev-b6e6a6e7-b6a3-4553-ad24-0405f94f3739
   reviewed_at: '2026-09-11T00:45:41.631693+00:00'
   reviewer:
@@ -13,8 +13,10 @@ review_history:
   - schema_syntax
   - referential_integrity
   verdict: PASSED
+  confidence: 1.0
   findings: []
   comments: Passed rule-based validation by validate_kb.py
+  target_sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
 - review_id: rev-56ff2b91-2d0b-4dec-96f4-8c6c1fe44bea
   reviewed_at: '2026-09-11T03:32:59.019549+00:00'
   reviewer:
@@ -28,6 +30,7 @@ review_history:
   - doi_verification
   - parameter_extraction
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Adversarial DOI re-review: 4/8 unique DOIs found fabricated and removed;
     9 perturbations misstated and corrected with verified sources (Geddes 2022, Vernino
@@ -35,6 +38,7 @@ review_history:
     unverified values structurally separated into unverified_parameters (engine-inert).
     Human L3 review still required. Details: ocpe_disease_doi_review.md + CHANGESET.md
     rev2.'
+  target_sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
 - review_id: rev-9475745d-a416-4182-8fe6-1d5eb585be00
   reviewed_at: '2026-09-11T03:32:59.101442+00:00'
   reviewer:
@@ -48,8 +52,50 @@ review_history:
   - independent_spot_check
   - governance
   verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
   findings: []
   comments: 'Independent review (separate agent): all diffs documented in CHANGESET,
     fabricated DOIs absent from live fields, 14 replacement DOIs resolve, Geddes 2022
     values verified at full text, schema extensions flagged. Verdict APPROVED_WITH_WARNINGS;
     warnings fixed in revision 2. Not human L3 approval. Details: ocpe_changeset_review.md.'
+  target_sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
+- review_id: rev-f0c22aee-dcab-4195-8323-24408f4b682e
+  reviewed_at: '2026-09-30T21:25:41.870798+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: b3591cf20bc2319076e8b3af80dbd6c336d1f6da02438878e95364cb42d09b63
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 2
+    supporting: 2
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 2 supporting, 0 disputing, 0 abstaining across 2 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}
