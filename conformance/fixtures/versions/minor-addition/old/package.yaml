@@ -1,0 +1,7 @@
+id: conf-version
+name: version fixture
+version: 1.0.0
+ocpe_spec: '>=0.1.0 <0.2.0'
+description: Synthetic version-diff fixture.
+contents:
+- entities.yaml

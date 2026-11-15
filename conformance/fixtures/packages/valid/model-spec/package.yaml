@@ -1,0 +1,7 @@
+id: conf-model
+name: conf-model
+version: 1.0.0
+ocpe_spec: '>=0.1.0 <0.2.0'
+description: Synthetic conformance fixture (no scientific content).
+contents:
+- model.yaml

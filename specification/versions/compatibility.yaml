@@ -4,15 +4,17 @@
 current: "0.1.0"
 
 releases:
+
   - version: "0.1.0"
     status: provisional
     schema_base_uri: "https://w3id.org/ocpe/schema/0.1/"
     document_marker: "0.1"        # value of the `ocpe:` key in documents
     reads_documents: ["0.1"]
-    supersedes: "pre-0.1 knowledge_base layout (git tag pre-architectural-refactor)"
-    migration: "docs/migration-guide.md"
+    supersedes: "pre-0.1 monolithic repository layout (git tag pre-architectural-refactor)"
 
 # Classification of changes used by `ocpe diff` to recommend version bumps.
+# Every semantically meaningful field is diffed (see docs/versioning-policy.md);
+# the classes below map changed field groups to a required bump severity.
 change_classes:
   package:
     major:
@@ -21,16 +23,38 @@ change_classes:
       - identifier_kind_changed
       - dimension_changed
       - canonical_unit_changed
-      - dependency_major_bump_required
+      - value_type_changed
+      - observability_changed
+      - dependency_removed
+      - dependency_constraint_changed
+      - spec_constraint_changed
+      - symbol_removed
+      - symbol_changed
+      - equation_removed
+      - equation_changed
+      - relationship_semantics_changed
+      - model_semantics_changed
+      - measurement_semantics_changed
+      - evidence_removed
+      - definition_removed
     minor:
       - identifier_added
       - identifier_deprecated
       - alias_added
+      - alias_changed
+      - dependency_added
+      - symbol_added
+      - equation_added
       - evidence_added
+      - evidence_changed
       - reference_range_added
+      - reference_range_changed
+      - status_changed
+      - content_changed
     patch:
       - label_or_description_changed
       - curation_note_changed
+      - metadata_changed
   specification:
     major:
       - required_field_added

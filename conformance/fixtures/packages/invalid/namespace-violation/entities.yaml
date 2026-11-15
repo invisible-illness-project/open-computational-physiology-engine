@@ -1,0 +1,8 @@
+ocpe: '0.1'
+package: conf-nsviol
+title: fixture
+entities:
+- id: ocpe:somebody-else/x
+  kind: concept
+  label: X
+  concept_type: phenomenon

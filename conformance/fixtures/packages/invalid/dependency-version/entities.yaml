@@ -1,0 +1,8 @@
+ocpe: '0.1'
+package: conf-depver
+title: fixture
+entities:
+- id: ocpe:conf-depver/x
+  kind: concept
+  label: X
+  concept_type: phenomenon

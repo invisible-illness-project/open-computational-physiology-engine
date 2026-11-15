@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/concept.schema.json",
   "title": "OCPE physiological concept",
-  "description": "An unquantified physiological entity: organ system, anatomical structure, process, mechanism or phenomenon (e.g. 'baroreflex', 'cardiovascular system'). Concepts are NOT variables: they have no unit or value. Quantities associated with a concept are separate variable / latent_construct / derived_metric entities.",
+  "description": "An unquantified physiological entity: system, anatomical structure, process, mechanism or phenomenon. Concepts are NOT variables: they have no unit or value. Quantities associated with a concept are separate variable / latent_construct / derived_metric entities, defined by domain packages.",
   "type": "object",
   "allOf": [
     {

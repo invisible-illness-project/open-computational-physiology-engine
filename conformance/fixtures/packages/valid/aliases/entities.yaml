@@ -1,0 +1,24 @@
+ocpe: '0.1'
+package: conf-alias
+title: fixture
+entities:
+- id: ocpe:conf-alias/rate
+  kind: variable
+  label: Rate (fixture)
+  dimension: event_rate
+  canonical_unit: /min
+  aliases:
+  - value: FR
+    type: symbol
+    unit: /min
+  - value: rate
+    type: abbreviation
+    scope: conf-alias
+- id: ocpe:conf-alias/other
+  kind: variable
+  label: Other (fixture)
+  dimension: time
+  canonical_unit: s
+  aliases:
+  - value: OTH
+    type: symbol

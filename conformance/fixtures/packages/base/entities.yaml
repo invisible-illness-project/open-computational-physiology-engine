@@ -1,0 +1,10 @@
+ocpe: '0.1'
+package: conf-base
+title: fixture
+entities:
+- id: ocpe:conf-base/base-quantity
+  kind: variable
+  label: Base quantity (fixture)
+  dimension: time
+  canonical_unit: s
+  observability: directly_measurable

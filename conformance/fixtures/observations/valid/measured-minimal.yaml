@@ -1,0 +1,4 @@
+quantity: ocpe:conf-quantity/flow-rate
+value: 5.0
+unit: mL/s
+value_kind: measured

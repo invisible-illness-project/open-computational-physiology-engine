@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/observation.schema.json",
   "title": "OCPE observation record",
-  "description": "Exchange format for a single observed, estimated, derived or simulated value of an OCPE quantity. OCPE defines the record format only; it does not store observational data. 'value_kind' makes synthetic (simulated) data and latent-construct estimates explicitly distinguishable from measurements.",
+  "description": "Exchange format for a single measured, estimated, derived, simulated or self-reported value of an OCPE quantity. OCPE defines the record format only; it does not store observational data. 'value_kind' makes synthetic (simulated) data and latent-construct estimates explicitly distinguishable from measurements. Records may carry uncertainty, timestamps, method/model provenance and quality flags.",
   "type": "object",
   "required": [
     "quantity",
@@ -31,6 +31,25 @@
     },
     "unit": {
       "$ref": "common.schema.json#/definitions/unit_code"
+    },
+    "uncertainty": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Measurement or estimate uncertainty expressed in the record's unit (or in 'uncertainty_unit' when given)."
+    },
+    "uncertainty_type": {
+      "type": "string",
+      "enum": [
+        "sd",
+        "se",
+        "ci95_halfwidth",
+        "range_halfwidth",
+        "unspecified"
+      ]
+    },
+    "uncertainty_unit": {
+      "$ref": "common.schema.json#/definitions/unit_code",
+      "description": "Unit of the uncertainty value when different from the record's unit; must share its dimension."
     },
     "value_kind": {
       "type": "string",

@@ -1,0 +1,24 @@
+ocpe: '0.1'
+package: conf-evidence
+title: fixture
+entities:
+- id: ocpe:conf-evidence/fixture-claim
+  kind: concept
+  label: Fixture claim
+  concept_type: phenomenon
+  evidence:
+  - claim: Existence of the fixture phenomenon is asserted for conformance testing.
+    supports:
+    - existence
+    references:
+    - doi:10.12345/conformance-fixture
+    basis: literature
+    study_type: in_silico
+references:
+- id: doi:10.12345/conformance-fixture
+  title: Synthetic Fixture Reference
+  year: 2026
+  study_type: in_silico
+  verification:
+    status: verified
+    method: synthetic fixture

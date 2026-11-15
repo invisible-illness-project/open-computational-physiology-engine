@@ -13,11 +13,11 @@ ocpe:<namespace>/<local-id>
 | Part | Grammar | Example |
 |---|---|---|
 | prefix | literal `ocpe` | `ocpe` |
-| namespace | the owning **package id**: one or more dot-separated segments, each lowercase kebab-case (`[a-z][a-z0-9]*(-[a-z0-9]+)*`) | `cardiovascular`, `conditions.pots` |
+| namespace | the owning **package id**: one or more dot-separated segments, each lowercase kebab-case (`[a-z][a-z0-9]*(-[a-z0-9]+)*`) | `example-vitals`, `research.cardiovascular` |
 | local-id | lowercase kebab-case (`[a-z0-9]+(-[a-z0-9]+)*`) | `heart-rate` |
 
-Examples: `ocpe:cardiovascular/heart-rate`, `ocpe:autonomic/sympathetic-tone`,
-`ocpe:conditions.pots/neuropathic-pots`, `ocpe:core/regulates`.
+Examples: `ocpe:example-vitals/heart-rate`, `ocpe:research.cardiovascular/stroke-volume`,
+`ocpe:core/regulates`.
 
 The authoritative regular expression lives in
 [`common.schema.json`](../schemas/common.schema.json) (`definitions.curie`).
@@ -30,14 +30,14 @@ A symbol declared inside a computational model specification is referenced as
 <model-curie>#<symbol>
 ```
 
-e.g. `ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#RalpM`. Symbols are
+e.g. `ocpe:research.my-model/my-model#Rtot`. Symbols are
 case-sensitive and only meaningful inside the declaring model. A model symbol is
 **not** a physiological identifier; it may *represent* one (`represents:` field).
 
 ### Prefix expansion
 
 The `ocpe:` prefix expands to `https://w3id.org/ocpe/id/`, so
-`ocpe:cardiovascular/heart-rate` ≡ `https://w3id.org/ocpe/id/cardiovascular/heart-rate`.
+`ocpe:example-vitals/heart-rate` ≡ `https://w3id.org/ocpe/id/example-vitals/heart-rate`.
 The persistent-URL registration is pending; until it is registered the CURIE is the only
 normative form.
 
@@ -56,28 +56,27 @@ normative form.
 
 ## 3. Aliases
 
-Aliases map other names onto canonical identifiers. They preserve backward compatibility
-with legacy symbols (for example the pre-0.1 knowledge-base symbols `Hc`, `pcm`, `Vau`).
+Aliases map other names onto canonical identifiers — synonyms, abbreviations,
+symbols from an author's previous notation, or unit-qualified spellings.
 
 ```yaml
 aliases:
-  - value: Hc
+  - value: HR
     type: symbol
-    scope: legacy-kb
-    unit: /s          # 'Hc' denotes heart rate expressed in beats per second
+    unit: /min          # 'HR' denotes the quantity expressed in beats per minute
 ```
 
 * Aliases are case-sensitive (`HR` ≠ `hr`).
-* An alias with a `scope` is only unique within that scope. The resolver reports an
-  ambiguity rather than guessing when an unscoped lookup matches several entities.
+* An alias with a `scope` is only unique within that scope (a package id or a
+  model CURIE). The resolver reports an ambiguity rather than guessing when an
+  unscoped lookup matches several entities.
 * An alias that implies a unit (`unit:`) denotes the same quantity in a different unit.
-  It does not create a new quantity. For example, `Hc` (beats/s) and `HR` (beats/min) both
-  resolve to `ocpe:cardiovascular/heart-rate`.
+  It does not create a new quantity.
 
 ## 4. Choosing local-ids
 
-* Use the established English physiological name in kebab-case (`mean-arterial-pressure`).
+* Use the established English name in kebab-case (`mean-arterial-pressure`).
 * Do not encode units, models, populations or measurement methods in a variable's
-  local-id. Where a model abstraction has no physiological equivalent, scope it
-  explicitly (e.g. `upper-body-arterial-volume` with `observability: model_compartment`).
+  local-id. Where a model abstraction has no direct physiological equivalent, say so
+  explicitly (e.g. with `observability: model_compartment`).
 * Do not use model symbols as local-ids.

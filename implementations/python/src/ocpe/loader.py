@@ -146,6 +146,29 @@ def _read(path: Path) -> Any:
         raise LoadError(f"{path}: cannot parse: {exc}") from exc
 
 
+def _safe_content_path(root: Path, rel: str) -> Path:
+    """Resolve a manifest-declared content path inside ``root``.
+
+    Rejects absolute paths, ``..`` traversal outside the package root, and
+    symlinks that escape the package root. Package content is data: it must
+    live inside the package directory that declares it.
+    """
+    rel_str = str(rel)
+    candidate = Path(rel_str)
+    if candidate.is_absolute():
+        raise LoadError(f"content path {rel_str!r} must be package-relative, not absolute")
+    root_real = root.resolve()
+    target = root_real.joinpath(*candidate.parts)
+    # Lexical containment (catches '..' even when the target does not exist).
+    if target != root_real and root_real not in target.parents:
+        raise LoadError(f"content path {rel_str!r} escapes the package root")
+    # Symlink containment (catches links that resolve outside the root).
+    resolved = target.resolve()
+    if resolved != root_real and root_real not in resolved.parents:
+        raise LoadError(f"content path {rel_str!r} resolves outside the package root via a symlink")
+    return resolved
+
+
 def load_package(path: PathLike) -> Package:
     """Load a package directory (or its package.yaml)."""
     p = Path(path)
@@ -164,7 +187,11 @@ def load_package(path: PathLike) -> Package:
         manifest=manifest,
     )
     for rel in manifest.get("contents", []) or []:
-        f = p / rel
+        try:
+            f = _safe_content_path(p, str(rel))
+        except LoadError as exc:
+            pkg.load_issues.add("error", "path-escape", str(exc), str(manifest_path))
+            continue
         if not f.is_file():
             pkg.load_issues.add("error", "content-missing", f"listed content file not found: {rel}", str(manifest_path))
             continue
@@ -176,7 +203,7 @@ def load_package(path: PathLike) -> Package:
         if not isinstance(data, dict):
             pkg.load_issues.add("error", "document-shape", "document must be a mapping", str(f))
             continue
-        pkg.documents.append(Document(f.resolve(), data))
+        pkg.documents.append(Document(f, data))
     return pkg
 
 
@@ -193,14 +220,17 @@ def discover(paths: Iterable[PathLike]) -> List[Path]:
         if p.is_dir():
             for m in sorted(p.rglob("package.yaml")):
                 d = m.parent.resolve()
-                if d not in found and "migration_archive" not in d.parts:
+                if d not in found:
                     found.append(d)
     return found
 
 
 def default_package_paths() -> List[Path]:
-    root = spec.repo_root()
-    return [root / "packages"] if root else []
+    """OCPE ships no domain content: by default only the core package loads.
+
+    Callers supply the directories of the external domain packages they trust.
+    """
+    return []
 
 
 # --------------------------------------------------------------------------- registry
@@ -268,7 +298,11 @@ class Registry:
 
 
 def load_registry(paths: Optional[Sequence[PathLike]] = None, include_core: bool = True) -> Registry:
-    """Discover and load packages. With no paths, loads the repository's packages/ directory."""
+    """Discover and load packages.
+
+    With no paths, only the OCPE core vocabulary loads: OCPE ships no domain
+    content. Supply the directories of the external packages you trust.
+    """
     reg = Registry()
     dirs: List[Path] = []
     if include_core:

@@ -1,0 +1,6 @@
+quantity: ocpe:conf-quantity/flow-rate
+value: 5.0
+unit: mL/s
+value_kind: measured
+uncertainty: 0.1
+uncertainty_unit: mm[Hg]

@@ -2,10 +2,9 @@ ocpe: "0.1"
 package: core
 title: Functional forms
 description: >
-  Named shapes of dependencies used to qualify relationships. The first four tokens
-  were used as relationship 'type' values in the legacy mechanistic_links.yaml but
-  were never registered; they are registered here. Expressions are generic
-  templates; model-specific equations live in model specifications.
+  Named shapes of dependencies used to qualify relationships. Expressions are
+  generic mathematical templates; model-specific equations live in model
+  specifications.
 entities:
   - id: ocpe:core/sigmoid-hill
     kind: functional_form

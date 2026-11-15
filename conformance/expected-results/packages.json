@@ -1,0 +1,131 @@
+{
+  "valid/minimal-concept": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/quantity-observation": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/model-spec": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/evidence-refs": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/deprecated-entity": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/aliases": {
+    "ok": true,
+    "errors": []
+  },
+  "base": {
+    "ok": true,
+    "errors": []
+  },
+  "valid/depends-on-base": {
+    "ok": true,
+    "errors": [],
+    "requires": [
+      "base"
+    ]
+  },
+  "invalid/bad-identifier": {
+    "ok": false,
+    "errors": [
+      "schema"
+    ]
+  },
+  "invalid/bad-unit": {
+    "ok": false,
+    "errors": [
+      "unit"
+    ]
+  },
+  "invalid/dimension-mismatch": {
+    "ok": false,
+    "errors": [
+      "dimension-mismatch"
+    ]
+  },
+  "invalid/undeclared-dependency": {
+    "ok": false,
+    "errors": [
+      "undeclared-dependency"
+    ]
+  },
+  "invalid/unknown-predicate": {
+    "ok": false,
+    "errors": [
+      "unknown-predicate"
+    ]
+  },
+  "invalid/alias-collision": {
+    "ok": false,
+    "errors": [
+      "alias-collision"
+    ]
+  },
+  "invalid/missing-content": {
+    "ok": false,
+    "errors": [
+      "content-missing"
+    ]
+  },
+  "invalid/bad-manifest": {
+    "ok": false,
+    "errors": [
+      "schema"
+    ]
+  },
+  "invalid/bad-spec-constraint": {
+    "ok": false,
+    "errors": [
+      "spec-incompatible"
+    ]
+  },
+  "invalid/evidence-unregistered": {
+    "ok": false,
+    "errors": [
+      "unresolved-evidence-reference"
+    ]
+  },
+  "invalid/unknown-model-symbol": {
+    "ok": false,
+    "errors": [
+      "undeclared-symbol"
+    ]
+  },
+  "invalid/namespace-violation": {
+    "ok": false,
+    "errors": [
+      "namespace"
+    ]
+  },
+  "invalid/dependency-version": {
+    "ok": false,
+    "errors": [
+      "dependency-version"
+    ],
+    "requires": [
+      "base"
+    ]
+  },
+  "invalid/self-dependency": {
+    "ok": false,
+    "errors": [
+      "dependency-cycle",
+      "self-dependency"
+    ]
+  },
+  "invalid/path-traversal": {
+    "ok": false,
+    "errors": [
+      "path-escape"
+    ]
+  }
+}

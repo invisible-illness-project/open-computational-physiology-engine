@@ -1,0 +1,545 @@
+{
+  "comment": "Language-independent conformance vectors for OCPE semantic engines. Each implementation must produce results matching 'expect' (subset match). Fixture-relative inputs resolve against the conformance/ directory containing test-vectors/.",
+  "vectors": [
+    {
+      "id": "id-valid-simple",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "ocpe:example-vitals/heart-rate"
+      },
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "id-valid-dotted-ns",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "ocpe:research.cardiovascular/stroke-volume"
+      },
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "id-valid-symbol-fragment",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "ocpe:research.my-model/my-model#Rtot"
+      },
+      "expect": {
+        "valid": true
+      }
+    },
+    {
+      "id": "id-invalid-uppercase-ns",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "ocpe:Bad/thing"
+      },
+      "expect": {
+        "valid": false
+      }
+    },
+    {
+      "id": "id-invalid-no-prefix",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "heart-rate"
+      },
+      "expect": {
+        "valid": false
+      }
+    },
+    {
+      "id": "id-invalid-underscore",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": "ocpe:pkg/not_kebab"
+      },
+      "expect": {
+        "valid": false
+      }
+    },
+    {
+      "id": "id-invalid-empty",
+      "operation": "parse_identifier",
+      "input": {
+        "identifier": ""
+      },
+      "expect": {
+        "valid": false
+      }
+    },
+    {
+      "id": "ver-caret-major",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "1.2.3",
+        "constraint": "^1.0.0"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-caret-major-exclude",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "2.0.0",
+        "constraint": "^1.0.0"
+      },
+      "expect": {
+        "satisfied": false
+      }
+    },
+    {
+      "id": "ver-caret-zero",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "0.2.9",
+        "constraint": "^0.2.0"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-caret-zero-exclude",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "0.3.0",
+        "constraint": "^0.2.0"
+      },
+      "expect": {
+        "satisfied": false
+      }
+    },
+    {
+      "id": "ver-tilde",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "1.2.9",
+        "constraint": "~1.2.0"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-tilde-exclude",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "1.3.0",
+        "constraint": "~1.2.0"
+      },
+      "expect": {
+        "satisfied": false
+      }
+    },
+    {
+      "id": "ver-range",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "0.1.5",
+        "constraint": ">=0.1.0 <0.2.0"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-range-exclude",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "0.2.0",
+        "constraint": ">=0.1.0 <0.2.0"
+      },
+      "expect": {
+        "satisfied": false
+      }
+    },
+    {
+      "id": "ver-alternatives",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "1.5.0",
+        "constraint": "^1.0.0 || ^2.0.0"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-star",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "3.7.1",
+        "constraint": "*"
+      },
+      "expect": {
+        "satisfied": true
+      }
+    },
+    {
+      "id": "ver-prerelease-rule",
+      "operation": "version_satisfies",
+      "input": {
+        "version": "1.0.0-alpha",
+        "constraint": "^1.0.0"
+      },
+      "expect": {
+        "satisfied": false
+      }
+    },
+    {
+      "id": "unit-convert-rate",
+      "operation": "unit_convert",
+      "input": {
+        "value": 1,
+        "from": "/s",
+        "to": "/min"
+      },
+      "expect": {
+        "value": 60.0
+      }
+    },
+    {
+      "id": "unit-convert-volume",
+      "operation": "unit_convert",
+      "input": {
+        "value": 4500,
+        "from": "mL",
+        "to": "L"
+      },
+      "expect": {
+        "value": 4.5
+      }
+    },
+    {
+      "id": "unit-convert-pressure",
+      "operation": "unit_convert",
+      "input": {
+        "value": 1,
+        "from": "kPa",
+        "to": "mm[Hg]"
+      },
+      "expect": {
+        "value": 7.500617
+      }
+    },
+    {
+      "id": "unit-dim-pressure",
+      "operation": "unit_dimension",
+      "input": {
+        "unit": "mm[Hg]"
+      },
+      "expect": {
+        "dimension": "pressure"
+      }
+    },
+    {
+      "id": "unit-dim-flow",
+      "operation": "unit_dimension",
+      "input": {
+        "unit": "L/min"
+      },
+      "expect": {
+        "dimension": "volume_flow"
+      }
+    },
+    {
+      "id": "unit-dim-dimensionless",
+      "operation": "unit_dimension",
+      "input": {
+        "unit": "%"
+      },
+      "expect": {
+        "dimension": "dimensionless"
+      }
+    },
+    {
+      "id": "pkg-minimal-concept-valid",
+      "operation": "validate_package",
+      "input": {
+        "package": "valid/minimal-concept"
+      },
+      "expect": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "pkg-bad-unit-rejected",
+      "operation": "validate_package",
+      "input": {
+        "package": "invalid/bad-unit"
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "unit"
+        ]
+      }
+    },
+    {
+      "id": "pkg-dimension-mismatch-rejected",
+      "operation": "validate_package",
+      "input": {
+        "package": "invalid/dimension-mismatch"
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "dimension-mismatch"
+        ]
+      }
+    },
+    {
+      "id": "pkg-evidence-integrity",
+      "operation": "validate_package",
+      "input": {
+        "package": "invalid/evidence-unregistered"
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "unresolved-evidence-reference"
+        ]
+      }
+    },
+    {
+      "id": "pkg-dependency-resolution",
+      "operation": "validate_package",
+      "input": {
+        "package": "valid/depends-on-base",
+        "requires": [
+          "base"
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "pkg-traversal-rejected",
+      "operation": "validate_package",
+      "input": {
+        "package": "invalid/path-traversal"
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "path-escape"
+        ]
+      }
+    },
+    {
+      "id": "obs-measured-valid",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/flow-rate",
+          "value": 5.0,
+          "unit": "mL/s",
+          "value_kind": "measured"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "obs-latent-measured-rejected",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/perfusion-index",
+          "value": 0.5,
+          "unit": "1",
+          "value_kind": "measured"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "latent-measured"
+        ]
+      }
+    },
+    {
+      "id": "obs-method-integrity",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/alarm-state",
+          "value": true,
+          "unit": "1",
+          "value_kind": "measured",
+          "method": "ocpe:conf-quantity/flow-meter"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "method-does-not-measure"
+        ]
+      }
+    },
+    {
+      "id": "obs-unknown-quantity-rejected",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/absent",
+          "value": 5.0,
+          "unit": "mL/s",
+          "value_kind": "measured"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "unresolved-reference"
+        ]
+      }
+    },
+    {
+      "id": "diff-nested-equation-change",
+      "operation": "diff_packages",
+      "input": {
+        "old": "versions/major-equation/old",
+        "new": "versions/major-equation/new"
+      },
+      "expect": {
+        "changes": {
+          "equation_changed": 1
+        },
+        "required_bump": "major"
+      }
+    },
+    {
+      "id": "diff-nested-parameter-change",
+      "operation": "diff_packages",
+      "input": {
+        "old": "versions/major-parameter/old",
+        "new": "versions/major-parameter/new"
+      },
+      "expect": {
+        "changes": {
+          "symbol_changed": 1
+        },
+        "required_bump": "major"
+      }
+    },
+    {
+      "id": "diff-relationship-semantics-change",
+      "operation": "diff_packages",
+      "input": {
+        "old": "versions/major-relationship/old",
+        "new": "versions/major-relationship/new"
+      },
+      "expect": {
+        "changes": {
+          "relationship_semantics_changed": 1
+        },
+        "required_bump": "major"
+      }
+    },
+    {
+      "id": "diff-dependency-change",
+      "operation": "diff_packages",
+      "input": {
+        "old": "versions/major-dependency/old",
+        "new": "versions/major-dependency/new"
+      },
+      "expect": {
+        "changes": {
+          "dependency_constraint_changed": 1
+        },
+        "required_bump": "major"
+      }
+    },
+    {
+      "id": "diff-reorder-is-not-a-change",
+      "operation": "diff_packages",
+      "input": {
+        "old": "versions/reorder-only/old",
+        "new": "versions/reorder-only/new"
+      },
+      "expect": {
+        "changes": {},
+        "required_bump": null
+      }
+    },
+    {
+      "id": "resolve-canonical",
+      "operation": "resolve",
+      "input": {
+        "packages": [
+          "valid/aliases"
+        ],
+        "term": "ocpe:conf-alias/rate"
+      },
+      "expect": {
+        "id": "ocpe:conf-alias/rate",
+        "matched_by": "canonical",
+        "kind": "variable"
+      }
+    },
+    {
+      "id": "resolve-alias",
+      "operation": "resolve",
+      "input": {
+        "packages": [
+          "valid/aliases"
+        ],
+        "term": "FR"
+      },
+      "expect": {
+        "id": "ocpe:conf-alias/rate",
+        "matched_by": "alias"
+      }
+    },
+    {
+      "id": "resolve-scoped-alias",
+      "operation": "resolve",
+      "input": {
+        "packages": [
+          "valid/aliases"
+        ],
+        "term": "rate",
+        "scope": "conf-alias"
+      },
+      "expect": {
+        "id": "ocpe:conf-alias/rate",
+        "matched_by": "alias"
+      }
+    },
+    {
+      "id": "resolve-core-predicate-token",
+      "operation": "resolve",
+      "input": {
+        "term": "REGULATES"
+      },
+      "expect": {
+        "id": "ocpe:core/regulates",
+        "matched_by": "predicate-token"
+      }
+    }
+  ]
+}

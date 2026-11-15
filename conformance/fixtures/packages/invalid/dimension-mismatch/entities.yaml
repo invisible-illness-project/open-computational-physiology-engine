@@ -1,0 +1,9 @@
+ocpe: '0.1'
+package: conf-dim
+title: fixture
+entities:
+- id: ocpe:conf-dim/x
+  kind: variable
+  label: Dimension mismatch
+  dimension: volume
+  canonical_unit: mm[Hg]

@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  engine-and-packages:
+  engine-and-conformance:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,14 +24,43 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e implementations/python pytest==9.1.1
-      - name: pytest (engine + specification conformance)
+      - name: engine unit tests
+        run: pytest implementations/python/tests/ -q
+      - name: specification conformance suite
         run: pytest tests/ -q
-      - name: validate all domain packages
-        run: ocpe validate packages/ --strict
-      - name: resolver smoke tests
+      - name: CLI smoke tests
         run: |
-          ocpe resolve ocpe:cardiovascular/heart-rate
-          ocpe resolve Hc --scope legacy-kb
-          ocpe resolve 'ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#RalpM'
-      - name: declared dependency satisfaction
-        run: ocpe deps
+          ocpe --version
+          ocpe validate
+          ocpe resolve REGULATES
+          ocpe resolve FR --path conformance/fixtures/packages/valid/aliases
+          ocpe units convert 1 /s /min
+          ocpe check-observation conformance/fixtures/observations/valid/measured-with-method.yaml --path conformance/fixtures/packages/valid/quantity-observation
+          ocpe diff conformance/fixtures/versions/major-equation/old conformance/fixtures/versions/major-equation/new
+          ocpe conformance conformance/
+      - name: core vocabulary + spec artifacts validate
+        run: ocpe validate --strict
+
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build sdist + wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build implementations/python
+      - name: install built wheel in a clean environment
+        run: |
+          python -m venv /tmp/wheelenv
+          /tmp/wheelenv/bin/pip install implementations/python/dist/ocpe-*.whl
+          /tmp/wheelenv/bin/ocpe --version
+          /tmp/wheelenv/bin/ocpe validate
+          /tmp/wheelenv/bin/ocpe conformance conformance/
+      - name: install sdist in a clean environment
+        run: |
+          python -m venv /tmp/sdistenv
+          /tmp/sdistenv/bin/pip install implementations/python/dist/ocpe-*.tar.gz
+          /tmp/sdistenv/bin/ocpe --version

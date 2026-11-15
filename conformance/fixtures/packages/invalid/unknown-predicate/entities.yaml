@@ -1,0 +1,18 @@
+ocpe: '0.1'
+package: conf-pred
+title: fixture
+entities:
+- id: ocpe:conf-pred/a
+  kind: concept
+  label: A
+  concept_type: phenomenon
+- id: ocpe:conf-pred/b
+  kind: concept
+  label: B
+  concept_type: phenomenon
+- id: ocpe:conf-pred/rel
+  kind: relationship
+  label: rel
+  subject: ocpe:conf-pred/a
+  predicate: FROBNICATES
+  object: ocpe:conf-pred/b

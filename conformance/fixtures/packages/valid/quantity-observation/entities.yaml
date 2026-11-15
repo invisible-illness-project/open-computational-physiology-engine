@@ -1,0 +1,69 @@
+ocpe: '0.1'
+package: conf-quantity
+title: fixture
+entities:
+- id: ocpe:conf-quantity/flow-rate
+  kind: variable
+  label: Flow rate (fixture)
+  definition: Synthetic volume-flow quantity for conformance testing.
+  dimension: volume_flow
+  canonical_unit: mL/s
+  value_type: continuous
+  observability: directly_measurable
+- id: ocpe:conf-quantity/alarm-state
+  kind: variable
+  label: Alarm state (fixture)
+  dimension: dimensionless
+  canonical_unit: '1'
+  value_type: boolean
+- id: ocpe:conf-quantity/perfusion-index
+  kind: latent_construct
+  label: Perfusion index (fixture)
+  dimension: dimensionless
+  canonical_unit: '1'
+  scale:
+    scale_type: normalized
+    min: 0.0
+    max: 1.0
+- id: ocpe:conf-quantity/flow-model
+  kind: model
+  label: Flow model (fixture)
+  formalism: ode
+  symbols:
+  - symbol: q
+    role: state
+    unit: mL/s
+    represents: ocpe:conf-quantity/flow-rate
+  - symbol: tau
+    role: parameter
+    nominal_value: 2.0
+  equations:
+  - id: eq_flow
+    expression_latex: \dot{q} = -q/\tau
+    inputs:
+    - q
+    parameters:
+    - tau
+    outputs:
+    - q
+  assumptions:
+  - Synthetic first-order decay fixture.
+- id: ocpe:conf-quantity/flow-meter
+  kind: measurement_method
+  label: Flow meter (fixture)
+  method_type: device
+  measures:
+  - target: ocpe:conf-quantity/flow-rate
+    mode: direct
+  - target: ocpe:conf-quantity/perfusion-index
+    mode: estimated
+- id: ocpe:conf-quantity/flow-loop
+  kind: concept
+  label: Flow loop (fixture)
+  concept_type: mechanism
+- id: ocpe:conf-quantity/flow-rate-measured-by
+  kind: relationship
+  label: Flow rate is measured by the flow meter (fixture)
+  subject: ocpe:conf-quantity/flow-rate
+  predicate: MEASURED_BY
+  object: ocpe:conf-quantity/flow-meter

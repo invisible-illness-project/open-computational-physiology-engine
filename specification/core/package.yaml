@@ -6,21 +6,13 @@ status: provisional
 license: UNSPECIFIED
 description: >
   Specification-level vocabulary every package may depend on: the relationship
-  predicate vocabulary and named functional forms. Entity kinds (concept,
-  variable, latent_construct, derived_metric, measurement_method, condition,
-  intervention, population, model, relationship) are defined by the JSON
-  Schemas in specification/schemas/ and described in kinds.yaml.
+  predicate vocabulary and named functional forms used to qualify relationships.
+  Entity kinds (concept, variable, latent_construct, derived_metric,
+  measurement_method, model, relationship, predicate, functional_form) are
+  defined by the JSON Schemas in specification/schemas/ and described in
+  kinds.yaml. OCPE owns this language infrastructure only; physiological domain
+  content is authored and versioned in external packages.
 contents:
   - predicates.yaml
   - functional-forms.yaml
 changelog: ../versions/CHANGELOG.md
-provenance:
-  derived_from:
-    - source: knowledge_base/ontology/relationships.yaml
-      git_ref: pre-architectural-refactor
-      legacy_version: "3.2"
-      transformation: "relationship_definitions -> predicate entities; descriptions verbatim."
-    - source: knowledge_base/ontology/mechanistic_links.yaml
-      git_ref: pre-architectural-refactor
-      legacy_version: "1.0"
-      transformation: "relationship 'type' values (sigmoid_hill, gravity_hydrostatic, inverse_proportional, inverse_nonlinear) registered as functional forms, closing the known registry gap."

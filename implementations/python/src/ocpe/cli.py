@@ -231,6 +231,29 @@ def cmd_info(args) -> int:
     return 0
 
 
+def cmd_conformance(args) -> int:
+    """Run the official OCPE conformance suite (vectors + fixtures) against this engine."""
+    from .vectors import run_conformance
+
+    if args.dir:
+        d = Path(args.dir)
+    else:
+        root = spec.repo_root()
+        d = (root / "conformance") if root else Path("conformance")
+    if not d.is_dir():
+        print(f"conformance directory not found: {d} (supply its path)", file=sys.stderr)
+        return 1
+    report = run_conformance(d)
+    if args.json:
+        _emit(report, True)
+    else:
+        for f in report["failures"]:
+            print(f"FAIL {f['id']}: {'; '.join(f['failures'])} (actual: {f['actual']})")
+        print(f"conformance: {report['passed']} passed, {report['failed']} failed "
+              f"({report['conformance']})")
+    return 0 if report["ok"] else 1
+
+
 def cmd_governance(argv: List[str]) -> int:
     from .governance import tracker
 
@@ -248,7 +271,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     def common(sp, paths=True):
         if paths:
-            sp.add_argument("paths", nargs="*", help="package directories (default: repository packages/)")
+            sp.add_argument("paths", nargs="*", help="package directories (default: only the OCPE core vocabulary; supply the external packages you trust)")
         sp.add_argument("--json", action="store_true", help="machine-readable output")
         return sp
 
@@ -259,7 +282,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     r = sub.add_parser("resolve", help="resolve identifiers, symbols, aliases or labels")
     r.add_argument("terms", nargs="+")
-    r.add_argument("--scope", help="alias scope (e.g. legacy-kb, or a model CURIE)")
+    r.add_argument("--scope", help="alias scope (a package id or a model CURIE)")
     r.add_argument("--full", action="store_true", help="include full entity record (with --json)")
     r.add_argument("--path", dest="paths", action="append", help="package directory (repeatable)")
     r.add_argument("--json", action="store_true")
@@ -320,6 +343,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     i = common(sub.add_parser("info", help="engine/spec/registry summary"))
     i.set_defaults(func=cmd_info)
+
+    c = sub.add_parser("conformance", help="run the OCPE conformance suite (vectors + fixtures)")
+    c.add_argument("dir", nargs="?", help="conformance directory (default: ./conformance or the checkout's conformance/)")
+    c.add_argument("--json", action="store_true")
+    c.set_defaults(func=cmd_conformance)
 
     sub.add_parser("governance", help="OPTIONAL review-manifest tools (record, aggregate, challenge, authorize, explain, history, summary, migrate)", add_help=False)
     return p

@@ -1,0 +1,8 @@
+ocpe: '0.1'
+package: conf-badid
+title: fixture
+entities:
+- id: ocpe:conf-badid/Not_Kebab
+  kind: concept
+  label: Bad identifier
+  concept_type: phenomenon

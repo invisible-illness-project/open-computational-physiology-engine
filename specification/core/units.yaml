@@ -32,7 +32,7 @@ dimensions:
   mass_concentration: { reference_unit: "pg/mL", vector: { M: 1, L: -3 } }
 
 units:
-  # code: dimension, to_reference factor, label, legacy spellings (pre-0.1 KB)
+  # code: dimension, to_reference factor, label, common alternative spellings
   "1":            { dimension: dimensionless, to_reference: 1, label: "dimensionless", legacy: ["dimensionless", ""] }
   "%":            { dimension: dimensionless, to_reference: 0.01, label: "percent" }
   "m":            { dimension: length, to_reference: 1, label: "metre" }

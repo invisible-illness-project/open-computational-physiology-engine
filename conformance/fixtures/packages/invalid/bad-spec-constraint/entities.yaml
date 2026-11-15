@@ -1,0 +1,8 @@
+ocpe: '0.1'
+package: conf-badspec
+title: fixture
+entities:
+- id: ocpe:conf-badspec/x
+  kind: concept
+  label: X
+  concept_type: phenomenon

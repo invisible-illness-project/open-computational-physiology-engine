@@ -1,0 +1,56 @@
+ocpe: '0.1'
+package: conf-model
+title: fixture
+entities:
+- id: ocpe:conf-model/two-compartment
+  kind: model
+  label: Two-compartment fixture model
+  formalism: ode
+  symbols:
+  - symbol: x1
+    role: state
+    unit: mL
+  - symbol: x2
+    role: state
+    unit: mL
+  - symbol: k12
+    role: parameter
+    nominal_value: 0.5
+    value_range:
+      min: 0.0
+  - symbol: u
+    role: input
+    unit: mL/s
+  - symbol: y
+    role: output
+    unit: mL
+  equations:
+  - id: eq_1
+    form: differential
+    expression_latex: \dot{x}_1 = u - k_{12} x_1
+    inputs:
+    - x1
+    - u
+    parameters:
+    - k12
+    outputs:
+    - x1
+  - id: eq_2
+    form: algebraic
+    expression_latex: y = x_1
+    inputs:
+    - x1
+    outputs:
+    - y
+  assumptions:
+  - Linear exchange fixture.
+  - Constant volumes fixture.
+  limitations:
+  - No scientific validity; synthetic fixture.
+  validity_domain:
+  - scope_note: Fixture validity domain only.
+  evidence:
+  - claim: Model structure is a synthetic fixture.
+    basis: definitional
+    supports:
+    - structure

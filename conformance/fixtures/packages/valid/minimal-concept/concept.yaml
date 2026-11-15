@@ -1,0 +1,9 @@
+ocpe: '0.1'
+package: conf-minimal
+title: fixture
+entities:
+- id: ocpe:conf-minimal/example-process
+  kind: concept
+  label: Example process
+  concept_type: physiological_process
+  definition: Synthetic fixture entity with no scientific meaning.

@@ -1,0 +1,12 @@
+ocpe: '0.1'
+package: conf-badevidence
+title: fixture
+entities:
+- id: ocpe:conf-badevidence/x
+  kind: concept
+  label: X
+  concept_type: phenomenon
+  evidence:
+  - claim: Cites a record the package never declares.
+    references:
+    - doi:10.99999/not-declared

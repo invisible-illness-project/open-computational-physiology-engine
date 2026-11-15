@@ -1,0 +1,8 @@
+quantity: ocpe:conf-quantity/flow-rate
+value: 5.0
+unit: mL/s
+value_kind: measured
+method: ocpe:conf-quantity/flow-meter
+time: '2026-11-15T10:00:00Z'
+uncertainty: 0.1
+uncertainty_type: sd

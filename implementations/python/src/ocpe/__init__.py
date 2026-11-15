@@ -1,15 +1,16 @@
 """OCPE - Open Computational Physiology Engine (Python reference implementation).
 
 A small, model-agnostic engine for loading, validating, resolving and versioning
-physiological knowledge expressed in the OCPE specification.
+physiological knowledge expressed in the OCPE specification. OCPE defines the
+language; domain content lives in independently versioned external packages.
 
 Quick start::
 
     import ocpe
-    reg = ocpe.load()                       # repository packages (or ocpe.load([...paths]))
-    report = ocpe.validate(reg)             # structural + semantic validation
-    r = ocpe.Resolver(reg).resolve("Hc", scope="legacy-kb")
-    print(r.id, r.unit)                     # ocpe:cardiovascular/heart-rate /s
+    reg = ocpe.load(["path/to/domain-package"])   # plus the bundled core vocabulary
+    report = ocpe.validate(reg)                   # structural + semantic validation
+    r = ocpe.Resolver(reg).resolve("ocpe:my-package/my-variable")
+    print(r.id, r.entity.kind)
 
 Validation is structural; it never asserts scientific validity.
 """
@@ -34,7 +35,11 @@ __version__ = "0.1.0"
 
 
 def load(paths=None, include_core: bool = True) -> Registry:
-    """Load packages from ``paths`` (default: the repository's packages/ directory)."""
+    """Load packages from ``paths`` (default: only the OCPE core vocabulary).
+
+    OCPE ships no domain content; supply the directories of the external
+    domain packages you trust.
+    """
     return load_registry(paths, include_core=include_core)
 
 

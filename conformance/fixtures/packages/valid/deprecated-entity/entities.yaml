@@ -1,0 +1,18 @@
+ocpe: '0.1'
+package: conf-deprecated
+title: fixture
+entities:
+- id: ocpe:conf-deprecated/old-term
+  kind: concept
+  label: Old term (fixture)
+  concept_type: phenomenon
+  status: deprecated
+  deprecation:
+    deprecated_in: 1.0.0
+    reason: Superseded by the replacement fixture term.
+    replaced_by: ocpe:conf-deprecated/new-term
+- id: ocpe:conf-deprecated/new-term
+  kind: concept
+  label: New term (fixture)
+  concept_type: phenomenon
+  since: 1.0.0

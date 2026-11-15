@@ -1,0 +1,5 @@
+quantity: ocpe:conf-quantity/alarm-state
+value: true
+unit: '1'
+value_kind: measured
+method: ocpe:conf-quantity/flow-meter

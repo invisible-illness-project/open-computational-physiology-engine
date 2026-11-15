@@ -1,0 +1,9 @@
+ocpe: '0.1'
+package: conf-badunit
+title: fixture
+entities:
+- id: ocpe:conf-badunit/x
+  kind: variable
+  label: Bad unit
+  dimension: volume
+  canonical_unit: furlongs

@@ -1,0 +1,43 @@
+ocpe: '0.1'
+package: conf-version
+entities:
+- id: ocpe:conf-version/alpha
+  kind: concept
+  label: Alpha
+  concept_type: phenomenon
+- id: ocpe:conf-version/beta
+  kind: variable
+  label: Beta
+  dimension: time
+  canonical_unit: s
+- id: ocpe:conf-version/gamma
+  kind: relationship
+  label: Gamma
+  subject: ocpe:conf-version/alpha
+  predicate: REGULATES
+  object: ocpe:conf-version/beta
+- id: ocpe:conf-version/m
+  kind: model
+  label: M
+  formalism: ode
+  symbols:
+  - symbol: x
+    role: state
+  - symbol: k
+    role: parameter
+    nominal_value: 2.5
+  equations:
+  - id: eq1
+    expression_latex: dx = -k x
+    inputs:
+    - x
+    parameters:
+    - k
+    outputs:
+    - x
+  assumptions:
+  - First fixture assumption.
+  - Second fixture assumption.
+  evidence:
+  - claim: Initial claim.
+    basis: definitional

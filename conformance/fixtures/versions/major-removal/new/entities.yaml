@@ -1,0 +1,18 @@
+ocpe: '0.1'
+package: conf-version
+entities:
+- id: ocpe:conf-version/alpha
+  kind: concept
+  label: Alpha
+  concept_type: phenomenon
+- id: ocpe:conf-version/beta
+  kind: variable
+  label: Beta
+  dimension: time
+  canonical_unit: s
+- id: ocpe:conf-version/gamma
+  kind: relationship
+  label: Gamma
+  subject: ocpe:conf-version/alpha
+  predicate: REGULATES
+  object: ocpe:conf-version/beta

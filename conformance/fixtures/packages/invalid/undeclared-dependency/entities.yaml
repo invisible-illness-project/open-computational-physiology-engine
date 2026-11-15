@@ -1,0 +1,14 @@
+ocpe: '0.1'
+package: conf-undecl
+title: fixture
+entities:
+- id: ocpe:conf-undecl/a
+  kind: concept
+  label: A
+  concept_type: phenomenon
+- id: ocpe:conf-undecl/rel
+  kind: relationship
+  label: rel
+  subject: ocpe:conf-undecl/a
+  predicate: ASSOCIATED_WITH
+  object: ocpe:conf-base/base-quantity

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/document.schema.json",
   "title": "OCPE document",
-  "description": "A YAML/JSON file listed in a package manifest's 'contents'. Contains entities (discriminated by 'kind') and/or bibliographic references. Each entity is validated against the schema for its kind.",
+  "description": "A YAML/JSON file listed in a package manifest's 'contents'. Contains entities (discriminated by 'kind') and/or bibliographic references. Each entity is validated against the schema for its kind. OCPE itself ships no domain content; the entities here are defined by independently versioned external domain packages.",
   "type": "object",
   "required": [
     "ocpe",
@@ -47,14 +47,11 @@
           "kind": {
             "enum": [
               "concept",
-              "condition",
               "derived_metric",
               "functional_form",
-              "intervention",
               "latent_construct",
               "measurement_method",
               "model",
-              "population",
               "predicate",
               "relationship",
               "variable"
@@ -72,18 +69,6 @@
             },
             "then": {
               "$ref": "concept.schema.json"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "kind": {
-                  "const": "condition"
-                }
-              }
-            },
-            "then": {
-              "$ref": "condition.schema.json"
             }
           },
           {
@@ -108,18 +93,6 @@
             },
             "then": {
               "$ref": "functional-form.schema.json"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "kind": {
-                  "const": "intervention"
-                }
-              }
-            },
-            "then": {
-              "$ref": "intervention.schema.json"
             }
           },
           {
@@ -156,18 +129,6 @@
             },
             "then": {
               "$ref": "model.schema.json"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "kind": {
-                  "const": "population"
-                }
-              }
-            },
-            "then": {
-              "$ref": "population.schema.json"
             }
           },
           {

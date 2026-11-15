@@ -1,0 +1,72 @@
+{
+  "patch-label": {
+    "changes": {
+      "label_or_description_changed": 1
+    },
+    "required_bump": "patch"
+  },
+  "minor-addition": {
+    "changes": {
+      "identifier_added": 1
+    },
+    "required_bump": "minor"
+  },
+  "major-removal": {
+    "changes": {
+      "identifier_removed": 1
+    },
+    "required_bump": "major"
+  },
+  "major-equation": {
+    "changes": {
+      "equation_changed": 1
+    },
+    "required_bump": "major"
+  },
+  "major-parameter": {
+    "changes": {
+      "symbol_changed": 1
+    },
+    "required_bump": "major"
+  },
+  "major-relationship": {
+    "changes": {
+      "relationship_semantics_changed": 1
+    },
+    "required_bump": "major"
+  },
+  "major-dependency": {
+    "changes": {
+      "dependency_constraint_changed": 1
+    },
+    "required_bump": "major"
+  },
+  "minor-evidence": {
+    "changes": {
+      "evidence_changed": 1
+    },
+    "required_bump": "minor"
+  },
+  "insufficient-bump": {
+    "changes": {
+      "equation_changed": 1
+    },
+    "required_bump": "major"
+  },
+  "reorder-only": {
+    "changes": {},
+    "required_bump": null
+  },
+  "minor-alias": {
+    "changes": {
+      "alias_added": 1
+    },
+    "required_bump": "minor"
+  },
+  "major-unit-change": {
+    "changes": {
+      "canonical_unit_changed": 1
+    },
+    "required_bump": "major"
+  }
+}

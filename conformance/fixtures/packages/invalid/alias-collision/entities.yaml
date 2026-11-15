@@ -1,0 +1,20 @@
+ocpe: '0.1'
+package: conf-collide
+title: fixture
+entities:
+- id: ocpe:conf-collide/x
+  kind: variable
+  label: X
+  dimension: time
+  canonical_unit: s
+  aliases:
+  - value: T
+    type: symbol
+- id: ocpe:conf-collide/y
+  kind: variable
+  label: Y
+  dimension: time
+  canonical_unit: s
+  aliases:
+  - value: T
+    type: symbol

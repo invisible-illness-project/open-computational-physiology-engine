@@ -1,0 +1,14 @@
+ocpe: '0.1'
+package: conf-dependent
+title: fixture
+entities:
+- id: ocpe:conf-dependent/root-process
+  kind: concept
+  label: Root process (fixture)
+  concept_type: physiological_process
+- id: ocpe:conf-dependent/root-timescale
+  kind: relationship
+  label: Root process has the base timescale (fixture)
+  subject: ocpe:conf-dependent/root-process
+  predicate: ASSOCIATED_WITH
+  object: ocpe:conf-base/base-quantity

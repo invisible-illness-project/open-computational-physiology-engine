@@ -1,67 +1,64 @@
 # OCPE entity kinds (informative; the JSON Schemas are normative).
 #
-# Requirement: concepts, variables, observations, measurement methods, derived
-# metrics and latent constructs are DISTINCT kinds and must never be used
-# interchangeably. The tests below decide which kind an item belongs to.
+# Requirement: the quantitative kinds (variable, latent_construct,
+# derived_metric), concepts, measurement methods, models and relationships are
+# DISTINCT kinds and must never be used interchangeably. The tests below decide
+# which kind an item belongs to.
+#
+# OCPE ships no domain content: the examples below are illustrative placeholders,
+# not curated definitions. Domain packages authored by external projects supply
+# the actual entities.
 ocpe_spec: "0.1"
 
 kinds:
   concept:
     schema: concept.schema.json
-    test: "An entity with no unit or value (organ system, structure, process, mechanism)."
-    example: "ocpe:cardiovascular/baroreflex"
+    test: "An entity with no unit or value (system, structure, process, mechanism, phenomenon)."
+    example: "ocpe:<package>/<process-or-mechanism>"
   variable:
     schema: variable.schema.json
     test: "A quantity that can, at least in principle, be measured directly or indirectly, independent of method and value."
-    example: "ocpe:cardiovascular/heart-rate"
+    example: "a rate, pressure, volume or concentration declared by a domain package"
   latent_construct:
     schema: latent-construct.schema.json
     test: "A theoretical quantity that cannot be observed even in principle; values are always model- or indicator-conditional estimates."
-    example: "ocpe:autonomic/sympathetic-tone"
+    example: "a normalized regulatory-tone index declared by a domain package"
   derived_metric:
     schema: derived-metric.schema.json
     test: "A quantity defined by an algorithm applied to other quantities or series (window, artifact handling matter)."
-    example: "ocpe:autonomic/rmssd"
+    example: "a variability index computed from an inter-beat-interval series"
   measurement_method:
     schema: measurement-method.schema.json
     test: "A device, assay, procedure or processing pipeline that produces observations; carries context-qualified performance."
-    example: "ocpe:wearables/polar-h10"
-  observation:
-    schema: observation.schema.json
-    test: "A single reported value of a quantity at a time, with value_kind (measured/estimated/derived/simulated). OCPE defines the format only and stores no observations."
-    example: "{quantity: ocpe:cardiovascular/heart-rate, value: 72, unit: /min, value_kind: measured}"
-  condition:
-    schema: condition.schema.json
-    test: "A disease, syndrome, phenotype, exposure or state that alters physiology."
-  intervention:
-    schema: intervention.schema.json
-    test: "A test, protocol, therapy, drug, behaviour or environmental manipulation."
-  population:
-    schema: population.schema.json
-    test: "A group description used to qualify context; not a cohort generator."
+    example: "a sensor model or assay procedure declared by a device package"
   model:
     schema: model.schema.json
     test: "A declarative computational model specification (symbols, equations, assumptions, units, evidence) — never solver code."
+    example: "an ODE model of a feedback loop, specified but not executed"
   relationship:
     schema: relationship.schema.json
-    test: "A typed directed assertion between entities."
+    test: "A typed directed assertion between entities, using a core or package-defined predicate."
+  predicate:
+    schema: predicate.schema.json
+    test: "A relationship type. The core vocabulary lives in the 'core' package; domain packages may define additional predicates."
+  functional_form:
+    schema: functional-form.schema.json
+    test: "A named qualitative/mathematical shape of a dependency used to qualify relationships."
 
-# Mapping of the 17 legacy concept classes (knowledge_base/ontology/concepts.yaml v3.0)
-legacy_concept_classes:
-  PhysiologicalVariable: { maps_to: variable, note: "Legacy class conflated variables, derived metrics and model compartments; split per item during migration." }
-  LatentState: { maps_to: latent_construct, note: "Legacy items that are measurable in principle (e.g. total blood volume, peripheral resistance) were reclassified as variables; see migration-guide.md." }
-  OrganSystem: { maps_to: concept, concept_type: organ_system }
-  Organ: { maps_to: concept, concept_type: anatomical_structure }
-  Mechanism: { maps_to: concept, concept_type: mechanism }
-  Process: { maps_to: concept, concept_type: physiological_process }
-  Measurement: { maps_to: observation }
-  Sensor: { maps_to: measurement_method }
-  MathematicalEquation: { maps_to: model, note: "Equations are parts of model specifications." }
-  Disease: { maps_to: condition }
-  Intervention: { maps_to: intervention }
-  Medication: { maps_to: intervention, intervention_type: pharmacological }
-  Behavior: { maps_to: intervention, intervention_type: behavioral }
-  Population: { maps_to: population }
-  ValidationDataset: { maps_to: reference, note: "Represented as a reference with study_type 'dataset'." }
-  Publication: { maps_to: reference }
-  Evidence: { maps_to: evidence, note: "Evidence is an attached statement (evidence.schema.json), not an entity." }
+# Specification-level types that are NOT package entity kinds:
+not_entity_kinds:
+  observation:
+    schema: observation.schema.json
+    test: "A single reported value of a quantity at a time, with value_kind (measured/estimated/derived/simulated/self_reported). An exchange record, not stored content: OCPE defines the format only."
+  unit:
+    registry: core/units.yaml
+    test: "A UCUM code registered in the canonical unit registry with a named dimension and reference-unit factor."
+  evidence_claim:
+    schema: evidence.schema.json
+    test: "An attached statement of what is supported, by which references, at what strength. Evidence claims hang off entities, ranges, relationships and model elements; they are not standalone entities."
+  reference:
+    schema: reference.schema.json
+    test: "A bibliographic record identified by a persistent identifier (doi:, pmid:, ...), declared in a document's 'references' list and cited by evidence claims."
+  package:
+    schema: package.schema.json
+    test: "An independently versioned, dependency-declaring unit of content, identified by the package id that doubles as its CURIE namespace."

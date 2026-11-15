@@ -47,7 +47,7 @@ def spec_root(explicit: Optional[str] = None) -> Path:
 def repo_root() -> Optional[Path]:
     """Source-checkout root (parent of specification/), if running from a checkout."""
     root = spec_root().parent
-    return root if (root / "packages").is_dir() else None
+    return root if (root / "specification").is_dir() else None
 
 
 def load_yaml(path: Path) -> Any:

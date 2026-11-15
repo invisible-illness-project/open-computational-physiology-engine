@@ -1,0 +1,5 @@
+quantity: ocpe:conf-quantity/perfusion-index
+value: 0.5
+unit: '1'
+value_kind: estimated
+method: ocpe:conf-quantity/flow-meter

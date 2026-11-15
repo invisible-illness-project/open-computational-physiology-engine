@@ -1,0 +1,7 @@
+id: conf-badspec
+name: conf-badspec
+version: 1.0.0
+ocpe_spec: '>=9.9.9'
+description: Synthetic conformance fixture (no scientific content).
+contents:
+- entities.yaml

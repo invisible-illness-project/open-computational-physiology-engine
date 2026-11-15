@@ -1,0 +1,136 @@
+{
+  "valid/measured-with-method.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "valid/estimated-latent.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "valid/simulated-with-model.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "valid/self-reported-boolean.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "valid/measured-minimal.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/unknown-quantity.yaml": {
+    "ok": false,
+    "errors": [
+      "unresolved-reference"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/concept-as-quantity.yaml": {
+    "ok": false,
+    "errors": [
+      "not-a-quantity"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/latent-measured.yaml": {
+    "ok": false,
+    "errors": [
+      "latent-measured"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/wrong-unit-dimension.yaml": {
+    "ok": false,
+    "errors": [
+      "unit"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/method-not-measuring.yaml": {
+    "ok": false,
+    "errors": [
+      "method-does-not-measure"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/method-wrong-kind.yaml": {
+    "ok": false,
+    "errors": [
+      "bad-method-kind"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/simulated-no-model.yaml": {
+    "ok": false,
+    "errors": [
+      "schema"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/value-type-mismatch.yaml": {
+    "ok": false,
+    "errors": [
+      "value-type-mismatch"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/bad-timestamp.yaml": {
+    "ok": false,
+    "errors": [
+      "bad-timestamp"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/uncertainty-unit-mismatch.yaml": {
+    "ok": false,
+    "errors": [
+      "unit"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/model-wrong-kind.yaml": {
+    "ok": false,
+    "errors": [
+      "bad-method-kind"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  }
+}

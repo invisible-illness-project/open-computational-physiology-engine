@@ -285,6 +285,8 @@ def _check_entity(ent: EntityRecord, pkg: Package, reg: Registry, rep: Report) -
         except ValueError:
             pass
 
+    _check_evidence_integrity(ent, reg, rep)
+
 
 def _check_ranges(d: Dict[str, Any], loc: str, rep: Report) -> None:
     def visit(o, path):
@@ -297,6 +299,38 @@ def _check_ranges(d: Dict[str, Any], loc: str, rep: Report) -> None:
             for i, v in enumerate(o):
                 visit(v, f"{path}/{i}")
     visit(d, "")
+
+
+def _check_evidence_integrity(ent: EntityRecord, reg: Registry, rep: Report) -> None:
+    """Every reference cited by an evidence claim must be a registered bibliographic record.
+
+    Syntactically valid ``doi:``/``pmid:``/... strings are not proof that the record
+    exists: packages declare their records in document-level ``references:`` lists,
+    and claims may only cite declared ids. Structural integrity, not scientific validity.
+    """
+
+    def visit(node: Any, path: str) -> None:
+        if isinstance(node, dict):
+            ev = node.get("evidence")
+            if isinstance(ev, list):
+                for i, claim in enumerate(ev):
+                    if not isinstance(claim, dict):
+                        continue
+                    for ref in claim.get("references", []) or []:
+                        if str(ref) not in reg.references:
+                            rep.add(
+                                "error", "unresolved-evidence-reference",
+                                f"evidence claim cites {ref!r}, which no loaded package declares in a 'references:' list",
+                                f"{ent.source}::{ent.id}{path}/evidence/{i}",
+                            )
+            for k, v in node.items():
+                if k != "evidence":
+                    visit(v, f"{path}/{k}")
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                visit(v, f"{path}/{i}")
+
+    visit(ent.data, "")
 
 
 def _check_aliases(reg: Registry, rep: Report) -> None:
@@ -355,19 +389,105 @@ def validate_paths(paths: Optional[Sequence[PathLike]] = None) -> Tuple[Registry
     return reg, validate_registry(reg)
 
 
+MEASURABLE_OBSERVABILITY = {"directly_measurable", "indirectly_measurable", "invasive_only"}
+_VALUE_KIND_MODES = {"measured": "direct", "estimated": "estimated", "derived": "derived"}
+
+
+def _check_timestamp(value: Any, loc: str, rep: Report) -> None:
+    from datetime import datetime
+
+    text = str(value)
+    try:
+        datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        rep.add("error", "bad-timestamp", f"time {text!r} is not an ISO 8601 timestamp or interval", loc)
+
+
 def validate_observation(record: Dict[str, Any], reg: Optional[Registry] = None) -> Report:
-    """Validate an observation exchange record (schema + optional semantic checks)."""
+    """Validate an observation exchange record (schema + optional semantic checks).
+
+    Semantic checks establish that the record is *interpretable*: the referenced
+    quantity, method and model exist and have appropriate entity types; the
+    value kind is compatible with the quantity's observability; the method
+    actually declares the quantity; units match the quantity's dimension; and
+    value/uncertainty types are coherent. A syntactically valid identifier is
+    never treated as proof that the referenced entity exists.
+    """
     rep = validate_instance(record, "observation.schema.json", "observation")
-    if reg is not None and rep.ok:
-        q = reg.get(record["quantity"])
-        if q is None:
-            rep.add("error", "unresolved-reference", f"{record['quantity']} does not resolve")
+    if rep.errors or reg is None:
+        return rep
+    loc = "observation"
+    q = reg.get(record["quantity"])
+    if q is None:
+        rep.add("error", "unresolved-reference", f"{record['quantity']} does not resolve", loc)
+        return rep
+    if q.kind not in QUANTITY_KINDS:
+        rep.add("error", "not-a-quantity", f"{q.id} is a {q.kind}, not a quantity", loc)
+
+    value_kind = record.get("value_kind")
+    if q.kind == "latent_construct" and value_kind == "measured":
+        rep.add("error", "latent-measured", f"{q.id} is a latent construct and cannot be 'measured'; use 'estimated'", loc)
+    if (
+        q.kind in ("variable", "derived_metric")
+        and value_kind == "measured"
+        and q.data.get("observability")
+        and q.data["observability"] not in MEASURABLE_OBSERVABILITY
+    ):
+        rep.add("warning", "unobservable-as-measured",
+                f"{q.id} has observability {q.data['observability']!r}; a 'measured' value is questionable", loc)
+
+    msg = units.check(record["unit"], q.data.get("dimension"))
+    if msg:
+        rep.add("error", "unit", msg, loc)
+
+    # Value-type compatibility with the quantity's declared value_type.
+    value_type = q.data.get("value_type")
+    value = record.get("value")
+    if value_type == "boolean" and not isinstance(value, bool):
+        rep.add("error", "value-type-mismatch", f"{q.id} is boolean-valued; got {type(value).__name__}", loc)
+    elif value_type == "categorical" and not isinstance(value, str):
+        rep.add("error", "value-type-mismatch", f"{q.id} is categorical; value must be a string", loc)
+    elif value_type in (None, "continuous", "discrete", "ordinal") and not isinstance(value, (int, float)):
+        rep.add("error", "value-type-mismatch", f"{q.id} is numeric; got {type(value).__name__}", loc)
+
+    # Uncertainty must share the record's dimension.
+    unc_unit = record.get("uncertainty_unit")
+    if unc_unit and units.is_known(unc_unit) and units.is_known(record["unit"]):
+        if units.dimension_of(unc_unit) != units.dimension_of(record["unit"]):
+            rep.add("error", "unit", f"uncertainty_unit {unc_unit!r} does not match the value unit's dimension", loc)
+
+    # Measurement method: must exist, must be a method, must declare the quantity.
+    method_ref = record.get("method")
+    if method_ref:
+        m = reg.get(method_ref)
+        if m is None:
+            rep.add("error", "unresolved-reference", f"method {method_ref} does not resolve", loc)
         else:
-            if q.kind not in QUANTITY_KINDS:
-                rep.add("error", "not-a-quantity", f"{q.id} is a {q.kind}, not a quantity")
-            if q.kind == "latent_construct" and record["value_kind"] == "measured":
-                rep.add("error", "latent-measured", f"{q.id} is a latent construct and cannot be 'measured'; use 'estimated'")
-            msg = units.check(record["unit"], q.data.get("dimension"))
-            if msg:
-                rep.add("error", "unit", msg)
+            if m.kind != "measurement_method":
+                rep.add("error", "bad-method-kind", f"{base_curie(method_ref)} is a {m.kind}, not a measurement_method", loc)
+            else:
+                declared = {base_curie(str(mm.get("target"))) for mm in m.data.get("measures", []) or [] if isinstance(mm, dict)}
+                if declared and base_curie(q.id) not in declared:
+                    rep.add("error", "method-does-not-measure",
+                            f"method {base_curie(method_ref)} does not declare measuring {q.id}", loc)
+                expected_mode = _VALUE_KIND_MODES.get(value_kind)
+                if expected_mode:
+                    modes = {str(mm.get("mode")) for mm in m.data.get("measures", []) or []
+                             if isinstance(mm, dict) and base_curie(str(mm.get("target", ""))) == base_curie(q.id)}
+                    if modes and expected_mode not in modes:
+                        rep.add("warning", "method-mode-mismatch",
+                                f"value_kind {value_kind!r} expects mode {expected_mode!r}; "
+                                f"method declares {sorted(modes)} for {q.id}", loc)
+
+    # Model: must exist and be a model (schema already requires the field for simulated values).
+    model_ref = record.get("model")
+    if model_ref:
+        m = reg.get(model_ref)
+        if m is None:
+            rep.add("error", "unresolved-reference", f"model {model_ref} does not resolve", loc)
+        elif m.kind != "model":
+            rep.add("error", "bad-method-kind", f"{base_curie(model_ref)} is a {m.kind}, not a model", loc)
+
+    if record.get("time"):
+        _check_timestamp(record["time"], loc, rep)
     return rep

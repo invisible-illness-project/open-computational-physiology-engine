@@ -48,7 +48,13 @@
     "status": {
       "description": "Lifecycle status of a specification artifact.",
       "type": "string",
-      "enum": ["draft", "provisional", "stable", "deprecated", "withdrawn"]
+      "enum": [
+        "draft",
+        "provisional",
+        "stable",
+        "deprecated",
+        "withdrawn"
+      ]
     },
     "date": {
       "type": "string",
@@ -57,39 +63,103 @@
     "alias": {
       "description": "Alternative name or symbol that resolves to the canonical identifier. Aliases are case-sensitive. A scope restricts where the alias is meaningful (e.g. a model CURIE for model symbols).",
       "type": "object",
-      "required": ["value"],
+      "required": [
+        "value"
+      ],
       "additionalProperties": false,
       "properties": {
-        "value": { "type": "string", "minLength": 1 },
-        "scope": { "type": "string", "minLength": 1, "description": "Package id, model CURIE, or 'legacy-kb' for symbols from the pre-0.1 knowledge base." },
-        "unit": { "$ref": "#/definitions/unit_code", "description": "If the alias denotes the quantity expressed in a specific unit (e.g. 'Hc' = heart rate in beats/s)." },
-        "type": { "type": "string", "enum": ["symbol", "synonym", "abbreviation", "legacy-id", "label"] },
-        "note": { "type": "string" }
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Package id or model CURIE in which the alias is meaningful; omit for globally valid aliases."
+        },
+        "unit": {
+          "$ref": "#/definitions/unit_code",
+          "description": "If the alias denotes the quantity expressed in a specific unit (e.g. 'Hc' = heart rate in beats/s)."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "synonym",
+            "abbreviation",
+            "legacy-id",
+            "label"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
       }
     },
     "external_mapping": {
       "description": "Mapping to a term in an external terminology/ontology (e.g. LOINC, SNOMED CT, UBERON, OBA). Mappings must not be invented; record only verified mappings.",
       "type": "object",
-      "required": ["system", "code", "relation"],
+      "required": [
+        "system",
+        "code",
+        "relation"
+      ],
       "additionalProperties": false,
       "properties": {
-        "system": { "type": "string" },
-        "code": { "type": "string" },
-        "label": { "type": "string" },
-        "relation": { "type": "string", "enum": ["exact", "close", "broad", "narrow", "related"] },
-        "verified": { "type": "boolean" },
-        "note": { "type": "string" }
+        "system": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "exact",
+            "close",
+            "broad",
+            "narrow",
+            "related"
+          ]
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        }
       }
     },
     "quantity": {
       "type": "object",
-      "required": ["value"],
+      "required": [
+        "value"
+      ],
       "additionalProperties": false,
       "properties": {
-        "value": { "type": "number" },
-        "unit": { "$ref": "#/definitions/unit_code" },
-        "uncertainty": { "type": "number", "minimum": 0 },
-        "uncertainty_type": { "type": "string", "enum": ["sd", "se", "ci95_halfwidth", "range_halfwidth", "unspecified"] }
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "$ref": "#/definitions/unit_code"
+        },
+        "uncertainty": {
+          "type": "number",
+          "minimum": 0
+        },
+        "uncertainty_type": {
+          "type": "string",
+          "enum": [
+            "sd",
+            "se",
+            "ci95_halfwidth",
+            "range_halfwidth",
+            "unspecified"
+          ]
+        }
       }
     },
     "context": {
@@ -101,144 +171,214 @@
           "description": "Population entity reference or free-text description.",
           "type": "string"
         },
-        "health_status": { "type": "string" },
+        "health_status": {
+          "type": "string"
+        },
         "age_range": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "min": { "type": "number" },
-            "max": { "type": "number" },
-            "unit": { "$ref": "#/definitions/unit_code" }
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "unit": {
+              "$ref": "#/definitions/unit_code"
+            }
           }
         },
-        "sex": { "type": "string", "enum": ["female", "male", "any", "mixed", "unspecified"] },
-        "posture": { "type": "string" },
-        "activity": { "type": "string" },
-        "setting": { "type": "string" },
-        "measurement_method": { "type": "string", "description": "Measurement method entity reference or description." },
-        "model": { "$ref": "#/definitions/curie" },
-        "scope_note": { "type": "string", "description": "Plain-language statement of what the qualifying context is and is not." }
+        "sex": {
+          "type": "string",
+          "enum": [
+            "female",
+            "male",
+            "any",
+            "mixed",
+            "unspecified"
+          ]
+        },
+        "posture": {
+          "type": "string"
+        },
+        "activity": {
+          "type": "string"
+        },
+        "setting": {
+          "type": "string"
+        },
+        "measurement_method": {
+          "type": "string",
+          "description": "Measurement method entity reference or description."
+        },
+        "model": {
+          "$ref": "#/definitions/curie"
+        },
+        "scope_note": {
+          "type": "string",
+          "description": "Plain-language statement of what the qualifying context is and is not."
+        }
       },
-      "additionalProperties": { "type": ["string", "number", "boolean"] }
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
     },
     "reference_range": {
       "description": "A context-qualified range of values. The range_type distinguishes population reference intervals from plausibility bounds, clinical thresholds and model validity domains, which must never be conflated.",
       "type": "object",
-      "required": ["range_type", "unit", "context"],
+      "required": [
+        "range_type",
+        "unit",
+        "context"
+      ],
       "additionalProperties": false,
       "properties": {
         "range_type": {
           "type": "string",
-          "enum": ["reference_interval", "plausibility_bound", "clinical_threshold", "model_validity_domain", "observed_range"]
+          "enum": [
+            "reference_interval",
+            "plausibility_bound",
+            "clinical_threshold",
+            "model_validity_domain",
+            "observed_range"
+          ]
         },
-        "min": { "type": "number" },
-        "max": { "type": "number" },
-        "unit": { "$ref": "#/definitions/unit_code" },
-        "context": { "$ref": "#/definitions/context" },
-        "evidence": { "type": "array", "items": { "$ref": "evidence.schema.json" } },
-        "notes": { "type": "string" }
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "unit": {
+          "$ref": "#/definitions/unit_code"
+        },
+        "context": {
+          "$ref": "#/definitions/context"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "evidence.schema.json"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
       },
-      "anyOf": [{ "required": ["min"] }, { "required": ["max"] }]
+      "anyOf": [
+        {
+          "required": [
+            "min"
+          ]
+        },
+        {
+          "required": [
+            "max"
+          ]
+        }
+      ]
     },
     "deprecation": {
       "type": "object",
-      "required": ["deprecated_in", "reason"],
+      "required": [
+        "deprecated_in",
+        "reason"
+      ],
       "additionalProperties": false,
       "properties": {
-        "deprecated_in": { "$ref": "#/definitions/semver" },
-        "replaced_by": { "$ref": "#/definitions/entity_ref" },
-        "reason": { "type": "string" },
-        "removal_planned_in": { "$ref": "#/definitions/semver" }
-      }
-    },
-    "model_representation": {
-      "description": "How a condition or intervention is represented inside a specific computational model. This is a model-specific representational hypothesis with its own evidence, not a claim about the condition itself.",
-      "type": "object",
-      "required": ["model"],
-      "additionalProperties": false,
-      "patternProperties": { "^x-": {} },
-      "properties": {
-        "model": { "$ref": "#/definitions/curie" },
-        "parameter_perturbations": { "type": "array", "items": { "$ref": "#/definitions/parameter_perturbation" } },
-        "unverified_parameter_perturbations": {
-          "description": "Perturbations whose magnitude is not verified. Consumers MUST treat these as inert unless explicitly opted in (legacy 'unverified_parameters' semantics).",
-          "type": "array",
-          "items": { "$ref": "#/definitions/parameter_perturbation" }
+        "deprecated_in": {
+          "$ref": "#/definitions/semver"
         },
-        "constraints": { "type": "array", "items": { "$ref": "#/definitions/representation_constraint" } },
-        "validation_criteria": { "type": "array", "items": { "$ref": "#/definitions/validation_criterion" } },
-        "notes": { "type": "string" }
-      }
-    },
-    "parameter_perturbation": {
-      "type": "object",
-      "required": ["parameter"],
-      "additionalProperties": false,
-      "patternProperties": { "^x-": {} },
-      "properties": {
-        "parameter": { "$ref": "#/definitions/symbol_ref" },
-        "baseline_value": { "type": "number" },
-        "perturbed_value": { "type": "number" },
-        "factor": { "type": "number", "description": "Multiplicative factor relative to baseline when the representation is expressed as a ratio." },
-        "unit": { "$ref": "#/definitions/unit_code" },
-        "mechanism": { "type": "string" },
-        "application": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "trigger": { "type": "string" },
-            "transition": { "type": "string" },
-            "notes": { "type": "string" }
-          }
+        "replaced_by": {
+          "$ref": "#/definitions/entity_ref"
         },
-        "evidence": { "type": "array", "items": { "$ref": "evidence.schema.json" } },
-        "curation_status": { "$ref": "evidence.schema.json#/definitions/curation_status" },
-        "curation_note": { "type": "string", "description": "Verbatim curation/review note carried forward from legacy content." }
-      }
-    },
-    "representation_constraint": {
-      "type": "object",
-      "required": ["rationale"],
-      "additionalProperties": false,
-      "properties": {
-        "do_not_perturb": { "type": "array", "items": { "$ref": "#/definitions/symbol_ref" } },
-        "rationale": { "type": "string" },
-        "evidence_tier": { "$ref": "evidence.schema.json#/definitions/evidence_tier" },
-        "evidence": { "type": "array", "items": { "$ref": "evidence.schema.json" } }
-      }
-    },
-    "validation_criterion": {
-      "description": "Acceptance criterion a model representation is expected to satisfy (e.g. a phenotype signature). Declaring a criterion does not assert that any model satisfies it.",
-      "type": "object",
-      "required": ["criterion"],
-      "additionalProperties": false,
-      "properties": {
-        "criterion": { "type": "string" },
-        "tier": { "$ref": "evidence.schema.json#/definitions/evidence_tier" },
-        "source": { "type": "string" },
-        "evidence": { "type": "array", "items": { "$ref": "evidence.schema.json" } }
+        "reason": {
+          "type": "string"
+        },
+        "removal_planned_in": {
+          "$ref": "#/definitions/semver"
+        }
       }
     },
     "entity_base": {
       "description": "Properties shared by every OCPE entity. Kind-specific schemas compose this definition.",
       "type": "object",
-      "required": ["id", "kind", "label"],
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
       "properties": {
-        "id": { "$ref": "#/definitions/curie" },
-        "kind": { "type": "string" },
-        "label": { "type": "string", "minLength": 1 },
-        "definition": { "type": "string", "description": "Normative definition of the entity." },
-        "description": { "type": "string", "description": "Informative explanation." },
-        "aliases": { "type": "array", "items": { "$ref": "#/definitions/alias" } },
-        "status": { "$ref": "#/definitions/status" },
-        "since": { "$ref": "#/definitions/semver", "description": "Package version in which this identifier was introduced." },
-        "deprecation": { "$ref": "#/definitions/deprecation" },
-        "evidence": { "type": "array", "items": { "$ref": "evidence.schema.json" } },
-        "provenance": { "$ref": "provenance.schema.json" },
-        "external_mappings": { "type": "array", "items": { "$ref": "#/definitions/external_mapping" } },
-        "see_also": { "type": "array", "items": { "$ref": "#/definitions/entity_ref" } },
-        "notes": { "type": "string" },
-        "curation_notes": { "type": "array", "items": { "type": "string" }, "description": "Verbatim curation history and review annotations preserved from source content." }
+        "id": {
+          "$ref": "#/definitions/curie"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "definition": {
+          "type": "string",
+          "description": "Normative definition of the entity."
+        },
+        "description": {
+          "type": "string",
+          "description": "Informative explanation."
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/alias"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/status"
+        },
+        "since": {
+          "$ref": "#/definitions/semver",
+          "description": "Package version in which this identifier was introduced."
+        },
+        "deprecation": {
+          "$ref": "#/definitions/deprecation"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "evidence.schema.json"
+          }
+        },
+        "provenance": {
+          "$ref": "provenance.schema.json"
+        },
+        "external_mappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/external_mapping"
+          }
+        },
+        "see_also": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/entity_ref"
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "curation_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Verbatim curation history and review annotations preserved from source content."
+        }
       }
     }
   }
