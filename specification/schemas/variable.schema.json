@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/variable.schema.json",
+  "title": "OCPE physiological variable",
+  "description": "A quantifiable, time-varying property of a physiological system that is measurable in principle (a quantity kind such as 'heart rate' or 'arterial blood pressure'). A variable is independent of how it is measured (see measurement_method) and of any particular recorded value (see observation). Unit is a representation choice: the same variable may be expressed in any unit of its dimension.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "dimension",
+    "canonical_unit"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "variable"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "dimension": {
+      "type": "string",
+      "description": "Named dimension from specification/core/units.yaml (e.g. 'pressure', 'volume', 'frequency', 'dimensionless')."
+    },
+    "canonical_unit": {
+      "$ref": "common.schema.json#/definitions/unit_code"
+    },
+    "accepted_units": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/unit_code"
+      }
+    },
+    "value_type": {
+      "type": "string",
+      "enum": [
+        "continuous",
+        "discrete",
+        "ordinal",
+        "categorical",
+        "boolean"
+      ]
+    },
+    "observability": {
+      "type": "string",
+      "enum": [
+        "directly_measurable",
+        "indirectly_measurable",
+        "invasive_only",
+        "model_compartment"
+      ],
+      "description": "How the variable can be observed. 'model_compartment' marks lumped-model abstractions (e.g. 'upper-body arterial volume') whose physiological counterpart is approximate."
+    },
+    "system": {
+      "$ref": "common.schema.json#/definitions/curie"
+    },
+    "reference_ranges": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/reference_range"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

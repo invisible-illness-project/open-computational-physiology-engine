@@ -1,0 +1,25 @@
+# OCPE specification metadata.
+ocpe_spec_version: "0.1.0"
+status: provisional
+identifier_prefix: "ocpe"
+identifier_expansion: "https://w3id.org/ocpe/id/"
+schema_base_uri: "https://w3id.org/ocpe/schema/0.1/"
+json_schema_dialect: "http://json-schema.org/draft-07/schema#"
+authoring_format: YAML 1.2 (JSON is equally valid)
+normative_artifacts:
+  - specification/schemas/*.schema.json
+  - specification/core/identifiers.md
+  - specification/core/units.yaml
+  - specification/core/predicates.yaml
+  - specification/core/functional-forms.yaml
+  - docs/versioning-policy.md
+informative_artifacts:
+  - specification/core/kinds.yaml
+  - specification/core/evidence-scales.yaml
+optional_extensions:
+  governance:
+    description: "Evidence-layered review, adjudication and authorization (ADR 0001). Not required to load, validate or resolve OCPE packages."
+    schemas: [specification/schemas/governance/review-manifest.schema.json]
+statement_of_scope: >
+  Structural conformance to these schemas establishes that content is well-formed,
+  internally consistent and resolvable. It does NOT establish scientific validity.

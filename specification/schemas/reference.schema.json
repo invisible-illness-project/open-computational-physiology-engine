@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/reference.schema.json",
+  "title": "OCPE literature / data reference",
+  "description": "Bibliographic record for a source cited by evidence statements. Identified by a persistent identifier (DOI, PMID, ...). Fields must be transcribed from the source, never inferred.",
+  "type": "object",
+  "required": ["id"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/reference_id" },
+    "doi": { "type": "string", "pattern": "^10\\.[0-9]{4,9}/\\S+$" },
+    "pmid": { "type": "string", "pattern": "^[0-9]+$" },
+    "pmcid": { "type": "string", "pattern": "^PMC[0-9]+$" },
+    "arxiv": { "type": "string" },
+    "url": { "type": "string", "format": "uri" },
+    "title": { "type": "string" },
+    "authors": { "type": "array", "items": { "type": "string" } },
+    "year": { "type": "integer", "minimum": 1600, "maximum": 2100 },
+    "venue": { "type": "string" },
+    "citation": { "type": "string", "description": "Formatted citation preserved verbatim from source content." },
+    "study_type": { "$ref": "#/definitions/study_type" },
+    "sample_size": { "type": "integer", "minimum": 0 },
+    "summary_document": { "type": "string", "description": "Repository-relative path to a structured literature review of this reference (evidence/references/)." },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": { "type": "string", "enum": ["verified", "unverified", "disputed", "fabrication_suspected", "retracted"] },
+        "method": { "type": "string" },
+        "date": { "$ref": "common.schema.json#/definitions/date" },
+        "notes": { "type": "string" }
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "definitions": {
+    "study_type": {
+      "type": "string",
+      "enum": [
+        "randomized_controlled_trial",
+        "systematic_review",
+        "meta_analysis",
+        "narrative_review",
+        "observational_human",
+        "experimental_human",
+        "case_series",
+        "animal",
+        "in_vitro",
+        "in_silico",
+        "device_validation",
+        "guideline",
+        "textbook",
+        "dataset",
+        "other"
+      ]
+    }
+  }
+}

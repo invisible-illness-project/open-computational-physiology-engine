@@ -4,12 +4,13 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Simulation results and generated data
-results/
-*.npz
+# Build artifacts
+dist/
+build/
+*.egg-info/
 
-# Legacy or cloned MATLAB repository code (local execution copies)
-BaroreflexPOTSmodel/
+# Test caches
+.pytest_cache/
 
 # OS-specific files
 .DS_Store

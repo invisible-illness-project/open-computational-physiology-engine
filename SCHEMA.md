@@ -1,160 +1,72 @@
-# Knowledge Base Schema Definitions
+# OCPE Schema
 
-This schema defines the structure of the literature review files and central registries (variables, models, relationships) for the Invisible Illness Project. The goal is to enforce machine readability, strict data types, explicit unit requirements, and absolute traceability for downstream mathematical modeling.
+This file used to document the pre-0.1 knowledge-base YAML schema. That schema
+is **retired**: it described the old `knowledge_base/` tree and was superseded
+when OCPE became a versioned, machine-readable specification system. This
+file is now a pointer to the normative contract.
 
----
+## Where the machine-readable contract lives
 
-## 1. Publication Review Schema (`knowledge_base/publications/*.md`)
+- **JSON Schemas (draft-07, normative for specification 0.1.x):**
+  `specification/schemas/*.schema.json` — one schema per entity kind, plus
+  shared definitions in `common.schema.json`.
+- **Identifier grammar:** `specification/core/identifiers.md` — the
+  `ocpe:<package>/<local-id>` CURIE grammar, model-local `#symbol` references,
+  stability rules and aliases.
+- **Units:** `specification/core/units.yaml` — the canonical unit registry:
+  UCUM case-sensitive codes, physical dimensions and reference-unit
+  conversion factors used by the engine for dimensional checks.
+- **Supporting core vocabulary:** `specification/core/` also holds the entity
+  kind taxonomy (`kinds.yaml`), predicate vocabulary (`predicates.yaml`),
+  functional forms (`functional-forms.yaml`), evidence scales
+  (`evidence-scales.yaml`) and the specification meta-file (`meta.yaml`).
+- **Human reference:** `docs/specification-reference.md` — the schemas
+  described field by field.
 
-Every reviewed publication must be a Markdown file with a YAML frontmatter block. The frontmatter must contain:
+The schemas are enforced by the reference engine
+(`implementations/python/`, the `ocpe` CLI and Python API). Validation is
+structural: it establishes that content is well-formed, internally consistent
+and resolvable. It does not establish scientific validity.
 
-```yaml
-publication:
-  title: string           # Exact title of the paper
-  doi: string             # Digital Object Identifier (canonical)
-  pmid: string            # PubMed ID (if available, else null)
-  pmcid: string           # PubMed Central ID (if available, else null)
-  journal: string         # Full journal name
-  year: integer           # Year of publication
-  authors: list of string # Full names of all authors
-  evidence_level: string  # Standard level (e.g., Level 1: RCT, Level 4: In Silico)
-  study_type: string      # E.g., clinical validation, randomized trial, in silico
-  confidence_score: integer # 1 to 10 scale (justified in text)
+## Schema inventory
 
-population:
-  cohorts:
-    - cohort_id: string       # Unique identifier within this document
-      sample_size: integer    # Number of subjects
-      sex:                    # Biological sex distribution
-        male: integer         # Count of males
-        female: integer       # Count of females
-        other: integer        # Count of other/unspecified
-      age:                    # Age distribution (years)
-        mean: float           # Mean age (null if not reported)
-        sd: float             # Standard deviation (null if not reported)
-        min: float            # Minimum age (null if not reported)
-        max: float            # Maximum age (null if not reported)
-      bmi:                    # Body Mass Index (kg/m^2)
-        mean: float           # Mean BMI
-        sd: float             # Standard deviation of BMI
-      health_status: string   # "Healthy Control", "POTS", "ME/CFS", etc.
-      severity: string        # Mild, moderate, severe, or "unspecified"
-      medications: list of string # Medications allowed or reported
-      comorbidities: list of string # Comorbidities reported
-      inclusion_criteria: list of string # Specific inclusion rules
-      exclusion_criteria: list of string # Specific exclusion rules
+The 19 schemas in `specification/schemas/`:
 
-variables:
-  - name: string            # Full variable name
-    symbol: string          # Standard mathematical or sensing symbol (e.g., RMSSD)
-    units: string           # Standard scientific units (e.g., ms, bpm, mmHg)
-    baseline_value:         # Reported resting/baseline values for this cohort
-      mean: float
-      sd: float
-      median: float
-      range_min: float
-      range_max: float
-    measurement_method: string # ECG, dry-electrode chest strap, PPG, etc.
-    sampling_frequency: float # In Hz (null if not reported)
+| Schema | Purpose |
+|---|---|
+| `common.schema.json` | Shared definitions referenced by every schema: CURIE and package-id grammar, unit codes, references, context, evidence helpers, deprecation. |
+| `concept.schema.json` | Unquantified physiological entity (organ system, structure, process, mechanism) — has no unit or value; distinct from any quantity. |
+| `condition.schema.json` | Disease, syndrome, phenotype, exposure or state; separates clinical claims from model-specific `model_representations`. |
+| `derived-metric.schema.json` | Quantity computed by a declared algorithm from variables or series (e.g. RMSSD); the computation, including window and artifact handling, is part of the definition. |
+| `document.schema.json` | A YAML/JSON file listed in a package manifest's `contents`; entities in it are discriminated by `kind` and validated against the per-kind schema. |
+| `evidence.schema.json` | Attachable evidence statement: what is supported, by which references, at what strength; independent of review workflows. |
+| `functional-form.schema.json` | Named qualitative/mathematical shape of a dependency (Hill sigmoid, first-order lag) used to qualify relationships without executable code. |
+| `intervention.schema.json` | Test, protocol, therapy, drug or manipulation; protocols are declarative — in-silico execution belongs to downstream simulators. |
+| `latent-construct.schema.json` | Theoretical quantity not directly observable even in principle; its values are estimates conditional on an operationalization, never measurements. |
+| `measurement-method.schema.json` | Device, assay, procedure or pipeline that observes a quantity; performance is context-qualified and does not transfer silently. |
+| `model.schema.json` | Declarative computational model specification: symbols with units and meanings, equations, assumptions, validity domain, evidence; no numerical execution. |
+| `observation.schema.json` | Exchange record for a single observed, estimated, derived or simulated value of a quantity; `value_kind` separates measurements from estimates and synthetic data. |
+| `package.schema.json` | Package manifest: id, version, `ocpe_spec` range, dependencies, contents. The package id is the CURIE namespace of its entities. |
+| `population.schema.json` | Group description qualifying the context of ranges, evidence and performance; a context descriptor, not a generative cohort specification. |
+| `predicate.schema.json` | A relationship type in the core predicate vocabulary. |
+| `provenance.schema.json` | Where content came from and how it was produced; descriptive only, implying no review or approval. |
+| `reference.schema.json` | Bibliographic record keyed by a persistent identifier (DOI, PMID, ...); transcribed from the source, never inferred. |
+| `relationship.schema.json` | Typed, directed `subject PREDICATE object` assertion with optional functional form, model-equation pointer, context and evidence. |
+| `variable.schema.json` | Quantifiable, time-varying property measurable in principle; independent of measurement method and of any recorded value. |
 
-mathematical_models:
-  - model_name: string      # E.g., Baroreflex control of heart rate
-    equations:
-      - label: string       # Equation tag (e.g., Eq 2.11)
-        latex: string       # LaTeX formatted string of the equation
-    parameters:
-      - symbol: string      # Parameter symbol (e.g., k_R)
-        name: string        # Short name
-        value: float        # Default/nominal value
-        units: string       # Parameter units
-        phenotype_values:   # Phenotype-specific parameter settings if applicable
-          - phenotype_id: string
-            value: float
-        description: string # Short description
-    assumptions: list of string # Underlying assumptions made by the model
+Separately, `specification/schemas/governance/review-manifest.schema.json` is
+the OPTIONAL governance extension (ADR 0001): the `*.review.yaml` sidecar
+recording review events, claims, challenges and adjudication for one content
+addressed asset. It is not required to use the core engine or the 19 schemas
+above.
 
-relationships:
-  - relationship_id: string # Unique string ID (e.g., P_au_to_H_c)
-    cause: string           # Sourced variable symbol
-    effect: string          # Target variable symbol
-    type: string            # "direct_proportional", "inverse_proportional", "sigmoid_hill", "first_order_ode", etc.
-    strength: string        # Quantified coefficient or gain if known (else null)
-    equation_ref: string    # Reference to equations (e.g., "Eq 2.11")
-    evidence_level: string  # Level of evidence supporting this link
-    citations: list of string # DOIs/PMIDs supporting this relationship
+## The retired knowledge-base schema
 
-sensor_validation:          # Required if the paper validates a wearable device
-  sensor_modality: string   # E.g., dry-electrode ECG, optical photoplethysmography
-  sampling_frequency: float # In Hz
-  signal_processing: string # Preprocessing and filters used
-  accuracy_metrics:         # Quantified error rates vs. gold standard
-    - parameter: string     # Variable evaluated (e.g., RR, DFA_a1)
-      icc: float            # Intraclass Correlation Coefficient (null if not reported)
-      concordance: float    # Lin's Concordance Correlation Coefficient
-      pearson_r: float      # Pearson's r
-      bias: float           # Mean difference (units match parameter)
-      loa_lower: float      # Lower Limit of Agreement
-      loa_upper: float      # Upper Limit of Agreement
-      exercise_intensity: string # "rest", "low_intensity", "high_intensity"
-  failure_modes: list of string # Known failure modes
-  motion_artifacts_handling: string # How motion artifacts are handled/detected
-
-conflicts:                  # Discrepancies, limitations, or conflicts noted
-  - topic: string
-    description: string
-    possible_explanations: list of string
-```
-
----
-
-## 2. Central Registry Schemas
-
-### A. Central Variables Schema (`knowledge_base/variables/definitions.yaml`)
-A single global dictionary registry mapping unique variable symbols to their definitions:
-```yaml
-variables:
-  - symbol: string
-    name: string
-    category: string        # cardiovascular, autonomic, respiratory, sensor, etc.
-    description: string
-    units: string           # Standard scientific unit
-    valid_range:            # Physiological limit bounds
-      min: float
-      max: float
-```
-
-### B. Central Relationships Schema (`knowledge_base/relationships/mechanistic_links.yaml`)
-Aggregated causal links across all reviewed literature:
-```yaml
-relationships:
-  - relationship_id: string
-    cause: string
-    effect: string
-    type: string
-    evidence_score: float   # Derived score based on study types
-    supporting_publications:
-      - doi: string
-        citation_keys: list of string
-        population_cohorts: list of string
-    mathematical_ref: string # Link to models mapping this relationship
-```
-
-### C. Central Mathematical Models Schema (`knowledge_base/models/mathematical_models.yaml`)
-Consolidated equations and parameters for simulation execution:
-```yaml
-models:
-  - model_id: string
-    name: string
-    equations:
-      - label: string
-        latex: string
-    parameters:
-      - symbol: string
-        units: string
-        nominal_value: float
-        phenotypes:
-          - phenotype: string
-            value: float
-        description: string
-    sources: list of string # List of DOIs
-```
+The old YAML knowledge-base schema (publication-review frontmatter, central
+variable/relationship/model registries) described content that either
+migrated into OCPE packages or left the repository. It applies only to the
+pre-0.1 tree, recoverable verbatim at git tag `pre-architectural-refactor`.
+The file-by-file mapping from the old knowledge base to OCPE 0.1 locations is
+in `docs/migration-guide.md`; components that left the repository entirely
+(simulation, sensor models, results) are inventoried in
+`migration_archive/MIGRATION_NOTES.md`.

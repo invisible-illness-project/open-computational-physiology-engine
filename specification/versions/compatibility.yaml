@@ -1,0 +1,49 @@
+# Machine-readable compatibility rules for the OCPE specification.
+# Consumed by the reference engine (ocpe.compatibility) and documented in
+# docs/versioning-policy.md.
+current: "0.1.0"
+
+releases:
+  - version: "0.1.0"
+    status: provisional
+    schema_base_uri: "https://w3id.org/ocpe/schema/0.1/"
+    document_marker: "0.1"        # value of the `ocpe:` key in documents
+    reads_documents: ["0.1"]
+    supersedes: "pre-0.1 knowledge_base layout (git tag pre-architectural-refactor)"
+    migration: "docs/migration-guide.md"
+
+# Classification of changes used by `ocpe diff` to recommend version bumps.
+change_classes:
+  package:
+    major:
+      - identifier_removed
+      - alias_removed
+      - identifier_kind_changed
+      - dimension_changed
+      - canonical_unit_changed
+      - dependency_major_bump_required
+    minor:
+      - identifier_added
+      - identifier_deprecated
+      - alias_added
+      - evidence_added
+      - reference_range_added
+    patch:
+      - label_or_description_changed
+      - curation_note_changed
+  specification:
+    major:
+      - required_field_added
+      - field_removed_or_renamed
+      - enum_value_removed
+      - identifier_grammar_changed
+    minor:
+      - optional_field_added
+      - enum_value_added
+      - new_kind_added
+    patch:
+      - description_clarified
+
+# Pre-1.0 rule (SemVer item 4): while a version is 0.y.z, a MINOR bump may carry
+# breaking changes; constraints should therefore pin the minor (e.g. ">=0.1.0 <0.2.0").
+pre_1_0_policy: "minor-is-breaking"

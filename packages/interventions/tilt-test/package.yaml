@@ -1,0 +1,25 @@
+id: interventions.tilt-test
+name: Head-Up Tilt Test Protocol
+version: "1.0.0"
+ocpe_spec: ">=0.1.0 <0.2.0"
+status: provisional
+license: UNSPECIFIED
+description: >
+  Head-up tilt (HUT) diagnostic protocol specification. The protocol is
+  declarative; executing it in silico is the responsibility of downstream
+  simulators. Migrated from knowledge_base/interventions/tilt_test.yaml.
+dependencies:
+  - package: core
+    version: ">=0.1.0 <0.2.0"
+    reason: predicate vocabulary
+contents:
+  - tilt-test.yaml
+provenance:
+  derived_from:
+    - source: knowledge_base/interventions/tilt_test.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: >
+        intervention block -> intervention entity; flat protocol timing fields
+        -> protocol.phases (supine rest, tilt transition, sustained tilt,
+        tilt down) with settings; purpose and provenance carried verbatim.

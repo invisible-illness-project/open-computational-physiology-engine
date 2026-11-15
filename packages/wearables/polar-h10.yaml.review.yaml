@@ -1,0 +1,75 @@
+review_manifest_version: 2.0.0
+target_file:
+  path: packages/wearables/polar-h10.yaml
+  sha256: 8b1eba19ebc7543152bf058b042d8766ee9c7756c236d9627b884834e4ce4c6f
+reviews:
+- review_id: rev-a720de3c-3ba1-4d42-80b9-7d2671178730
+  reviewed_at: '2026-09-11T00:45:41.640654+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: f84bbbeb657b6b5bbc4d1c1b4b6e866e5da245e899e16a8494b1ad69d8d4ff33
+- review_id: rev-de056f5b-cd09-4d0e-9271-3e438872e7ad
+  reviewed_at: '2026-09-30T21:25:41.919391+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: f84bbbeb657b6b5bbc4d1c1b4b6e866e5da245e899e16a8494b1ad69d8d4ff33
+- review_id: rev-5930d18d-457e-4fae-a0fe-8efd775edd51
+  reviewed_at: '2026-11-15T00:02:09.519287+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: architectural-refactoring-migrator
+      agent_role: architectural migration to OCPE 0.1 package layout
+      role: migration
+  scope:
+  - schema_conformance
+  - migration
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: knowledge_base/wearables/polar_h10.yaml (v1.0) migrated to packages/wearables/polar-h10.yaml
+    (measurement_method entity). Review history preserved below. Structural migration
+    only; no scientific re-grading. See migration_archive/MIGRATION_NOTES.md and docs/migration-guide.md.
+  target_sha256: 8b1eba19ebc7543152bf058b042d8766ee9c7756c236d9627b884834e4ce4c6f
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: DETERMINISTICALLY_VALID
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 0
+    supporting: 0
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

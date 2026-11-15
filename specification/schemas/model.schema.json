@@ -1,0 +1,274 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/model.schema.json",
+  "title": "OCPE computational model specification",
+  "description": "A declarative specification of a mathematical or computational model: its symbols (states, parameters, inputs, outputs) with units and meanings, equations, assumptions, validity domain and evidence. OCPE stores the specification only. Numerical execution (solvers, step sizes, initialisation routines, run orchestration) belongs to implementations, which are referenced but not contained.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "formalism"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "model"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "formalism": {
+      "type": "string",
+      "enum": [
+        "ode",
+        "dae",
+        "pde",
+        "algebraic",
+        "discrete_time",
+        "agent_based",
+        "statistical",
+        "machine_learning",
+        "hybrid",
+        "other"
+      ]
+    },
+    "scope": {
+      "type": "string"
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "symbol",
+          "role"
+        ],
+        "patternProperties": {
+          "^x-": {}
+        },
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "state",
+              "parameter",
+              "input",
+              "output",
+              "auxiliary",
+              "constant",
+              "time"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "common.schema.json#/definitions/unit_code"
+          },
+          "represents": {
+            "$ref": "common.schema.json#/definitions/curie",
+            "description": "OCPE entity (variable, latent construct, ...) this model symbol represents."
+          },
+          "nominal_value": {
+            "type": "number",
+            "description": "Published/curated nominal value. A specification datum with provenance, not a solver setting."
+          },
+          "value_range": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "evidence.schema.json"
+            }
+          },
+          "curation_status": {
+            "$ref": "evidence.schema.json#/definitions/curation_status"
+          },
+          "curation_note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "equations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "expression_latex"
+        ],
+        "patternProperties": {
+          "^x-": {}
+        },
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "form": {
+            "type": "string",
+            "enum": [
+              "algebraic",
+              "differential",
+              "piecewise",
+              "delay_differential",
+              "stochastic",
+              "other"
+            ]
+          },
+          "expression_latex": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "evidence.schema.json"
+            }
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validity_domain": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/context"
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/definitions/reference_id"
+          }
+        },
+        "upstream_implementation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "commit": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string"
+            },
+            "license": {
+              "type": "string"
+            },
+            "citation_requirement": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "implementations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "conformance_note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

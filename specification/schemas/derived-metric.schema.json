@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/derived-metric.schema.json",
+  "title": "OCPE derived metric",
+  "description": "A quantity computed by a defined algorithm from one or more variables or observation series (e.g. RMSSD from RR intervals, DFA alpha-1). Its meaning depends on the computation, including window length and artifact handling, which must be declared.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "derived_from",
+    "computation",
+    "dimension",
+    "canonical_unit"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "derived_metric"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/entity_ref"
+      },
+      "minItems": 1
+    },
+    "computation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "formula": {
+          "type": "string",
+          "description": "LaTeX or plain-text formula."
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "input_requirements": {
+          "type": "string"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/definitions/reference_id"
+          }
+        }
+      }
+    },
+    "dimension": {
+      "type": "string",
+      "description": "Named dimension from specification/core/units.yaml (e.g. 'pressure', 'volume', 'frequency', 'dimensionless')."
+    },
+    "canonical_unit": {
+      "$ref": "common.schema.json#/definitions/unit_code"
+    },
+    "reference_ranges": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/reference_range"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

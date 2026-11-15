@@ -1,0 +1,67 @@
+# OCPE entity kinds (informative; the JSON Schemas are normative).
+#
+# Requirement: concepts, variables, observations, measurement methods, derived
+# metrics and latent constructs are DISTINCT kinds and must never be used
+# interchangeably. The tests below decide which kind an item belongs to.
+ocpe_spec: "0.1"
+
+kinds:
+  concept:
+    schema: concept.schema.json
+    test: "An entity with no unit or value (organ system, structure, process, mechanism)."
+    example: "ocpe:cardiovascular/baroreflex"
+  variable:
+    schema: variable.schema.json
+    test: "A quantity that can, at least in principle, be measured directly or indirectly, independent of method and value."
+    example: "ocpe:cardiovascular/heart-rate"
+  latent_construct:
+    schema: latent-construct.schema.json
+    test: "A theoretical quantity that cannot be observed even in principle; values are always model- or indicator-conditional estimates."
+    example: "ocpe:autonomic/sympathetic-tone"
+  derived_metric:
+    schema: derived-metric.schema.json
+    test: "A quantity defined by an algorithm applied to other quantities or series (window, artifact handling matter)."
+    example: "ocpe:autonomic/rmssd"
+  measurement_method:
+    schema: measurement-method.schema.json
+    test: "A device, assay, procedure or processing pipeline that produces observations; carries context-qualified performance."
+    example: "ocpe:wearables/polar-h10"
+  observation:
+    schema: observation.schema.json
+    test: "A single reported value of a quantity at a time, with value_kind (measured/estimated/derived/simulated). OCPE defines the format only and stores no observations."
+    example: "{quantity: ocpe:cardiovascular/heart-rate, value: 72, unit: /min, value_kind: measured}"
+  condition:
+    schema: condition.schema.json
+    test: "A disease, syndrome, phenotype, exposure or state that alters physiology."
+  intervention:
+    schema: intervention.schema.json
+    test: "A test, protocol, therapy, drug, behaviour or environmental manipulation."
+  population:
+    schema: population.schema.json
+    test: "A group description used to qualify context; not a cohort generator."
+  model:
+    schema: model.schema.json
+    test: "A declarative computational model specification (symbols, equations, assumptions, units, evidence) — never solver code."
+  relationship:
+    schema: relationship.schema.json
+    test: "A typed directed assertion between entities."
+
+# Mapping of the 17 legacy concept classes (knowledge_base/ontology/concepts.yaml v3.0)
+legacy_concept_classes:
+  PhysiologicalVariable: { maps_to: variable, note: "Legacy class conflated variables, derived metrics and model compartments; split per item during migration." }
+  LatentState: { maps_to: latent_construct, note: "Legacy items that are measurable in principle (e.g. total blood volume, peripheral resistance) were reclassified as variables; see migration-guide.md." }
+  OrganSystem: { maps_to: concept, concept_type: organ_system }
+  Organ: { maps_to: concept, concept_type: anatomical_structure }
+  Mechanism: { maps_to: concept, concept_type: mechanism }
+  Process: { maps_to: concept, concept_type: physiological_process }
+  Measurement: { maps_to: observation }
+  Sensor: { maps_to: measurement_method }
+  MathematicalEquation: { maps_to: model, note: "Equations are parts of model specifications." }
+  Disease: { maps_to: condition }
+  Intervention: { maps_to: intervention }
+  Medication: { maps_to: intervention, intervention_type: pharmacological }
+  Behavior: { maps_to: intervention, intervention_type: behavioral }
+  Population: { maps_to: population }
+  ValidationDataset: { maps_to: reference, note: "Represented as a reference with study_type 'dataset'." }
+  Publication: { maps_to: reference }
+  Evidence: { maps_to: evidence, note: "Evidence is an attached statement (evidence.schema.json), not an entity." }

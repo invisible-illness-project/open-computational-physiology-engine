@@ -1,0 +1,169 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/governance/review-manifest.schema.json",
+  "title": "OCPE review manifest (governance sidecar, ADR 0001 manifest v2.0.0)",
+  "description": "OPTIONAL governance extension. A sidecar file '<asset>.review.yaml' recording review events, claims, challenges, adjudication and human review for one content-addressed asset. It has three separable layers: (1) review records [reviews, claims, challenges, adjudication, human_review]; (2) a derived summary [validation], recomputable from layer 1; (3) authorization decisions [authorization], produced by an organisation-specific policy (see governance/authorization-policy.yaml). None of these layers is required to load, validate or resolve OCPE packages.",
+  "type": "object",
+  "required": ["review_manifest_version", "target_file"],
+  "additionalProperties": false,
+  "properties": {
+    "review_manifest_version": { "type": "string", "pattern": "^2\\.[0-9]+\\.[0-9]+$" },
+    "target_file": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^([0-9a-f]{64})?$" },
+        "previous_paths": {
+          "type": "array",
+          "description": "Earlier repository paths of the asset (e.g. before the 0.1 restructuring), for provenance continuity.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "reviews": { "type": "array", "items": { "$ref": "#/definitions/review_event" } },
+    "claims": { "type": "array", "items": { "$ref": "#/definitions/claim" } },
+    "challenges": { "type": "array", "items": { "$ref": "#/definitions/challenge" } },
+    "adjudication": { "$ref": "#/definitions/adjudication" },
+    "validation": { "$ref": "#/definitions/derived_summary" },
+    "human_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["NOT_REVIEWED", "REVIEWED", "APPROVED", "REJECTED", "QUALIFIED"] },
+        "reviews": { "type": "array", "items": { "$ref": "#/definitions/human_review_entry" } }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status"],
+        "additionalProperties": false,
+        "properties": {
+          "status": { "enum": ["ALLOWED", "ALLOWED_WITH_DISCLOSURE", "REQUIRES_HUMAN_APPROVAL", "PROHIBITED"] },
+          "reason": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "identity": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": ["string", "null"] },
+        "commit_sha": { "type": ["string", "null"] },
+        "provider": { "type": ["string", "null"] },
+        "model_name": { "type": ["string", "null"] },
+        "model_version": { "type": ["string", "null"] },
+        "agent_role": { "type": ["string", "null"] },
+        "methodology_version": { "type": ["string", "null"] },
+        "system_prompt_sha256": { "type": ["string", "null"] },
+        "parameters": { "type": "object" },
+        "role": { "type": ["string", "null"] }
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "required": ["kind", "identity"],
+      "properties": {
+        "kind": { "enum": ["validator", "ai_agent", "human"] },
+        "identity": { "$ref": "#/definitions/identity" },
+        "independence_group": { "type": ["string", "null"] }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "severity": { "enum": ["INFO", "WARNING", "CRITICAL"] },
+        "message": { "type": "string" },
+        "location": { "type": ["string", "null"] },
+        "path": { "type": ["string", "null"] }
+      }
+    },
+    "review_event": {
+      "type": "object",
+      "required": ["review_id", "reviewed_at", "reviewer"],
+      "properties": {
+        "review_id": { "type": "string" },
+        "reviewed_at": { "type": "string" },
+        "reviewer": { "$ref": "#/definitions/reviewer" },
+        "scope": { "type": "array", "items": { "type": "string" } },
+        "verdict": { "enum": ["PASSED", "SUPPORTED", "DISPUTED", "PASSED_WITH_WARNINGS", "NEEDS_REVISION", "REJECTED", "APPROVED", "ABSTAIN", "FAILED", "NEUTRAL"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "findings": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+        "comments": { "type": "string" },
+        "target_sha256": { "type": ["string", "null"] }
+      }
+    },
+    "claim_evidence": {
+      "type": "object",
+      "required": ["source_id"],
+      "properties": { "source_id": { "type": "string" }, "relevance": { "type": "string" } }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["claim_id", "statement"],
+      "properties": {
+        "claim_id": { "type": "string" },
+        "statement": { "type": "string" },
+        "status": { "enum": ["UNREVIEWED", "SUPPORTED", "DISPUTED", "UNRESOLVED"] },
+        "evidence": { "type": "array", "items": { "$ref": "#/definitions/claim_evidence" } },
+        "supporting_reviews": { "type": "array", "items": { "type": "string" } },
+        "challenging_reviews": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "challenge": {
+      "type": "object",
+      "required": ["challenge_id"],
+      "properties": {
+        "challenge_id": { "type": "string" },
+        "target_claim": { "type": ["string", "null"] },
+        "challenger": { "$ref": "#/definitions/reviewer" },
+        "reason": { "type": "object" },
+        "statement": { "type": "string" },
+        "evidence": { "type": "array", "items": { "$ref": "#/definitions/claim_evidence" } },
+        "status": { "enum": ["OPEN", "UNDER_INVESTIGATION", "RESOLVED_SUPPORT", "RESOLVED_REJECTION", "UNRESOLVED"] },
+        "severity": { "enum": ["CRITICAL", "MINOR"] },
+        "created_at": { "type": "string" },
+        "resolved_at": { "type": ["string", "null"] }
+      }
+    },
+    "adjudication": {
+      "type": "object",
+      "properties": {
+        "status": { "enum": ["NOT_REQUIRED", "OPEN", "IN_PROGRESS", "RESOLVED_SUPPORT", "RESOLVED_REJECTION"] },
+        "basis": { "type": "array", "items": { "type": "string" } },
+        "unresolved_limitations": { "type": "array", "items": { "type": "string" } },
+        "adjudicator": { "oneOf": [{ "$ref": "#/definitions/identity" }, { "type": "null" }] }
+      }
+    },
+    "human_review_entry": {
+      "type": "object",
+      "required": ["review_id", "reviewer", "scope", "verdict", "reviewed_at"],
+      "properties": {
+        "review_id": { "type": "string" },
+        "reviewer": { "$ref": "#/definitions/identity" },
+        "scope": { "type": "array", "items": { "type": "string" } },
+        "verdict": { "enum": ["APPROVED", "REJECTED", "QUALIFIED", "REVIEWED", "PASSED"], "description": "'PASSED' occurs in legacy manifests only; it is NOT treated as approval." },
+        "reviewed_at": { "type": "string" },
+        "target_sha256": { "type": ["string", "null"] },
+        "comments": { "type": "string" }
+      }
+    },
+    "derived_summary": {
+      "type": "object",
+      "properties": {
+        "state": { "enum": ["UNREVIEWED", "DETERMINISTICALLY_VALID", "AGENT_REVIEWED", "AGENT_SUPPORTED", "AGENT_DISPUTED", "ADJUDICATION_REQUIRED", "COMPUTATIONALLY_REPRODUCED", "HUMAN_REVIEWED", "HUMAN_APPROVED", "STALE"] },
+        "deterministic": { "type": "object" },
+        "agent_evidence": { "type": "object" },
+        "computational": { "type": "object" },
+        "explanation": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

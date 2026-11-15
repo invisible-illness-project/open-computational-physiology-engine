@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/concept.schema.json",
+  "title": "OCPE physiological concept",
+  "description": "An unquantified physiological entity: organ system, anatomical structure, process, mechanism or phenomenon (e.g. 'baroreflex', 'cardiovascular system'). Concepts are NOT variables: they have no unit or value. Quantities associated with a concept are separate variable / latent_construct / derived_metric entities.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "concept_type"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "concept"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "concept_type": {
+      "type": "string",
+      "enum": [
+        "organ_system",
+        "anatomical_structure",
+        "physiological_process",
+        "mechanism",
+        "phenomenon",
+        "cell_type",
+        "molecular_entity",
+        "other"
+      ]
+    },
+    "broader": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/curie"
+      }
+    },
+    "part_of": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/curie"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

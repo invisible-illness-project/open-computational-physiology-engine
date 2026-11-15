@@ -1,0 +1,77 @@
+review_manifest_version: 2.0.0
+target_file:
+  path: specification/core/kinds.yaml
+  sha256: 2a0f4419d4766551796b1761183894f9545f66b2e9b6bca18c6ddecde8deeca2
+reviews:
+- review_id: rev-e0c90b8d-ac66-4f48-90e0-800d7bbeee85
+  reviewed_at: '2026-09-11T00:45:41.627763+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 4e41d609481085b46c7b9afd7c90eb4b4c7172afdb8f3bb31c0fc8176c566c8a
+- review_id: rev-956c585d-6807-4985-b462-59cdfff5e67f
+  reviewed_at: '2026-09-30T21:25:41.850152+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 4e41d609481085b46c7b9afd7c90eb4b4c7172afdb8f3bb31c0fc8176c566c8a
+- review_id: rev-17ac7b9a-a8c3-4663-acfa-9c4de5da0bb4
+  reviewed_at: '2026-11-15T00:02:09.519287+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: architectural-refactoring-migrator
+      agent_role: architectural migration to OCPE 0.1 package layout
+      role: migration
+  scope:
+  - schema_conformance
+  - migration
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: 'knowledge_base/ontology/concepts.yaml (v3.0, 17 concept classes) migrated:
+    the class taxonomy became the OCPE entity-kind system (specification/core/kinds.yaml
+    + JSON Schemas); the legacy_concept_classes mapping records the per-class disposition.
+    Review history preserved verbatim below. Structural migration only; no scientific
+    re-grading. See migration_archive/MIGRATION_NOTES.md and docs/migration-guide.md.'
+  target_sha256: 2a0f4419d4766551796b1761183894f9545f66b2e9b6bca18c6ddecde8deeca2
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: DETERMINISTICALLY_VALID
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 0
+    supporting: 0
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

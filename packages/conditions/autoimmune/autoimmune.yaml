@@ -1,0 +1,102 @@
+ocpe: "0.1"
+package: conditions.autoimmune
+title: Autoimmune Dysautonomia (AIDA) and autoimmune autonomic neuropathy phenotype
+description: >
+  Autoimmune Dysautonomia (AIDA) and its Autoimmune Autonomic Neuropathy
+  phenotype. Phenotype model representations are model-specific hypotheses
+  (with their own evidence) about how the phenotype is encoded in the Geddes
+  2022 baroreflex model; clinical/physiological claims are carried by the
+  condition entities and their association evidence. Every parameter
+  perturbation in this package is an unverified machine-proposed hypothesis
+  and remains consumer-inert (legacy unverified_parameters semantics) pending
+  human review.
+provenance:
+  derived_from:
+    - source: knowledge_base/diseases/autoimmune.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.1"
+      transformation: >
+        Revision 2 (independent-review adversarial DOI review) v1.1 migrated
+        without re-grading; file-header curation rationale preserved verbatim
+        in curation_notes.
+  review_manifest: packages/conditions/autoimmune/autoimmune.yaml.review.yaml
+curation_notes:
+  - "SOURCE HEADER (verbatim, autoimmune.yaml v1.1): PROPOSED CORRECTION (not yet merged) — adversarial DOI review Revision 2 (independent-review WARNING 2): tier-D magnitudes moved OUT of canonical parameters_perturbed into unverified_parameters; the real citation (Vernino 2000) now lives in a phenotype-level association_evidence block so no unverified magnitude carries a parameter-level DOI implying source support. PerturbationManager (simulation/perturbations.py:39,71) reads ONLY parameters_perturbed, so the engine safely ignores these blocks — unverified values will NOT be applied until human review promotes them."
+  - "SOURCE HEADER (verbatim): OLD citation 10.1002/ana.10659 was a WRONG PAPER: it resolves (doi.org, CrossRef, Europe PMC) to Ginsberg et al. 2003, \"Stilbazulenyl nitrone, a novel antioxidant, is highly neuroprotective in focal ischemia,\" Ann Neurol (PMID 12953265) — unrelated to autonomic autoimmunity."
+  - "SOURCE HEADER (verbatim): REPLACEMENT citation: Vernino S, Low PA, Fealey RD, Stewart JD, Farrugia G, Lennon VA. \"Autoantibodies to ganglionic acetylcholine receptors in autoimmune autonomic neuropathies.\" N Engl J Med 2000;343:847-855. DOI 10.1056/NEJM200009213431204 (PMID 10995864 — verified via Europe PMC). Vernino 2000 supports the MECHANISM (ganglionic nicotinic AChR autoantibodies cause autoimmune autonomic failure) but contains NO baroreflex gain numbers. Sjogren's-associated autoimmune autonomic ganglionopathy is additionally supported by PMID 19097826 (Auton Neurosci 2009)."
+  - "SOURCE HEADER (verbatim): MAGNITUDES: kR/kH 25 -> 15 (a 40% gain reduction) has NO quantitative source. Retained ONLY as explicitly-labeled machine-proposed modeling assumptions (evidence_tier D, UNRESOLVED — requires human review)."
+references:
+  - id: doi:10.1056/NEJM200009213431204
+    doi: 10.1056/NEJM200009213431204
+    pmid: "10995864"
+    title: Autoantibodies to ganglionic acetylcholine receptors in autoimmune autonomic neuropathies
+    authors: ["Vernino S", "Low PA", "Fealey RD", "Stewart JD", "Farrugia G", "Lennon VA"]
+    year: 2000
+    venue: N Engl J Med
+    citation: "Vernino et al., N Engl J Med 2000;343:847-855 (ganglionic AChR autoantibodies -> autoimmune autonomic neuropathy); see also Sjogren's-AAG, Auton Neurosci 2009, PMID 19097826"
+    study_type: observational_human
+    verification:
+      status: verified
+      method: Europe PMC (per source header)
+      notes: "PMID 10995864 — verified via Europe PMC (source header, verbatim). Vernino 2000 supports the MECHANISM (ganglionic nicotinic AChR autoantibodies cause autoimmune autonomic failure) but contains NO baroreflex gain numbers."
+  - id: pmid:19097826
+    pmid: "19097826"
+    year: 2009
+    venue: Auton Neurosci
+    citation: "Sjogren's-AAG, Auton Neurosci 2009, PMID 19097826"
+    notes: "Sjogren's-associated autoimmune autonomic ganglionopathy is additionally supported by PMID 19097826 (Auton Neurosci 2009) — source header, verbatim. This is the full extent of the source citation; no authors or title were given, so study_type is not determinable from source content."
+entities:
+  - id: ocpe:conditions.autoimmune/autoimmune-dysautonomia
+    kind: condition
+    label: Autoimmune Dysautonomia
+    aliases:
+      - {value: autoimmune, type: legacy-id, scope: legacy-kb}
+    abbreviation: AIDA
+    condition_type: disease
+    definition: "Autoimmune conditions (e.g., Sjogren's, Lupus) causing autoantibody-mediated receptor blockades or ganglionic neuropathy, directly impairing autonomic feedback loop gains."
+    since: "1.1.0"
+  - id: ocpe:conditions.autoimmune/autoimmune-neuropathy
+    kind: condition
+    label: Autoimmune Autonomic Neuropathy
+    aliases:
+      - {value: autoimmune_neuropathy, type: legacy-id, scope: legacy-kb}
+    condition_type: phenotype
+    parent: ocpe:conditions.autoimmune/autoimmune-dysautonomia
+    definition: "Antibody-mediated blunting of adrenergic and cholinergic autonomic gain coefficients."
+    association_evidence:
+      - supports: [association, mechanism]
+        references: [doi:10.1056/NEJM200009213431204, pmid:10995864]
+        citation: "Vernino et al., N Engl J Med 2000;343:847-855 (ganglionic AChR autoantibodies -> autoimmune autonomic neuropathy); see also Sjogren's-AAG, Auton Neurosci 2009, PMID 19097826"
+        evidence_tier: "B"
+        notes: "Mechanism-level support ONLY: ganglionic alpha3-AChR autoantibodies cause autoimmune autonomic failure (incl. Sjogren's-associated AAG). Contains NO baroreflex gain coefficients or magnitudes. [source trailing comment on evidence_tier, verbatim] human data, qualitative mechanism only."
+    model_representations:
+      - model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+        parameter_perturbations: []
+        unverified_parameter_perturbations:
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#kR
+            baseline_value: 25.0
+            perturbed_value: 15.0
+            unit: "1"
+            mechanism: "Partial loss of baroreflex sympathetic gain due to ganglionic nicotinic receptor autoantibodies (hypothesized magnitude; mechanism supported by phenotype-level association_evidence)."
+            evidence:
+              - supports: [direction]
+                basis: machine_proposed
+                evidence_level: "Level 4"
+                evidence_tier: "D"
+                notes: "MACHINE-PROPOSED hypotheses. No quantitative gain data in any accessible source; REQUIRE HUMAN REVIEW before promotion to parameters_perturbed. Deliberately NO parameter-level DOI (the phenotype-level citation supports mechanism, not these magnitudes)."
+            curation_status: unverified
+            curation_note: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#kH
+            baseline_value: 25.0
+            perturbed_value: 15.0
+            unit: "1"
+            mechanism: "Blunted heart rate baroreflex gain due to autoimmune cholinergic receptor blockades (hypothesized magnitude; mechanism supported by phenotype-level association_evidence)."
+            evidence:
+              - supports: [direction]
+                basis: machine_proposed
+                evidence_level: "Level 4"
+                evidence_tier: "D"
+                notes: "MACHINE-PROPOSED hypotheses. No quantitative gain data in any accessible source; REQUIRE HUMAN REVIEW before promotion to parameters_perturbed. Deliberately NO parameter-level DOI (the phenotype-level citation supports mechanism, not these magnitudes)."
+            curation_status: unverified
+            curation_note: "UNRESOLVED - magnitude 25->15 has no supporting source found; requires human review"
+    since: "1.1.0"

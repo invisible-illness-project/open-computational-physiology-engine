@@ -1,0 +1,120 @@
+review_manifest_version: 2.0.0
+target_file:
+  path: packages/models/baroreflex-geddes-2022/baroreflex-geddes-2022.yaml
+  sha256: 7df61ad2d70193b5eb92233ecaa6fb7bec32b902ef5e0efbcd11d7f11d03fa0a
+reviews:
+- review_id: rev-25694558-eba5-4145-8fb3-239a8a250f16
+  reviewed_at: '2026-09-11T00:45:41.630756+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+- review_id: rev-71c26866-2ff3-4538-91fb-e45ab913d283
+  reviewed_at: '2026-09-11T10:54:23.004220+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: independent-cycle2-reviewer
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: independent-cycle2-reviewer
+  scope:
+  - literature_fidelity
+  - model_correctness
+  - governance
+  verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
+  findings: []
+  comments: "Cycle 2 venous extension reviewed: Heldt 2002/van Heusden 2006/Stewart\
+    \ 2004 verified real and on-topic; magnitudes honestly labeled tier-C machine-proposed.\
+    \ Initial verdict NEEDS_REVISION (DOI digit transposition 00886->00086) \u2014\
+    \ fixed and full 12-DOI audit clean. Human L3 pending."
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+- review_id: rev-9b39da25-bff4-4a8e-b973-ad3bd3ce711f
+  reviewed_at: '2026-09-30T21:25:41.865694+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 878990420d44171316d19d6c7491e2dc031be1ed78315cf86a061ddb2d5defcb
+- review_id: rev-0c0b1d99-ed81-458d-8265-f0ee944d4c65
+  reviewed_at: '2026-09-11T10:54:40.333558+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: independent-cycle2-reviewer
+      provider: Moonshot Kimi K3 (subagent)
+      model_name: independent-cycle2-reviewer
+  scope:
+  - schema_conformance
+  - symbol_consistency
+  verdict: PASSED_WITH_WARNINGS
+  confidence: 1.0
+  findings: []
+  comments: "First review of previously-UNREVIEWED file: cycle-2 added venous-model\
+    \ equation definitions (venomotor reflex, stress-relaxation) with registered symbols;\
+    \ engine Ts/Tr equations still absent from registry (pre-existing gap, flagged\
+    \ in Phase 0 audit). Literature-level verification of the 20 base equations remains\
+    \ outstanding \u2014 human L3 + dedicated evidence cycle required."
+  target_sha256: 6d03ccccc7976a635976f8ba00546c3e8f1e1aa8c2b9660b81553c209bec7cd4
+- review_id: rev-b0288880-e619-4c9f-895b-7a26347e6a75
+  reviewed_at: '2026-11-15T00:02:09.519287+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: architectural-refactoring-migrator
+      agent_role: architectural migration to OCPE 0.1 package layout
+      role: migration
+  scope:
+  - schema_conformance
+  - migration
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: knowledge_base/equations/definitions.yaml (20 equations + cycle-2 venous
+    equations) and knowledge_base/equations/mathematical_models.yaml (parameter table)
+    merged into the single Geddes 2022 model specification entity. Review histories
+    of BOTH legacy files preserved below (definitions.yaml reviews follow the mathematical_models.yaml
+    reviews). Structural migration only; no scientific re-grading. See migration_archive/MIGRATION_NOTES.md
+    and docs/migration-guide.md.
+  target_sha256: 7df61ad2d70193b5eb92233ecaa6fb7bec32b902ef5e0efbcd11d7f11d03fa0a
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: AGENT_SUPPORTED
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 1
+    supporting: 1
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Agent evidence: 1 supporting, 0 disputing, 0 abstaining across 1 distinct independence
+    groups.'
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

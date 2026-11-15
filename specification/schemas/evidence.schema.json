@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/evidence.schema.json",
+  "title": "OCPE evidence statement",
+  "description": "A lightweight, self-contained evidence statement that can be attached to any OCPE assertion (entity, relationship, range, perturbation). It records WHAT is supported, BY WHICH references, at WHAT strength. It is deliberately independent of review workflows and authorization policies (see specification/schemas/governance/), which are optional extensions. Structural validity of an evidence statement says nothing about its scientific correctness.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "anyOf": [
+    { "required": ["references"] },
+    { "required": ["citation"] },
+    { "required": ["basis"] }
+  ],
+  "properties": {
+    "claim": { "type": "string", "description": "The specific proposition this evidence supports." },
+    "supports": {
+      "description": "Which aspect of the assertion the evidence supports. Direction-level support must not be read as magnitude-level support.",
+      "type": "array",
+      "items": { "type": "string", "enum": ["existence", "direction", "magnitude", "structure", "association", "definition", "mechanism", "measurement_validity"] },
+      "uniqueItems": true
+    },
+    "references": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/definitions/reference_id" },
+      "minItems": 1
+    },
+    "citation": { "type": "string", "description": "Human-readable citation text, preserved verbatim from source where available." },
+    "basis": {
+      "type": "string",
+      "enum": ["literature", "definitional", "expert_opinion", "machine_proposed", "machine_calibrated", "computational_experiment", "dataset"],
+      "description": "Nature of the evidential basis. 'definitional' is used for mathematical identities (e.g. HR = 60000/RR) that need no empirical citation."
+    },
+    "evidence_level": { "$ref": "#/definitions/evidence_level" },
+    "evidence_tier": { "$ref": "#/definitions/evidence_tier" },
+    "study_type": { "$ref": "reference.schema.json#/definitions/study_type" },
+    "context": { "$ref": "common.schema.json#/definitions/context" },
+    "curation_status": { "$ref": "#/definitions/curation_status" },
+    "limitations": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "definitions": {
+    "evidence_level": {
+      "description": "Legacy OCPE evidence level (see specification/core/evidence-scales.yaml). Only 'Level 1' (RCT) and 'Level 4' (in silico) have documented anchors; Levels 2-3 are provisional pending ratification.",
+      "type": "string",
+      "enum": ["Level 1", "Level 2", "Level 3", "Level 4"]
+    },
+    "evidence_tier": {
+      "description": "Legacy OCPE evidence tier A-D (see specification/core/evidence-scales.yaml). Definitions are inferred from usage and provisional.",
+      "type": "string",
+      "enum": ["A", "B", "C", "D"]
+    },
+    "curation_status": {
+      "type": "string",
+      "enum": ["verified", "partially_verified", "unverified", "machine_proposed", "machine_calibrated", "disputed", "retracted", "unknown"]
+    }
+  }
+}

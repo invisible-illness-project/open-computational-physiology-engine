@@ -1,0 +1,43 @@
+ocpe: "0.1"
+package: conditions.pots
+title: POTS semantic relationships
+description: >
+  Typed directed assertions referencing POTS conditions or model symbols,
+  migrated from knowledge_base/ontology/relationships.yaml (v3.2).
+provenance:
+  derived_from:
+    - source: knowledge_base/ontology/relationships.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "3.2"
+      transformation: >
+        semantic_relationships whose subject is a model symbol or object is a
+        POTS phenotype -> relationship entities.
+  review_manifest: packages/conditions/pots/relationships.yaml.review.yaml
+curation_notes:
+  - "SOURCE HEADER (verbatim, relationships.yaml v3.2): Edge 2: SEMANTICALLY INVERTED in v3.0 — was 'neuropathic_pots PERTURBED_BY RalpM'; corrected to 'RalpM PERTURBED_BY neuropathic_pots' (disease perturbs the parameter). Evidence level corrected to Level 4 (in-silico source)."
+references:
+  - id: doi:10.1098/rsif.2022.0220
+    doi: 10.1098/rsif.2022.0220
+    pmid: "36069002"
+    title: "Postural orthostatic tachycardia syndrome explained using a baroreflex response model"
+    citation: "Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. J R Soc Interface 2022;19:20220220."
+    study_type: in_silico
+    summary_document: evidence/references/geddes_2022_baroreflex_pots.md
+entities:
+  - id: ocpe:conditions.pots/lower-resistance-bound-perturbed-by-neuropathic-pots
+    kind: relationship
+    label: Maximum lower-body peripheral resistance is perturbed by neuropathic POTS
+    subject: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#RalpM
+    predicate: PERTURBED_BY
+    object: ocpe:conditions.pots/neuropathic-pots
+    direction_of_effect: negative
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - supports: [existence, magnitude]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "CORRECTED (v3.2) from 'Level 2': source is in-silico (Geddes 2022)."
+    known_limitations: "Severity varies based on individual autonomic neuropathy patterns. NOTE: in Geddes 2022 the RlpM/Rlpm reduction is applied AT HEAD-UP-TILT ONSET (Eq. 2.16), not as a static baseline property. NOTE: 'RalpM' and 'neuropathic_pots' are registered here as a model symbol and a condition entity respectively (the pre-0.1 registry gap is closed by this package and the model specification)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.5.0"

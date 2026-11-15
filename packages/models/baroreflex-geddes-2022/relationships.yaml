@@ -1,0 +1,168 @@
+ocpe: "0.1"
+package: models.baroreflex-geddes-2022
+title: Baroreflex model control-law relationships
+description: >
+  Mechanistic links realized by equations of the Geddes 2022 model, migrated
+  from knowledge_base/ontology/mechanistic_links.yaml (v1.0). Each
+  relationship's mathematical specification points at the equation(s) of this
+  package's model entity. The legacy mathematical_ref file path
+  (models/mathematical_models.yaml#<equation>) is repaired to a canonical
+  model + equation pointer; equation ids are unchanged.
+provenance:
+  derived_from:
+    - source: knowledge_base/ontology/mechanistic_links.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: >
+        relationships[] -> relationship entities; 'type' -> functional_form;
+        mathematical_ref -> mathematical_specification {model, equations};
+        evidence_score -> confidence (scale 'legacy 0-10').
+  review_manifest: packages/models/baroreflex-geddes-2022/relationships.yaml.review.yaml
+curation_notes:
+  - "Legacy registry gap closed: the four 'type' values used here (sigmoid_hill, gravity_hydrostatic, inverse_proportional, inverse_nonlinear) were never registered in the pre-0.1 predicate/type registry; they are registered as functional forms in the core package (specification/core/functional-forms.yaml)."
+  - "Legacy 'recreational_men_cohort'/'recreational_women_cohort' context references on RR_to_HR are free text (those cohorts were never registered in populations/cohorts.yaml)."
+references:
+  - id: doi:10.1098/rsif.2022.0220
+    doi: 10.1098/rsif.2022.0220
+    pmid: "36069002"
+    title: "Postural orthostatic tachycardia syndrome explained using a baroreflex response model"
+    citation: "Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. J R Soc Interface 2022;19:20220220."
+    study_type: in_silico
+    summary_document: evidence/references/geddes_2022_baroreflex_pots.md
+  - id: doi:10.3390/s22176536
+    doi: 10.3390/s22176536
+    pmid: "36081005"
+    title: "Validity of the Polar H10 Sensor for Heart Rate Variability Analysis during Rest, Exercise, and Recovery"
+    citation: "Schaffarczyk et al., Sensors 2022;22(17):6536."
+    study_type: device_validation
+    summary_document: evidence/references/schaffarczyk_2022_polar_h10_validation.md
+entities:
+  - id: ocpe:models.baroreflex-geddes-2022/pcm-regulates-heart-rate
+    kind: relationship
+    label: Mean carotid pressure controls heart rate (Hill, first-order lag)
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: DECREASES
+    object: ocpe:cardiovascular/heart-rate
+    functional_form: sigmoid_hill
+    direction_of_effect: negative
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      equations: [heart_rate_control, heart_rate_target_hill]
+    evidence:
+      - supports: [existence, structure, magnitude]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "Migrated from mechanistic_links.yaml 'pcm_to_Hc' (sigmoid_hill). Heart rate is modeled in beats/s (symbol Hc)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:models.baroreflex-geddes-2022/pcm-regulates-upper-peripheral-resistance
+    kind: relationship
+    label: Mean carotid pressure controls upper peripheral resistance (Hill, first-order lag)
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: DECREASES
+    object: ocpe:cardiovascular/upper-peripheral-resistance
+    functional_form: sigmoid_hill
+    direction_of_effect: negative
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      equations: [upper_peripheral_resistance_control, upper_peripheral_resistance_target_hill]
+    evidence:
+      - supports: [existence, structure, magnitude]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "Migrated from mechanistic_links.yaml 'pcm_to_Raup' (sigmoid_hill)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:models.baroreflex-geddes-2022/pcm-regulates-lower-peripheral-resistance
+    kind: relationship
+    label: Mean carotid pressure controls lower peripheral resistance (Hill, first-order lag)
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: DECREASES
+    object: ocpe:cardiovascular/lower-peripheral-resistance
+    functional_form: sigmoid_hill
+    direction_of_effect: negative
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      equations: [lower_peripheral_resistance_control, lower_peripheral_resistance_target_hill]
+    evidence:
+      - supports: [existence, structure, magnitude]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "Migrated from mechanistic_links.yaml 'pcm_to_Ralp' (sigmoid_hill)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:models.baroreflex-geddes-2022/pcm-regulates-end-diastolic-elastance
+    kind: relationship
+    label: Mean carotid pressure controls end-diastolic elastance (Hill, first-order lag)
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: INCREASES
+    object: ocpe:cardiovascular/end-diastolic-elastance
+    functional_form: sigmoid_hill
+    direction_of_effect: positive
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      equations: [end_diastolic_elastance_control, end_diastolic_elastance_target_hill]
+    evidence:
+      - supports: [existence, structure, magnitude]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "Migrated from mechanistic_links.yaml 'pcm_to_Ed' (sigmoid_hill, increasing form)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:models.baroreflex-geddes-2022/upper-arterial-pressure-determines-carotid-sinus-pressure
+    kind: relationship
+    label: Upper arterial pressure determines carotid sinus pressure (hydrostatic offset)
+    subject: ocpe:cardiovascular/upper-arterial-pressure
+    predicate: INCREASES
+    object: ocpe:cardiovascular/carotid-sinus-pressure
+    functional_form: gravity_hydrostatic
+    direction_of_effect: positive
+    confidence: {value: 10, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      equations: [carotid_pressure_calculation]
+    evidence:
+      - supports: [existence, structure]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "Migrated from mechanistic_links.yaml 'pau_to_pc' (gravity_hydrostatic)."
+    applicable_contexts:
+      - population: ocpe:populations/pots-clinical-cohort
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:models.baroreflex-geddes-2022/rr-interval-determines-heart-rate
+    kind: relationship
+    label: RR interval determines heart rate (inverse proportionality)
+    subject: ocpe:cardiovascular/rr-interval
+    predicate: DECREASES
+    object: ocpe:cardiovascular/heart-rate
+    functional_form: inverse_proportional
+    direction_of_effect: negative
+    confidence: {value: 10, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml evidence_score)"}
+    mathematical_specification:
+      model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+      expression: "HR (bpm) = 60000 / RR (ms)"
+    evidence:
+      - supports: [existence, definition]
+        references: [doi:10.3390/s22176536]
+        basis: definitional
+        evidence_level: "Level 1"
+        notes: "Migrated from mechanistic_links.yaml 'RR_to_HR' (inverse_proportional). Definitional identity; 'Level 1' must not be read as an RCT (see specification/core/evidence-scales.yaml caution)."
+    applicable_contexts:
+      - population: "recreational_men_cohort (legacy free-text reference; not a registered population entity)"
+        scope_note: "Legacy cohort reference from mechanistic_links.yaml; no population entity is asserted."
+      - population: "recreational_women_cohort (legacy free-text reference; not a registered population entity)"
+        scope_note: "Legacy cohort reference from mechanistic_links.yaml; no population entity is asserted."
+    since: "1.0.0"

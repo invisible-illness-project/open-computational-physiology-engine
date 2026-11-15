@@ -1,0 +1,35 @@
+# OCPE evidence scales (specification 0.1.x).
+#
+# The legacy knowledge base used two scales — "evidence_level" (Level 1-4) and
+# "evidence_tier" (A-D) — without a single normative definition. OCPE preserves
+# both values verbatim on migrated content. The definitions below are recorded
+# from what the repository itself documents; where no documentation exists the
+# definition is marked PROVISIONAL (inferred from usage) and requires human
+# ratification. No content was re-graded during migration.
+ocpe_spec: "0.1"
+
+evidence_level:
+  status: provisional
+  documented_source: "SCHEMA.md (pre-0.1): 'Standard level (e.g., Level 1: RCT, Level 4: In Silico)'; relationships.yaml v3.2 Cycle-1 convention: in-silico evidence is Level 4."
+  values:
+    "Level 1": { definition: "Randomized controlled trial or equivalent highest-grade human evidence.", status: documented }
+    "Level 2": { definition: "Human observational/experimental or review evidence (inferred from usage, e.g. Carter & Ray 2009, Raj 2005).", status: provisional }
+    "Level 3": { definition: "Intermediate grade; no current usage after Cycle-3 corrections.", status: provisional }
+    "Level 4": { definition: "In-silico / computational-modelling evidence.", status: documented }
+  caution: >
+    'Level 1' on the RMSSD-from-RR relationship reflects a definitional identity,
+    not an RCT. Consumers should prefer evidence.basis ('definitional') over the
+    level in such cases.
+
+evidence_tier:
+  status: provisional
+  documented_source: "Usage in knowledge_base/diseases/*.yaml and equations/mathematical_models.yaml (pre-0.1). No normative definition existed."
+  values:
+    A: { definition: "Strong human evidence for the stated aspect (typically direction), e.g. multiple or well-powered human studies.", status: provisional }
+    B: { definition: "Moderate human evidence (small samples, single studies) for the stated aspect.", status: provisional }
+    C: { definition: "Model-derived or scaled value from a cited source (e.g. in-silico parameter, rescaled to repository nominal); machine-proposed fits.", status: provisional }
+    D: { definition: "Unverified / machine-calibrated magnitude without parameter-level citation.", status: provisional }
+
+guidance:
+  - "Always state WHICH aspect is supported (evidence.supports): direction-level evidence must not be read as magnitude-level support."
+  - "Structural (schema) validation never implies scientific validation."

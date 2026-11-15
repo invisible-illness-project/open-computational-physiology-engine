@@ -1,0 +1,231 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/document.schema.json",
+  "title": "OCPE document",
+  "description": "A YAML/JSON file listed in a package manifest's 'contents'. Contains entities (discriminated by 'kind') and/or bibliographic references. Each entity is validated against the schema for its kind.",
+  "type": "object",
+  "required": [
+    "ocpe",
+    "package"
+  ],
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {}
+  },
+  "properties": {
+    "ocpe": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "OCPE specification major.minor this document is written against."
+    },
+    "package": {
+      "$ref": "common.schema.json#/definitions/package_id"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "provenance.schema.json"
+    },
+    "curation_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "concept",
+              "condition",
+              "derived_metric",
+              "functional_form",
+              "intervention",
+              "latent_construct",
+              "measurement_method",
+              "model",
+              "population",
+              "predicate",
+              "relationship",
+              "variable"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "concept"
+                }
+              }
+            },
+            "then": {
+              "$ref": "concept.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "condition"
+                }
+              }
+            },
+            "then": {
+              "$ref": "condition.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "derived_metric"
+                }
+              }
+            },
+            "then": {
+              "$ref": "derived-metric.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "functional_form"
+                }
+              }
+            },
+            "then": {
+              "$ref": "functional-form.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "intervention"
+                }
+              }
+            },
+            "then": {
+              "$ref": "intervention.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "latent_construct"
+                }
+              }
+            },
+            "then": {
+              "$ref": "latent-construct.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "measurement_method"
+                }
+              }
+            },
+            "then": {
+              "$ref": "measurement-method.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "model"
+                }
+              }
+            },
+            "then": {
+              "$ref": "model.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "population"
+                }
+              }
+            },
+            "then": {
+              "$ref": "population.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "predicate"
+                }
+              }
+            },
+            "then": {
+              "$ref": "predicate.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "relationship"
+                }
+              }
+            },
+            "then": {
+              "$ref": "relationship.schema.json"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "variable"
+                }
+              }
+            },
+            "then": {
+              "$ref": "variable.schema.json"
+            }
+          }
+        ]
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "$ref": "reference.schema.json"
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "entities"
+      ]
+    },
+    {
+      "required": [
+        "references"
+      ]
+    }
+  ]
+}

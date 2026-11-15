@@ -1,0 +1,85 @@
+ocpe: "0.1"
+package: wearables
+title: Polar H10 chest-strap ECG sensor
+description: >
+  Dry-electrode ECG chest strap (Polar Electro). Performance figures are
+  agreement statistics against 12-lead ECG in specific activity contexts;
+  they do not transfer automatically to other populations or activities.
+provenance:
+  derived_from:
+    - source: knowledge_base/wearables/polar_h10.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: >
+        sensor block -> measurement_method entity; specifications ->
+        specifications list; validation entries -> performance array with
+        context (activity) and reference_method; failure_modes and
+        motion_artifact_handling carried verbatim.
+  review_manifest: packages/wearables/polar-h10.yaml.review.yaml
+references:
+  - id: doi:10.3390/s22176536
+    doi: 10.3390/s22176536
+    pmid: "36081005"
+    title: "Validity of the Polar H10 Sensor for Heart Rate Variability Analysis during Rest, Exercise, and Recovery"
+    citation: "Schaffarczyk et al., Sensors 2022;22(17):6536."
+    study_type: device_validation
+    summary_document: evidence/references/schaffarczyk_2022_polar_h10_validation.md
+entities:
+  - id: ocpe:wearables/polar-h10
+    kind: measurement_method
+    label: Polar H10 Heart Rate Sensor
+    definition: "Dry-electrode ECG chest strap (Polar Electro) recording single-channel ECG and RR intervals, streaming over Bluetooth Low Energy / ANT+."
+    method_type: device
+    modality: dry_electrode_ecg
+    manufacturer: Polar Electro
+    device_model: Polar H10
+    aliases:
+      - {value: polar_h10, type: legacy-id, scope: legacy-kb}
+    measures:
+      - target: ocpe:cardiovascular/rr-interval
+        mode: direct
+      - target: ocpe:cardiovascular/heart-rate
+        mode: derived
+        note: "HR is computed by the device/suite from RR intervals."
+    specifications:
+      - name: sampling_frequency
+        value: 130.0
+        unit: Hz
+      - name: rr_resolution_ms
+        value: 1.0
+        unit: ms
+      - name: communication
+        value: "Bluetooth Low Energy / ANT+"
+    performance:
+      - target: ocpe:cardiovascular/rr-interval
+        reference_method: Standard 12-lead ECG
+        metrics:
+          - {metric: icc, value: 0.99}
+          - {metric: pearson_r, value: 0.99}
+          - {metric: bias, value: 0.05, unit: ms}
+          - {metric: loa_lower, value: -2.3}
+          - {metric: loa_upper, value: 2.4}
+        context:
+          activity: rest
+          scope_note: "Legacy exercise_intensity 'rest'; also applies to heart-rate target (same validation row, parameters_evaluated [RR, HR])."
+        evidence:
+          - references: [doi:10.3390/s22176536]
+      - target: ocpe:cardiovascular/rr-interval
+        reference_method: Standard 12-lead ECG
+        metrics:
+          - {metric: icc, value: 0.96}
+          - {metric: pearson_r, value: 0.96}
+          - {metric: bias, value: 0.2, unit: ms}
+          - {metric: loa_lower, value: -15.4}
+          - {metric: loa_upper, value: 15.8}
+        context:
+          activity: high_intensity
+          scope_note: "Legacy exercise_intensity 'high_intensity'; also applies to heart-rate target (same validation row, parameters_evaluated [RR, HR])."
+        evidence:
+          - references: [doi:10.3390/s22176536]
+    failure_modes:
+      - "Dry electrodes leading to high contact resistance and signal dropouts"
+      - "Motion artifacts during high-intensity upper body movements"
+      - "Incomplete contact with skin during rapid body rotation"
+    artifact_handling: "Reject beats with >15% deviation from rolling mean RR interval"
+    since: "1.0.0"

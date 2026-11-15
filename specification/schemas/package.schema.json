@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/package.schema.json",
+  "title": "OCPE package manifest (package.yaml)",
+  "description": "Manifest of an independently versioned OCPE domain package. The package id is also the CURIE namespace of every entity the package defines.",
+  "type": "object",
+  "required": ["id", "name", "version", "ocpe_spec", "description", "contents"],
+  "additionalProperties": false,
+  "patternProperties": { "^x-": {} },
+  "properties": {
+    "id": { "$ref": "common.schema.json#/definitions/package_id" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "$ref": "common.schema.json#/definitions/semver" },
+    "ocpe_spec": {
+      "$ref": "common.schema.json#/definitions/version_constraint",
+      "description": "Range of OCPE specification versions this package conforms to."
+    },
+    "description": { "type": "string" },
+    "status": { "$ref": "common.schema.json#/definitions/status" },
+    "license": { "type": "string", "description": "SPDX license expression, or 'UNSPECIFIED'." },
+    "maintainers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "url": { "type": "string" },
+          "kind": { "type": "string", "enum": ["human", "organization", "ai_agent"] }
+        }
+      }
+    },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "homepage": { "type": "string" },
+    "dependencies": {
+      "description": "Packages whose identifiers this package references. References to undeclared packages are validation errors.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/dependency" }
+    },
+    "optional_dependencies": {
+      "description": "Packages that enrich this package if present but are not required to interpret it.",
+      "type": "array",
+      "items": { "$ref": "#/definitions/dependency" }
+    },
+    "contents": {
+      "description": "Package-relative paths of OCPE documents belonging to this package, in load order.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[^/].*\\.(ya?ml|json)$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "changelog": { "type": "string", "description": "Package-relative path to the package CHANGELOG." },
+    "provenance": { "$ref": "provenance.schema.json" },
+    "deprecation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason"],
+      "properties": {
+        "reason": { "type": "string" },
+        "replaced_by": { "$ref": "common.schema.json#/definitions/package_id" }
+      }
+    },
+    "notes": { "type": "string" }
+  },
+  "definitions": {
+    "dependency": {
+      "type": "object",
+      "required": ["package", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "package": { "$ref": "common.schema.json#/definitions/package_id" },
+        "version": { "$ref": "common.schema.json#/definitions/version_constraint" },
+        "reason": { "type": "string" }
+      }
+    }
+  }
+}

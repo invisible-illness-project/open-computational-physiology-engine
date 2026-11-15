@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/latent-construct.schema.json",
+  "title": "OCPE latent construct",
+  "description": "A theoretical quantity that is not directly observable even in principle and must be inferred from indicators or a model (e.g. 'sympathetic tone', 'sleep pressure'). Values of a latent construct are always estimates conditional on an operationalization; they must never be exchanged as if they were measurements.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "dimension",
+    "canonical_unit"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "latent_construct"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "dimension": {
+      "type": "string",
+      "description": "Named dimension from specification/core/units.yaml (e.g. 'pressure', 'volume', 'frequency', 'dimensionless')."
+    },
+    "canonical_unit": {
+      "$ref": "common.schema.json#/definitions/unit_code"
+    },
+    "scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scale_type": {
+          "type": "string",
+          "enum": [
+            "normalized",
+            "index",
+            "ordinal",
+            "ratio",
+            "interval",
+            "unspecified"
+          ]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "interpretation": {
+          "type": "string"
+        }
+      }
+    },
+    "operationalizations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "indicators": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/definitions/entity_ref"
+            }
+          },
+          "model": {
+            "$ref": "common.schema.json#/definitions/curie"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "evidence.schema.json"
+            }
+          }
+        }
+      }
+    },
+    "theoretical_basis": {
+      "type": "string"
+    },
+    "system": {
+      "$ref": "common.schema.json#/definitions/curie"
+    },
+    "reference_ranges": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/reference_range"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

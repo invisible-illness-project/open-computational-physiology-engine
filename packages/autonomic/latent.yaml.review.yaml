@@ -1,0 +1,78 @@
+review_manifest_version: 2.0.0
+target_file:
+  path: packages/autonomic/latent.yaml
+  sha256: 212617dd344efac0c9d06f5df9fe809c6a1f350266a235e3cab2bd5d1a699c7b
+reviews:
+- review_id: rev-21f9f639-f211-44e8-8446-a475f3c2a668
+  reviewed_at: '2026-09-11T00:45:41.626841+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 3e8b12d2bc3df79a1488e43f1e329b44a51c78f9cac3bcce2460235d82fd527d
+- review_id: rev-27b493c5-4a86-4b01-8365-7d09f4eb8fc0
+  reviewed_at: '2026-09-30T21:25:41.847206+00:00'
+  reviewer:
+    kind: validator
+    identity:
+      name: validate_kb.py
+  scope:
+  - schema_syntax
+  - referential_integrity
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: Passed rule-based validation by validate_kb.py
+  target_sha256: 3e8b12d2bc3df79a1488e43f1e329b44a51c78f9cac3bcce2460235d82fd527d
+- review_id: rev-55493608-995e-4a58-a334-e01b828fa6be
+  reviewed_at: '2026-11-15T00:02:09.519287+00:00'
+  reviewer:
+    kind: ai_agent
+    identity:
+      name: architectural-refactoring-migrator
+      agent_role: architectural migration to OCPE 0.1 package layout
+      role: migration
+  scope:
+  - schema_conformance
+  - migration
+  verdict: PASSED
+  confidence: 1.0
+  findings: []
+  comments: 'knowledge_base/physiology/latent_states.yaml migrated to OCPE 0.1 packages.
+    Content split: autonomic latent constructs -> packages/autonomic/latent.yaml;
+    systemic ones -> packages/systemic/latent.yaml; items measurable in principle
+    (V_total, C_vasc, E_syst, R_periph) reclassified as cardiovascular variables.
+    Review history preserved verbatim below. Structural migration only; no scientific
+    re-grading. See migration_archive/MIGRATION_NOTES.md and docs/migration-guide.md.'
+  target_sha256: 212617dd344efac0c9d06f5df9fe809c6a1f350266a235e3cab2bd5d1a699c7b
+claims: []
+challenges: []
+adjudication:
+  status: NOT_REQUIRED
+  basis: []
+  unresolved_limitations: []
+validation:
+  state: DETERMINISTICALLY_VALID
+  deterministic:
+    status: PASSED
+  agent_evidence:
+    independent_reviewers: 0
+    supporting: 0
+    disputing: 0
+    abstaining: 0
+  computational:
+    status: NOT_RUN
+  explanation:
+  - Deterministic validation checks passed.
+  - 'Human expert review: NOT REVIEWED.'
+human_review:
+  status: NOT_REVIEWED
+  reviews: []
+authorization: {}

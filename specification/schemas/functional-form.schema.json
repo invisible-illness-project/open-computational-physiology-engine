@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/functional-form.schema.json",
+  "title": "OCPE functional form",
+  "description": "A named qualitative/mathematical shape of a dependency (e.g. Hill sigmoid, first-order lag), used to qualify relationships without embedding executable code.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "token"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "functional_form"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "token": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "expression_latex": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "monotonicity": {
+      "type": "string",
+      "enum": [
+        "increasing",
+        "decreasing",
+        "non_monotonic",
+        "depends_on_parameters"
+      ]
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

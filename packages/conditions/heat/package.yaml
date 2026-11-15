@@ -1,0 +1,35 @@
+id: conditions.heat
+name: Environmental Heat Stress (HEAT)
+version: "1.1.0"
+ocpe_spec: ">=0.1.0 <0.2.0"
+status: provisional
+license: UNSPECIFIED
+description: >
+  Environmental heat stress exposure and its heat-induced vasodilation
+  phenotype with evidence-tiered model representations for the Geddes 2022
+  baroreflex model. Migrated from knowledge_base/diseases/heat.yaml (v1.1,
+  adversarial-DOI-correction re-curation); all scientific content — including
+  the file-header correction notes — preserved verbatim, with no re-grading.
+dependencies:
+  - package: core
+    version: ">=0.1.0 <0.2.0"
+    reason: core entity vocabulary
+  - package: models.baroreflex-geddes-2022
+    version: ">=1.0.0 <2.0.0"
+    reason: phenotype model representations reference model symbols
+contents:
+  - heat.yaml
+provenance:
+  derived_from:
+    - source: knowledge_base/diseases/heat.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.1"
+      transformation: >
+        disease -> condition entity; phenotypes -> condition entities
+        (condition_type: phenotype, parent environmental-heat-stress);
+        parameters_perturbed -> model_representations.parameter_perturbations;
+        unverified_parameters -> model_representations.unverified_parameter_perturbations
+        (consumer-inert per legacy semantics); per-parameter provenance blocks
+        -> evidence with verbatim citations; file-header correction comments
+        -> document curation_notes verbatim. No scientific content was
+        re-graded during migration.

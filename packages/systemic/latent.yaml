@@ -1,0 +1,58 @@
+ocpe: "0.1"
+package: systemic
+title: Systemic latent constructs
+description: >
+  Whole-body systemic latent constructs from the pre-0.1 knowledge base
+  (category 'physiology' in latent_states.yaml). Values are model- or
+  indicator-conditional estimates, never measurements.
+provenance:
+  derived_from:
+    - source: knowledge_base/physiology/latent_states.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: >
+        latent_variables[] (category 'physiology') -> latent_construct
+        entities; valid_range -> scale min/max; symbols preserved as
+        legacy-kb aliases.
+  review_manifest: packages/systemic/latent.yaml.review.yaml
+entities:
+  - id: ocpe:systemic/hydration-state
+    kind: latent_construct
+    label: Hydration State
+    definition: "The relative level of body water, affecting total blood volume and vascular compliance."
+    dimension: dimensionless
+    canonical_unit: "1"
+    scale: {scale_type: normalized, min: 0, max: 1, interpretation: "Normalized latent-state scale from the pre-0.1 knowledge base (legacy valid_range 0-1)."}
+    aliases:
+      - {value: H_hydr, type: symbol, scope: legacy-kb}
+    since: "1.0.0"
+  - id: ocpe:systemic/inflammatory-burden
+    kind: latent_construct
+    label: Inflammatory Burden
+    definition: "The systemic level of inflammatory cytokines and mediators, affecting endothelial function and vascular permeability."
+    dimension: dimensionless
+    canonical_unit: "1"
+    scale: {scale_type: index, min: 0, max: 10, interpretation: "Index scale from the pre-0.1 knowledge base (legacy valid_range 0-10)."}
+    aliases:
+      - {value: B_infl, type: symbol, scope: legacy-kb}
+    since: "1.0.0"
+  - id: ocpe:systemic/metabolic-reserve
+    kind: latent_construct
+    label: Metabolic Reserve
+    definition: "The cellular capacity for aerobic respiration and energy production, affected in metabolic conditions (e.g. ME/CFS)."
+    dimension: dimensionless
+    canonical_unit: "1"
+    scale: {scale_type: normalized, min: 0, max: 1, interpretation: "Normalized latent-state scale from the pre-0.1 knowledge base (legacy valid_range 0-1)."}
+    aliases:
+      - {value: R_metab, type: symbol, scope: legacy-kb}
+    since: "1.0.0"
+  - id: ocpe:systemic/hormonal-state
+    kind: latent_construct
+    label: Hormonal State
+    definition: "Multi-hormonal level index representing blood volume and electrolyte regulating hormones (e.g., aldosterone, renin, vasopressin)."
+    dimension: dimensionless
+    canonical_unit: "1"
+    scale: {scale_type: normalized, min: -1, max: 1, interpretation: "Signed normalized index from the pre-0.1 knowledge base (legacy valid_range -1 to 1)."}
+    aliases:
+      - {value: S_horm, type: symbol, scope: legacy-kb}
+    since: "1.0.0"

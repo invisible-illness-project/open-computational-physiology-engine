@@ -1,0 +1,101 @@
+ocpe: "0.1"
+package: autonomic
+title: Autonomic relationships
+description: >
+  Typed directed assertions with autonomic subjects, migrated from
+  knowledge_base/ontology/relationships.yaml (v3.2, cycle-3 corrections
+  preserved verbatim).
+provenance:
+  derived_from:
+    - source: knowledge_base/ontology/relationships.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "3.2"
+      transformation: >
+        semantic_relationships (T_sym MODULATED_BY D_circ; RMSSD
+        DERIVED_FROM rr_intervals) and mechanistic link
+        exercise_intensity_to_DFA_a1 -> relationship entities.
+  review_manifest: packages/autonomic/relationships.yaml.review.yaml
+curation_notes:
+  - "SOURCE HEADER (verbatim, relationships.yaml v3.2): Edge 5 was 'D_circ MODULATED_BY T_sym' in v3.0 — INVERTED DIRECTION AND MIS-CITATION; corrected to 'T_sym MODULATED_BY D_circ' (sympathetic tone is modulated BY circadian state). Geddes has no circadian content; DOI replaced with Hu et al. 2004 PNAS (verified; endogenous circadian rhythm in cardiac/autonomic indices) + Scheer et al. 2009 PNAS (secondary)."
+  - "Edge 6 (RMSSD DERIVED_FROM rr_intervals): DOI verified — 10.3390/s22176536 is a real Sensors 2022 paper on Polar H10 HRV validity (PMID 36081005). Kept; noted as definitional identity (citation optional). The legacy registry gap (neither 'RMSSD' nor 'rr_intervals' registered in variables.yaml) is closed by metrics.yaml and the cardiovascular rr-interval variable in this repository."
+  - "exercise_intensity_to_DFA_a1: legacy 'recreational_men_cohort' / 'recreational_women_cohort' are free-text context references; those cohorts were never registered in populations/cohorts.yaml and no population entity is asserted for them."
+references:
+  - id: doi:10.1073/pnas.0408243101
+    doi: 10.1073/pnas.0408243101
+    pmid: "15611476"
+    title: "Endogenous circadian rhythm in an index of cardiac vulnerability independent of changes in behavior"
+    citation: "Hu K, Ivanov PCh, Hilton MF, et al. PNAS 2004;101:18223-7."
+    study_type: experimental_human
+  - id: doi:10.1073/pnas.0808180106
+    doi: 10.1073/pnas.0808180106
+    pmid: "19255424"
+    title: "Adverse metabolic and cardiovascular consequences of circadian misalignment"
+    citation: "Scheer FAJL, Hilton MF, Mantzoros CS, Shea SA. PNAS 2009;106:4453-8."
+    study_type: experimental_human
+  - id: doi:10.3390/s22176536
+    doi: 10.3390/s22176536
+    pmid: "36081005"
+    title: "Validity of the Polar H10 Sensor for Heart Rate Variability Analysis during Rest, Exercise, and Recovery"
+    citation: "Schaffarczyk et al., Sensors 2022;22(17):6536."
+    study_type: device_validation
+    summary_document: evidence/references/schaffarczyk_2022_polar_h10_validation.md
+entities:
+  - id: ocpe:autonomic/sympathetic-tone-modulated-by-circadian-drive
+    kind: relationship
+    label: Sympathetic tone is modulated by circadian drive
+    subject: ocpe:autonomic/sympathetic-tone
+    predicate: MODULATED_BY
+    object: ocpe:autonomic/circadian-drive
+    direction_of_effect: none
+    confidence: {value: 8, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Circadian state modulates sympathetic tone (cardiac/autonomic indices show endogenous circadian rhythm)."
+        supports: [direction, mechanism]
+        references: [doi:10.1073/pnas.0408243101, doi:10.1073/pnas.0808180106]
+        citation: "Hu K, Ivanov PCh, Hilton MF, et al. Endogenous circadian rhythm in an index of cardiac vulnerability independent of changes in behavior. PNAS 2004;101:18223-7 (PMID 15611476) — endogenous circadian modulation of cardiac/autonomic indices in humans; supports circadian-state -> autonomic-tone direction qualitatively."
+        evidence_level: "Level 2"
+        notes: "CORRECTED (v3.2): was 'D_circ MODULATED_BY T_sym' (inverted); was mis-cited to Geddes 2022 (no circadian content); DOI replaced with Hu et al. 2004 (+ Scheer et al. 2009 secondary)."
+    known_limitations: "Subject to jetlag, night shift schedules, and individual chronotype; citations support direction only, not the latent-state formulation or magnitude."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:autonomic/rmssd-derived-from-rr-interval
+    kind: relationship
+    label: RMSSD is derived from RR intervals
+    subject: ocpe:autonomic/rmssd
+    predicate: DERIVED_FROM
+    object: ocpe:cardiovascular/rr-interval
+    direction_of_effect: none
+    confidence: {value: 10, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "RMSSD is computed from consecutive RR intervals (definitional identity)."
+        supports: [existence, definition]
+        references: [doi:10.3390/s22176536]
+        evidence_level: "Level 1"
+        basis: definitional
+        notes: "DOI verified (Sensors 2022, Polar H10 HRV validity, PMID 36081005). RMSSD-from-RR is a definitional identity; the citation is optional and 'Level 1' must not be read as an RCT for a mathematical identity (see specification/core/evidence-scales.yaml caution)."
+    known_limitations: "Requires high sampling precision; sensitive to ectopic beats and motion artifacts."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+    since: "1.0.0"
+  - id: ocpe:autonomic/heart-rate-decreases-dfa-alpha-1
+    kind: relationship
+    label: Heart rate decreases DFA alpha-1 under physiological stress
+    subject: ocpe:cardiovascular/heart-rate
+    predicate: DECREASES
+    object: ocpe:autonomic/dfa-alpha-1
+    functional_form: inverse_nonlinear
+    direction_of_effect: negative
+    confidence: {value: 8.5, scale: "legacy 0-10 (pre-0.1 mechanistic_links.yaml)"}
+    description: "DFA_a1 decreases as heart rate increases under physiological stress."
+    evidence:
+      - supports: [direction, association]
+        references: [doi:10.3390/s22176536]
+        evidence_level: "Level 1"
+        notes: "Migrated from mechanistic_links.yaml 'exercise_intensity_to_DFA_a1' (legacy evidence_score 8.5). 'recreational_men_cohort'/'recreational_women_cohort' are free-text context references (cohorts never registered)."
+    applicable_contexts:
+      - population: "recreational_men_cohort (legacy free-text reference; not a registered population entity)"
+        scope_note: "Legacy cohort reference from mechanistic_links.yaml; no population entity is asserted."
+      - population: "recreational_women_cohort (legacy free-text reference; not a registered population entity)"
+        scope_note: "Legacy cohort reference from mechanistic_links.yaml; no population entity is asserted."
+    since: "1.0.0"

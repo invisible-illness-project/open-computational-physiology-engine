@@ -1,0 +1,68 @@
+ocpe: "0.1"
+package: core
+title: Functional forms
+description: >
+  Named shapes of dependencies used to qualify relationships. The first four tokens
+  were used as relationship 'type' values in the legacy mechanistic_links.yaml but
+  were never registered; they are registered here. Expressions are generic
+  templates; model-specific equations live in model specifications.
+entities:
+  - id: ocpe:core/sigmoid-hill
+    kind: functional_form
+    token: sigmoid_hill
+    label: Hill sigmoid
+    definition: "Sigmoidal dependency of the Hill type between a lower and upper asymptote, parameterised by a half-saturation point and a steepness (Hill) coefficient."
+    expression_latex: 'f(x) = (M - m)\frac{p_{2}^{k}}{x^{k} + p_{2}^{k}} + m \;\;\text{(decreasing form)}'
+    parameters: [M, m, p2, k]
+    monotonicity: depends_on_parameters
+    since: "0.1.0"
+  - id: ocpe:core/gravity-hydrostatic
+    kind: functional_form
+    token: gravity_hydrostatic
+    label: Hydrostatic (gravitational) pressure offset
+    definition: "Pressure difference due to a fluid column under gravity, scaled by the sine of the body tilt angle."
+    expression_latex: 'p_{2} = p_{1} - \rho g h \sin\theta'
+    parameters: [rho, g, h, theta]
+    monotonicity: decreasing
+    since: "0.1.0"
+  - id: ocpe:core/inverse-proportional
+    kind: functional_form
+    token: inverse_proportional
+    label: Inverse proportionality
+    definition: "y = c / x for a constant c (e.g. heart rate = 60000 / RR interval in ms)."
+    expression_latex: 'y = \frac{c}{x}'
+    parameters: [c]
+    monotonicity: decreasing
+    since: "0.1.0"
+  - id: ocpe:core/inverse-nonlinear
+    kind: functional_form
+    token: inverse_nonlinear
+    label: Monotone decreasing, non-linear (unspecified form)
+    definition: "A qualitatively decreasing dependency whose functional form is not specified."
+    monotonicity: decreasing
+    since: "0.1.0"
+  - id: ocpe:core/first-order-lag
+    kind: functional_form
+    token: first_order_lag
+    label: First-order lag
+    definition: "State relaxes towards a target with time constant tau: dx/dt = (target - x)/tau."
+    expression_latex: '\frac{dx}{dt} = \frac{x_{target} - x}{\tau}'
+    parameters: [tau]
+    monotonicity: depends_on_parameters
+    since: "0.1.0"
+  - id: ocpe:core/linear
+    kind: functional_form
+    token: linear
+    label: Linear
+    definition: "y = a x + b."
+    expression_latex: 'y = a x + b'
+    parameters: [a, b]
+    monotonicity: depends_on_parameters
+    since: "0.1.0"
+  - id: ocpe:core/qualitative
+    kind: functional_form
+    token: qualitative
+    label: Qualitative (direction only)
+    definition: "Only the existence and/or direction of the dependency is asserted; no functional form is implied."
+    monotonicity: depends_on_parameters
+    since: "0.1.0"

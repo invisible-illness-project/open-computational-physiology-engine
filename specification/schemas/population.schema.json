@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/population.schema.json",
+  "title": "OCPE population descriptor",
+  "description": "A description of a group of individuals used to qualify the context of ranges, evidence and measurement performance. It is a context descriptor, not a generative cohort specification (synthetic cohort generation belongs to downstream applications).",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "population"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "health_status": {
+      "type": "string"
+    },
+    "inclusion_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "exclusion_criteria": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "demographics": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sample_size": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Only for populations that denote a specific study sample."
+    },
+    "source_study": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/definitions/reference_id"
+      }
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

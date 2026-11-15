@@ -1,0 +1,62 @@
+# OCPE canonical unit registry (normative for specification 0.1.x).
+#
+# Units are written as UCUM case-sensitive codes (https://ucum.org). This registry
+# lists the units OCPE packages currently use, their physical dimension, and the
+# factor converting the unit to the dimension's reference unit (`to_reference`).
+# The engine uses this table for dimensional-consistency checks; it is NOT a
+# general-purpose UCUM implementation. Add units here before using them.
+#
+# Dimension vectors use exponents of: L (length), M (mass), T (time), and the
+# OCPE pseudo-dimensions EVT (countable events such as heart beats) — kept
+# separate so 'beats/min' is distinguishable from generic frequency in intent but
+# convertible within the 'event_rate' dimension.
+ocpe_spec: "0.1"
+
+dimensions:
+  dimensionless: { reference_unit: "1", vector: {} }
+  length:        { reference_unit: "m", vector: { L: 1 } }
+  time:          { reference_unit: "s", vector: { T: 1 } }
+  volume:        { reference_unit: "mL", vector: { L: 3 } }
+  pressure:      { reference_unit: "mm[Hg]", vector: { M: 1, L: -1, T: -2 } }
+  volume_flow:   { reference_unit: "mL/s", vector: { L: 3, T: -1 } }
+  frequency:     { reference_unit: "Hz", vector: { T: -1 } }
+  event_rate:    { reference_unit: "/min", vector: { EVT: 1, T: -1 }, note: "Rates of countable events (heart beats, breaths)." }
+  angle:         { reference_unit: "deg", vector: {}, note: "Plane angle; dimensionless in SI but tracked separately." }
+  compliance:    { reference_unit: "mL/mm[Hg]", vector: { L: 4, T: 2, M: -1 } }
+  elastance:     { reference_unit: "mm[Hg]/mL", vector: { M: 1, L: -4, T: -2 } }
+  hydraulic_resistance: { reference_unit: "mm[Hg].s/mL", vector: { M: 1, L: -4, T: -1 } }
+  inverse_pressure: { reference_unit: "/mm[Hg]", vector: { M: -1, L: 1, T: 2 } }
+  density:       { reference_unit: "g/cm3", vector: { M: 1, L: -3 } }
+  acceleration:  { reference_unit: "cm/s2", vector: { L: 1, T: -2 } }
+  temperature:   { reference_unit: "Cel", vector: { THETA: 1 } }
+  mass_concentration: { reference_unit: "pg/mL", vector: { M: 1, L: -3 } }
+
+units:
+  # code: dimension, to_reference factor, label, legacy spellings (pre-0.1 KB)
+  "1":            { dimension: dimensionless, to_reference: 1, label: "dimensionless", legacy: ["dimensionless", ""] }
+  "%":            { dimension: dimensionless, to_reference: 0.01, label: "percent" }
+  "m":            { dimension: length, to_reference: 1, label: "metre" }
+  "cm":           { dimension: length, to_reference: 0.01, label: "centimetre", legacy: ["cm"] }
+  "s":            { dimension: time, to_reference: 1, label: "second", legacy: ["s", "sec", "seconds"] }
+  "ms":           { dimension: time, to_reference: 0.001, label: "millisecond", legacy: ["ms"] }
+  "min":          { dimension: time, to_reference: 60, label: "minute" }
+  "h":            { dimension: time, to_reference: 3600, label: "hour" }
+  "a":            { dimension: time, to_reference: 31557600, label: "year (Julian)" }
+  "mL":           { dimension: volume, to_reference: 1, label: "millilitre", legacy: ["ml", "mL"] }
+  "L":            { dimension: volume, to_reference: 1000, label: "litre" }
+  "mm[Hg]":       { dimension: pressure, to_reference: 1, label: "millimetre of mercury", legacy: ["mmHg"] }
+  "kPa":          { dimension: pressure, to_reference: 7.500617, label: "kilopascal" }
+  "mL/s":         { dimension: volume_flow, to_reference: 1, label: "millilitre per second", legacy: ["ml/s"] }
+  "L/min":        { dimension: volume_flow, to_reference: 16.6666667, label: "litre per minute" }
+  "Hz":           { dimension: frequency, to_reference: 1, label: "hertz", legacy: ["Hz"] }
+  "/min":         { dimension: event_rate, to_reference: 1, label: "per minute (events, e.g. beats/min)", legacy: ["bpm", "beats/min"] }
+  "/s":           { dimension: event_rate, to_reference: 60, label: "per second (events, e.g. beats/s)", legacy: ["bps", "beats/s"] }
+  "deg":          { dimension: angle, to_reference: 1, label: "degree", legacy: ["degrees"] }
+  "mL/mm[Hg]":    { dimension: compliance, to_reference: 1, label: "millilitre per mmHg", legacy: ["ml/mmHg"] }
+  "mm[Hg]/mL":    { dimension: elastance, to_reference: 1, label: "mmHg per millilitre", legacy: ["mmHg/ml"] }
+  "mm[Hg].s/mL":  { dimension: hydraulic_resistance, to_reference: 1, label: "mmHg second per millilitre", legacy: ["mmHg*s/ml", "mmHg s/ml"] }
+  "/mm[Hg]":      { dimension: inverse_pressure, to_reference: 1, label: "per mmHg", legacy: ["1/mmHg"] }
+  "g/cm3":        { dimension: density, to_reference: 1, label: "gram per cubic centimetre", legacy: ["g/cm^3"] }
+  "cm/s2":        { dimension: acceleration, to_reference: 1, label: "centimetre per second squared", legacy: ["cm/s^2"] }
+  "Cel":          { dimension: temperature, to_reference: 1, label: "degree Celsius", offset: 0 }
+  "pg/mL":        { dimension: mass_concentration, to_reference: 1, label: "picogram per millilitre", legacy: ["pg/ml"] }

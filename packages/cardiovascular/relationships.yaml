@@ -1,0 +1,109 @@
+ocpe: "0.1"
+package: cardiovascular
+title: Cardiovascular semantic relationships
+description: >
+  Typed directed assertions whose subject is a cardiovascular variable,
+  migrated from knowledge_base/ontology/relationships.yaml (v3.2, cycle-3
+  corrections preserved verbatim in curation_notes and evidence). Mechanistic
+  links whose mathematical specification points into the Geddes 2022 model are
+  packaged with the model (packages/models/baroreflex-geddes-2022) to avoid a
+  dependency cycle.
+provenance:
+  derived_from:
+    - source: knowledge_base/ontology/relationships.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "3.2"
+      transformation: >
+        semantic_relationships (subject in this package) -> relationship
+        entities; supporting_publications -> evidence with verbatim citation
+        detail; applicable_populations -> applicable_contexts; confidence 0-10
+        preserved as confidence scale 'legacy 0-10'.
+  review_manifest: packages/cardiovascular/relationships.yaml.review.yaml
+curation_notes:
+  - "CYCLE-3 SOURCE HEADER (verbatim, knowledge_base/ontology/relationships.yaml v3.2): Edge 1 (pcm REGULATES Hc): DOI valid (Geddes 2022 IS the baroreflex model), but evidence_level 'Level 1' was inflated — Geddes is Level 4 (in-silico) per the repo's own publication review. Downgraded."
+  - "Edge (RalpM PERTURBED_BY neuropathic_pots): SEMANTICALLY INVERTED in v3.0 — corrected to 'RalpM PERTURBED_BY neuropathic_pots' (disease perturbs the parameter). Evidence level corrected to Level 4 (in-silico source). This edge is packaged in conditions.pots because its subject is a model symbol and its object a condition."
+  - "Edge (L_stress INCREASES T_sym): MIS-CITATION — Geddes 2022 contains no stress/allostatic content. DOI replaced with Carter & Ray 2009 (verified, human MSNA mental-stress data). Packaged in the systemic package (subject L_stress)."
+  - "Edge (H_hydr INCREASES V_total): MIS-CITATION — hydration is not in Geddes 2022. DOI replaced with Cheuvront & Kenefick 2014 (verified review). Packaged in the systemic package (subject H_hydr)."
+  - "Edge (T_sym MODULATED_BY D_circ): INVERTED DIRECTION AND MIS-CITATION in v3.0 — corrected to 'T_sym MODULATED_BY D_circ'. DOI replaced with Hu et al. 2004 PNAS + Scheer et al. 2009 PNAS (secondary). Packaged in the autonomic package (subject T_sym)."
+  - "Edge (RMSSD DERIVED_FROM rr_intervals): DOI verified — 10.3390/s22176536 is a real Sensors 2022 paper on Polar H10 HRV validity (PMID 36081005). Kept; noted as definitional identity (citation optional). Packaged in the autonomic package, which also closes the legacy registry gap by registering RMSSD as a derived metric and rr_intervals as the rr-interval variable."
+  - "CYCLE-3 REVISION (v3.2): pcm REGULATES Vvm evidence_level Level 3 -> Level 4 (Heldt 2002 is in-silico modeling); pvl REGULATES Vsr Level 2 -> Level 4 (van Heusden 2006 is a mathematical-modeling study; gain/time constants machine-proposed)."
+references:
+  - id: doi:10.1098/rsif.2022.0220
+    doi: 10.1098/rsif.2022.0220
+    pmid: "36069002"
+    title: "Postural orthostatic tachycardia syndrome explained using a baroreflex response model"
+    citation: "Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. J R Soc Interface 2022;19:20220220."
+    study_type: in_silico
+    summary_document: evidence/references/geddes_2022_baroreflex_pots.md
+  - id: doi:10.1152/japplphysiol.00241.2001
+    doi: 10.1152/japplphysiol.00241.2001
+    pmid: "11842064"
+    title: "Computational modeling of cardiovascular response to orthostatic stress"
+    citation: "Heldt T, Shim EB, Kamm RD, Mark RG. J Appl Physiol 2002;92:1239-54."
+    study_type: in_silico
+  - id: doi:10.1152/ajpheart.01268.2004
+    doi: 10.1152/ajpheart.01268.2004
+    pmid: "16632542"
+    title: "Mathematical modeling of gravitational effects on the circulation: importance of the time course of venous pooling and blood volume changes in the lungs"
+    citation: "van Heusden K, Gisolf J, Stok WJ, Dijkstra S, Karemaker JM. Am J Physiol Heart Circ Physiol 2006;291:H2152-65."
+    study_type: in_silico
+entities:
+  - id: ocpe:cardiovascular/pcm-regulates-heart-rate
+    kind: relationship
+    label: Mean carotid pressure regulates heart rate
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: REGULATES
+    object: ocpe:cardiovascular/heart-rate
+    direction_of_effect: none
+    confidence: {value: 10, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Mean carotid pressure regulates heart rate via the baroreflex."
+        supports: [existence, mechanism]
+        references: [doi:10.1098/rsif.2022.0220]
+        evidence_level: "Level 4"
+        notes: "CORRECTED from 'Level 1': Geddes 2022 is in-silico modeling (Level 4 per its own publication review)."
+    known_limitations: "Assumes instantaneous baroreceptor firing which is valid under macroscopic timescales but lacks myelinated/unmyelinated fiber distinction."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.0.0"
+  - id: ocpe:cardiovascular/pcm-regulates-venomotor-capacity-reduction
+    kind: relationship
+    label: Mean carotid pressure regulates the venomotor reflex
+    subject: ocpe:cardiovascular/mean-carotid-pressure
+    predicate: REGULATES
+    object: ocpe:cardiovascular/venomotor-reflex-capacity-reduction
+    direction_of_effect: none
+    confidence: {value: 7, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Mean carotid pressure drives the venomotor reflex (venoconstriction) through a first-order Hill-sigmoid formulation."
+        supports: [existence, mechanism]
+        references: [doi:10.1152/japplphysiol.00241.2001]
+        citation: "Heldt T, Shim EB, Kamm RD, Mark RG. Computational modeling of cardiovascular response to orthostatic stress. J Appl Physiol 2002;92:1239-54 - venous tone is baroreflex-controlled; first-order Hill-sigmoid formulation here is machine-proposed (tier C)."
+        evidence_level: "Level 4"
+        notes: "CYCLE-3 CORRECTED from 'Level 3': Heldt et al. 2002 is an IN-SILICO modeling paper (CVSim-family computational model); per the Cycle-1 convention, in-silico evidence is Level 4."
+    known_limitations: "Venomotor gain/time-constant parameters are machine-proposed fits, not directly measured in humans."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.0.0"
+  - id: ocpe:cardiovascular/lower-venous-pressure-regulates-creep-volume
+    kind: relationship
+    label: Lower venous pressure regulates stress-relaxation creep
+    subject: ocpe:cardiovascular/lower-venous-pressure
+    predicate: REGULATES
+    object: ocpe:cardiovascular/venous-stress-relaxation-creep-volume
+    direction_of_effect: none
+    confidence: {value: 7, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Sustained lower venous pressure drives viscoelastic stress-relaxation creep of lower venous capacity."
+        supports: [existence, mechanism]
+        references: [doi:10.1152/ajpheart.01268.2004]
+        citation: "van Heusden K, Gisolf J, Stok WJ, Dijkstra S, Karemaker JM. Mathematical modeling of gravitational effects on the circulation: importance of the time course of venous pooling and blood volume changes in the lungs. Am J Physiol Heart Circ Physiol 2006;291:H2152-65 - creep driven by sustained venous pressure; gain/time constant here are machine-proposed within the documented 60-300 s range (tier C)."
+        evidence_level: "Level 4"
+        notes: "CYCLE-3 CORRECTED from 'Level 2': van Heusden et al. 2006 is a computational modeling study; its stress-relaxation time course is only COMPARED to measured human impedance data, and the OCPE gain/time constants are machine-proposed fits (per its own citation_detail). Level 4 conservatively applied."
+    known_limitations: "Single-compartment lumped creep; does not reproduce biphasic fast/slow viscoelastic components."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.0.0"

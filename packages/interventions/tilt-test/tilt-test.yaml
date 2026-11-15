@@ -1,0 +1,60 @@
+ocpe: "0.1"
+package: interventions.tilt-test
+title: Head-Up Tilt (HUT) Test
+description: >
+  Orthostatic challenge protocol: supine rest, 60-degree head-up tilt with a
+  14-s transition, sustained tilt, and tilt-down. Phase timings and geometry
+  are transcribed verbatim from the legacy source.
+provenance:
+  derived_from:
+    - source: knowledge_base/interventions/tilt_test.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: "flat protocol fields -> protocol.phases; purpose/provenance verbatim."
+  review_manifest: packages/interventions/tilt-test/tilt-test.yaml.review.yaml
+references:
+  - id: doi:10.1098/rsif.2022.0220
+    doi: 10.1098/rsif.2022.0220
+    pmid: "36069002"
+    title: "Postural orthostatic tachycardia syndrome explained using a baroreflex response model"
+    citation: "Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. J R Soc Interface 2022;19:20220220 (protocol provenance in the legacy source)."
+    study_type: in_silico
+    summary_document: evidence/references/geddes_2022_baroreflex_pots.md
+entities:
+  - id: ocpe:interventions.tilt-test/head-up-tilt-test
+    kind: intervention
+    label: Head-Up Tilt (HUT) Test
+    definition: "Orthostatic challenge diagnostic protocol."
+    intervention_type: diagnostic_protocol
+    aliases:
+      - {value: head_up_tilt_test, type: legacy-id, scope: legacy-kb}
+    purpose: "Assess autonomic cardiovascular regulation and diagnose orthostatic intolerance syndromes such as POTS."
+    protocol:
+      phases:
+        - name: supine_rest
+          duration: {value: 200.0, unit: s}
+          description: "Baseline supine recording."
+        - name: tilt_up
+          duration: {value: 14.0, unit: s}
+          description: "Smooth transition from supine to the tilt angle."
+          settings:
+            - name: tilt_angle
+              value: 60.0
+              unit: deg
+        - name: sustained_tilt
+          duration: {value: 100.0, unit: s}
+          description: "Sustained head-up tilt at the specified angle and effective height."
+          settings:
+            - name: tilt_angle
+              value: 60.0
+              unit: deg
+            - name: height
+              value: 25.0
+              unit: cm
+        - name: tilt_down
+          duration: {value: 14.0, unit: s}
+          description: "Return to supine."
+    evidence:
+      - references: [doi:10.1098/rsif.2022.0220]
+        notes: "Legacy intervention.provenance.doi; the protocol parameters match the Geddes 2022 simulation protocol."
+    since: "1.0.0"

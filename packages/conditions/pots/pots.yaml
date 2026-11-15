@@ -1,0 +1,296 @@
+ocpe: "0.1"
+package: conditions.pots
+title: POTS syndrome and phenotypes
+description: >
+  Postural Orthostatic Tachycardia Syndrome and its three phenotypes. Phenotype
+  model representations are model-specific hypotheses (with their own
+  evidence) about how each phenotype is encoded in the Geddes 2022 baroreflex
+  model; clinical/physiological claims are carried by the condition entities
+  and their association evidence.
+provenance:
+  derived_from:
+    - source: knowledge_base/diseases/pots.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.5"
+      transformation: >
+        Cycle-3 re-curation v1.5 migrated without re-grading; file-header
+        curation rationale preserved verbatim in curation_notes.
+  review_manifest: packages/conditions/pots/pots.yaml.review.yaml
+curation_notes:
+  - "SOURCE HEADER (verbatim, pots.yaml v1.5): PROPOSED CORRECTION (not yet merged) — cycle-3 POTS re-curation (v1.5). Builds on cycle-2 v1.4 (Geddes 2022 corrections + tilt-onset annotations). New evidence base: ocpe_pots_recuration_evidence.md (records NP-01..NP-07, HP-01..HP-04, HY-01), with cycle-2 venomotor/stress-relaxation parameters (dV_veno_max=250 mL, kV=8, p2V=87.5 mmHg, tau_veno=12 s, VMvl=700 mL, mvl=0.035 1/mmHg — all registered in the Geddes 2022 model specification)."
+  - "SOURCE HEADER (verbatim): COMPOSABILITY (Angeli 2024, Sci Rep 14, PMC10761725, PMID 38168762, n=378; tier A): 41.7% of POTS patients carry TWO phenotypes and 11.4% all THREE; no symptom differences between phenotypes. These phenotype blocks are therefore COMPOSABLE, not mutually exclusive — combining them via multiplicative composition (e.g. 'neuropathic_pots * hypovolemic_pots') reflects the clinical reality."
+  - "SOURCE HEADER (verbatim): CROSS-PHENOTYPE GUARD (Stewart 2002 PMID 12010910; Freeman 2002 PMID 12133874; tier B): the pooling defect in POTS is one of reflex vasoconstrictor/venomotor TONE, NOT passive venous compliance (compliance is unchanged [Stewart] or even LOWER [Freeman]). Therefore mvl and VMvl must NOT be perturbed upward in ANY POTS phenotype — do so only via the venomotor capacity parameter dV_veno_max (neuropathic) below."
+references:
+  - id: doi:10.1098/rsif.2022.0220
+    doi: 10.1098/rsif.2022.0220
+    pmid: "36069002"
+    title: "Postural orthostatic tachycardia syndrome explained using a baroreflex response model"
+    citation: "Geddes JR, Ottesen JT, Mehlsen J, Olufsen MS. J R Soc Interface 2022;19:20220220."
+    study_type: in_silico
+    summary_document: evidence/references/geddes_2022_baroreflex_pots.md
+  - id: doi:10.1056/NEJM200010053431404
+    doi: 10.1056/NEJM200010053431404
+    pmid: "11018167"
+    title: "The neuropathic postural tachycardia syndrome"
+    citation: "Jacob G, Costa F, Shannon JR, Robertson RM, Wathen PK, Stein M, Biaggioni I, Ertl A, Black B, Robertson D. N Engl J Med 2000;343:1008-14."
+    study_type: experimental_human
+  - id: pmid:12010910
+    pmid: "12010910"
+    citation: "Stewart JM. Pooling in chronic orthostatic intolerance: arterial vasoconstrictive but not venous compliance defects. Circulation 2002;105:2274-81."
+    study_type: experimental_human
+  - id: pmid:12133874
+    pmid: "12133874"
+    citation: "Freeman R, Lirofonis V, Farquhar WB, Risk M. Limb venous compliance in patients with idiopathic orthostatic tachycardia and postural tachycardia syndrome. J Appl Physiol 2002;93:636-44."
+    study_type: experimental_human
+  - id: doi:10.1161/HYPERTENSIONAHA.124.23035
+    doi: 10.1161/HYPERTENSIONAHA.124.23035
+    pmid: "39109428"
+    title: "Neurovascular mechanisms of orthostatic tachycardia in hyperadrenergic postural orthostatic tachycardia syndrome"
+    citation: "Okamoto et al., Hypertension 2024 (HP-01: upright NE 765+/-70 pg/mL; orthostatic delta-HR identical across MSNA extremes)."
+    study_type: observational_human
+  - id: pmid:15863453
+    pmid: "15863453"
+    citation: "Muenter Swift N, Charkoudian N, Dotson RM, Suarez GA, Atkinson EJ, Wolf PA, Low PA, Robertson D, Raj SR. Baroreflex control of muscle sympathetic nerve activity in postural orthostatic tachycardia syndrome. Am J Physiol Heart Circ Physiol 2005;289:H1226-33."
+    study_type: experimental_human
+  - id: pmid:38168762
+    pmid: "38168762"
+    pmcid: PMC10761725
+    citation: "Angeli et al., Sci Rep 2024;14 (n=378; 41.7% dual-phenotype overlap; composability evidence)."
+    study_type: observational_human
+  - id: doi:10.1161/01.CIR.0000160356.97313.5D
+    doi: 10.1161/01.CIR.0000160356.97313.5D
+    pmid: "15837998"
+    title: "Renin-aldosterone paradox and perturbed blood volume regulation underlying postural tachycardia syndrome"
+    citation: "Raj SR, Biaggioni I, Yamhure PC, Black BK, Robertson D. Circulation 2005;111:1574-82 (gold-standard 131I-albumin total blood volume deficit 689+/-270 mL, n=15 POTS)."
+    study_type: experimental_human
+entities:
+  - id: ocpe:conditions.pots/pots
+    kind: condition
+    label: Postural Orthostatic Tachycardia Syndrome
+    aliases:
+      - {value: pots, type: legacy-id, scope: legacy-kb}
+    abbreviation: POTS
+    condition_type: syndrome
+    definition: "A form of orthostatic intolerance characterized by an excessive increase in heart rate upon standing, in the absence of orthostatic hypotension. Phenotypes are composable (Angeli 2024: 41.7% dual-diagnosis overlap) — see curation_notes."
+    composability:
+      composable_with:
+        - ocpe:conditions.pots/neuropathic-pots
+        - ocpe:conditions.pots/hyperadrenergic-pots
+        - ocpe:conditions.pots/hypovolemic-pots
+      notes: "Phenotype blocks are COMPOSABLE, not mutually exclusive: 41.7% of POTS patients carry TWO phenotypes and 11.4% all THREE (Angeli 2024); no symptom differences between phenotypes. Pre-0.1 composition syntax: multiplicative expressions (e.g. 'neuropathic_pots * hypovolemic_pots')."
+      evidence:
+        - supports: [association]
+          references: [pmid:38168762]
+          citation: "Angeli 2024, Sci Rep 14, PMC10761725 (n=378; tier A per legacy curation)."
+          evidence_tier: "A"
+    since: "1.5.0"
+  - id: ocpe:conditions.pots/neuropathic-pots
+    kind: condition
+    label: Neuropathic POTS
+    aliases:
+      - {value: neuropathic_pots, type: legacy-id, scope: legacy-kb}
+    condition_type: phenotype
+    parent: ocpe:conditions.pots/pots
+    definition: "Characterized by partial distal sympathetic denervation leading to impaired peripheral arterial vasoconstriction AND blunted reflex venoconstriction (venomotor tone), particularly in the lower body. Central baroreflex gain is intact (Jacob 2019, NP-07); the defect is peripheral effector failure (Jacob 2000, NP-01)."
+    association_evidence:
+      - supports: [association, mechanism]
+        references: [doi:10.1056/NEJM200010053431404, pmid:12010910, pmid:12133874]
+        citation: "Jacob et al., N Engl J Med 2000;343:1008-14 (NP-01: leg reflex NE spillover blunted ~91-99% vs controls, arm preserved; 10 POTS/8 controls). Tier A direction, tier B magnitude (n=10). Supporting: Stewart, Circulation 2002;105:2274-81 (NP-02, PMID 12010910: pooling is an arterial vasoconstrictor defect, venous compliance normal); Freeman, J Appl Physiol 2002;93:636-44 (NP-03, PMID 12133874: venous compliance lower, not higher); Thieben, Mayo Clin Proc 2007 (NP-05: ~50% sudomotor denervation in n=152)."
+        evidence_tier: "A"
+        notes: "Direction-level support for peripheral denervation; arterial parameters in the model representation remain cited to Geddes 2022 at parameter level (tier C)."
+    model_representations:
+      - model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+        parameter_perturbations:
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#RalpM
+            baseline_value: 17.88
+            perturbed_value: 11.5
+            unit: mm[Hg].s/mL
+            mechanism: "Blunted lower-body arterial vasoconstrictive reserve (Geddes 2022 neuropathic phenotype; concordant with Stewart 2002: leg arterial resistance fails to rise on tilt)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (RlpM 4.5 -> 2.9, factor 0.644; scaled to repo nominal 17.88)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+            curation_note: "Pre-0.1 canonical parameters_perturbed entry (human expert review pending per sidecar)."
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#Ralpm
+            baseline_value: 1.192
+            perturbed_value: 0.76
+            unit: mm[Hg].s/mL
+            mechanism: "Reduced lower-bound lower-body peripheral resistance (Geddes 2022 reduces BOTH RlpM and Rlpm)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (Rlpm 0.30 -> 0.19, factor 0.633; scaled to repo nominal 1.192)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+            curation_note: "Pre-0.1 canonical parameters_perturbed entry (human expert review pending per sidecar)."
+        unverified_parameter_perturbations:
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#dV_veno_max
+            baseline_value: 250.0
+            perturbed_value: 75.0
+            unit: mL
+            mechanism: "Partial lower-body venomotor denervation: maximum reflex venoconstriction reduced to 30% of nominal, consistent with Jacob 2000's 91-99% blunted leg NE spillover (unselected cohort mean; partial/regional denervation per Jacob 2019, NP-07) and Thieben 2007's ~50% sudomotor denervation prevalence. This is the venomotor-tone defect that defeats the cycle-2 venous reflex reserve."
+            evidence:
+              - supports: [direction]
+                basis: machine_calibrated
+                evidence_level: "Level 4"
+                evidence_tier: "D"
+                notes: "MACHINE-CALIBRATED magnitude, pending simulation check. DIRECTION is tier A (Jacob 2000: 91-99% blunted leg reflex NE spillover); the exact factor is unverifiable — 75 mL = factor 0.30 (~70% venomotor denervation), inside the evidence-file range factor 0.1-0.5 (NP-01 model_mapping). Deliberately NO parameter-level DOI (the phenotype-level citations support direction, not this number). NOTE: unlike the Geddes arterial-gain changes, venomotor denervation is a STATIC capacity reduction — it is present supine and upright and only manifests when the reflex engages; no tilt-onset trigger needed."
+            curation_status: machine_calibrated
+            curation_note: "MACHINE-CALIBRATED - cycle-3 simulation check COMPLETE: sustained tilt delta-HR is 21.2 bpm (target >= 30 NOT met). Dose-response over factor 0.0-0.5 of nominal (0-125 mL) is essentially flat (18.5 -> 21.7 bpm): at steady state, pooling is hydrostatic-gate-limited and stress-relaxation creep re-expands capacity, so venomotor denervation alone cannot restore the clinical response in the current model structure. Value 75 mL retained (factor 0.30, mid evidence range; direction evidence-based, magnitude calibrated) pending a future model revision (bounded creep per van Heusden 2006 and/or Geddes tilt-onset application semantics). Do NOT promote to parameters_perturbed."
+        constraints:
+          - do_not_perturb:
+              - ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#mvl
+              - ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#VMvl
+            rationale: "Stewart 2002 (PMID 12010910): pooling = arterial vasoconstrictive defect, venous compliance normal; Freeman 2002 (PMID 12133874): venous compliance LOWER than controls. Do NOT perturb mvl or VMvl for neuropathic POTS — venous compliance is normal or reduced, never increased. Pooling arises from lost TONE (dV_veno_max) and arterial vasoconstriction (RalpM/Ralpm), not from passive capacitance."
+            evidence_tier: "B"
+            evidence:
+              - supports: [mechanism]
+                references: [pmid:12010910, pmid:12133874]
+                citation: "Stewart 2002 (NP-02); Freeman 2002 (NP-03) — see association_evidence."
+                evidence_tier: "B"
+    since: "1.5.0"
+  - id: ocpe:conditions.pots/hyperadrenergic-pots
+    kind: condition
+    label: Hyperadrenergic POTS
+    aliases:
+      - {value: hyperadrenergic_pots, type: legacy-id, scope: legacy-kb}
+    condition_type: phenotype
+    parent: ocpe:conditions.pots/pots
+    definition: "Characterized by orthostatic tachycardia associated with high levels of sympathetic activity. Canonical form represents the primary/central hyperadrenergic extreme (upright NE >1000 pg/mL subgroup, Raj 2013); most elevated-NE POTS is compensatory to hypovolemia/neuropathy (Okamoto 2024, Angeli 2024)."
+    association_evidence:
+      - supports: [association]
+        references: [doi:10.1161/HYPERTENSIONAHA.124.23035, pmid:15863453, pmid:38168762]
+        citation: "Okamoto et al., Hypertension 2024 (HP-01: upright NE 765+/-70 pg/mL; orthostatic delta-HR IDENTICAL across MSNA extremes, 34+/-8 vs 34+/-5 bpm, p=0.988 — hyperadrenergic signature is the upright BP RISE, not excess tachycardia); Muenter Swift et al., Am J Physiol Heart Circ Physiol 2005;289:H1226-33 (HP-03, PMID 15863453: exaggerated MSNA baroreflex responses, 208% vs 123% of baseline on 30-deg HUT — supports increased loop gain); Angeli et al., Sci Rep 2024 (HP-02, PMID 38168762)."
+        evidence_tier: "A"
+        notes: "Validation signature; gain direction tier B (HP-03)."
+    model_representations:
+      - model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+        parameter_perturbations:
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#kR
+            baseline_value: 23.0
+            perturbed_value: 32.0
+            unit: "1"
+            mechanism: "Hypersensitive sympathetic resistance feedback gain (Geddes 2022 hyperadrenergic phenotype; concordant with Muenter Swift 2005 exaggerated MSNA reflex responses, HP-03)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 6 (nominal kR=23), Table 3 (kR 23 -> 32)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#kH
+            baseline_value: 27.0
+            perturbed_value: 34.0
+            unit: "1"
+            mechanism: "Elevated heart-rate baroreflex gain; cardiac beta-hypersensitivity documented in hyperadrenergic POTS (HP-04: isoproterenol hypersensitivity, Jacob 1999)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 6 (nominal kH=27), Table 3 (kH 24 -> 34; source-internal pre-tilt 24 vs nominal 27 inconsistency noted)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+            curation_note: "Source-internal pre-tilt kH (24) vs nominal (27) inconsistency noted in the legacy citation; preserved verbatim."
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#kE
+            baseline_value: 7.0
+            perturbed_value: 10.0
+            unit: "1"
+            mechanism: "Elevated cardiac contractility (end-diastolic elastance) control gain (Geddes 2022 Table 3)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (kE 7 -> 10)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#p2H
+            baseline_value: 88.5
+            perturbed_value: 89.8
+            unit: mm[Hg]
+            mechanism: "Shifted half-saturation of heart-rate baroreflex control (Geddes 2022 Table 3)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002]
+                citation: "Geddes et al., J R Soc Interface 2022;19:20220220, Table 3 (P2H 88.5 -> 89.8 mmHg)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+            curation_status: partially_verified
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#TotalVol
+            baseline_value: 4500.0
+            perturbed_value: 3900.0
+            unit: mL
+            mechanism: "Secondary/compensatory hypovolemia coexisting with hyperadrenergic gain (Raj 2005 deficit 689+/-270 mL; 4500-689 = 3811, 3900 mL is within rounding of that mean)."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1161/01.CIR.0000160356.97313.5D, pmid:15837998]
+                citation: "Raj et al., Circulation 2005;111:1574-82 (HY-01: measured total blood volume deficit 689+/-270 mL, n=15 POTS, gold-standard 131I-albumin)"
+                evidence_level: "Level 2"
+                evidence_tier: "C"
+            curation_status: machine_calibrated
+            curation_note: "PROMOTED from optional_parameters after cycle-3 simulation check: canonical gain changes alone gave sustained tilt delta-HR 25.7 bpm (<30 criterion); with TotalVol=3900 the phenotype meets delta-HR >= 30 (34.2 bpm). The delta-SBP >= +10 mmHg pressor criterion remains UNMET in silico (simulated -4.0 mmHg): the 0-D model's arterial pulse pressure narrows on tilt (stroke volume falls) so SBP stays flat even though mean-pressure pressor response is present (MAP +5.1 mmHg upright). See cycle-3 report."
+        constraints:
+          - do_not_perturb:
+              - ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#dV_veno_max
+            rationale: "HP-01 (tier A): hyperadrenergic POTS shows NO denervation evidence — supine MSNA normal-to-high and upright BP RISES. The venomotor reflex (dV_veno_max, kV, p2V) must remain INTACT (or could even be enhanced; optional kV 8->10 is tier D and deliberately NOT encoded). Reducing dV_veno_max here would mislabel a gain disorder as denervation."
+            evidence_tier: "B"
+        validation_criteria:
+          - criterion: "tilt delta-HR >= 30 bpm (POTS criterion)"
+            tier: "A"
+          - criterion: "upright delta-SBP >= +10 mmHg (vs <= 0 mmHg expected in neuropathic phenotype)"
+            tier: "A"
+            source: "Okamoto 2024 (PMID 39109428): hyperadrenergic biomarker is systolic pressor response; delta-HR is NOT larger than other POTS (34+/-8 vs 34+/-5 bpm) — if simulated delta-HR greatly exceeds neuropathic, that is a RED FLAG, not fidelity"
+    since: "1.5.0"
+  - id: ocpe:conditions.pots/hypovolemic-pots
+    kind: condition
+    label: Hypovolemic POTS
+    aliases:
+      - {value: hypovolemic_pots, type: legacy-id, scope: legacy-kb}
+    condition_type: phenotype
+    parent: ocpe:conditions.pots/pots
+    definition: "Characterized by reduced total blood volume leading to decreased venous return, stroke volume, and compensatory tachycardia."
+    model_representations:
+      - model: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022
+        parameter_perturbations:
+          - parameter: ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#TotalVol
+            baseline_value: 4500.0
+            perturbed_value: 3500.0
+            unit: mL
+            mechanism: "Low (BMI-19-equivalent) systemic blood volume per Geddes 2022 hypovolaemic phenotype; exceeds the Raj 2005 measured mean deficit by ~1.5x (machine-calibrated extreme) — see curation_note."
+            application:
+              trigger: head_up_tilt_onset
+              transition: "10-s delayed smooth transition to target (Geddes 2022 Eq. 2.16); NOT a static baseline override — engine support required"
+            evidence:
+              - supports: [magnitude]
+                references: [doi:10.1098/rsif.2022.0220, pmid:36069002, doi:10.1161/01.CIR.0000160356.97313.5D]
+                citation: "Geddes et al., J R Soc Interface 2022 (BV 4500 -> 3500 ml, BMI 28 -> 19, Nadler Eq. 2.15); concordance: Raj et al., Circulation 2005;111:1574-82 (PMID 15837998: measured deficit 689+/-270 mL; OCPE -1000 mL ~ 1.5x mean)"
+                evidence_level: "Level 4"
+                evidence_tier: "C"
+                notes: "VERIFIED against Geddes 2022 (values match exactly). Concordance check vs MEASURED data (Raj 2005, HY-01, tier A direction): gold-standard 131I-albumin total blood volume deficit in POTS is 689+/-270 mL (~13-15% of expected). OCPE's -1000 mL (-22%) is ~1.5x the measured mean deficit (within ~1.5 SD of the patient distribution) => MACHINE-CALIBRATED pronounced-hypovolemia extreme, tier C. Population-mean alternative: ~3800 mL (4500-689). Geddes caveats stand: 3500 mL = BMI-19 young female via Nadler's equation (normal-range low BV, not measured pathological loss), and Geddes states low BV ALONE does not reproduce POTS dynamics."
+            curation_status: machine_calibrated
+            curation_note: "MACHINE-CALIBRATED - magnitude exceeds Raj 2005 population mean by ~1.5x; alternative population-mean value ~3800 mL documented; keep 3500 pending simulation calibration"
+    since: "1.5.0"

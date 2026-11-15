@@ -1,0 +1,73 @@
+ocpe: "0.1"
+package: systemic
+title: Systemic relationships
+description: >
+  Cross-domain assertions with systemic latent constructs as subjects,
+  migrated from knowledge_base/ontology/relationships.yaml (v3.2, cycle-3
+  corrections preserved verbatim).
+provenance:
+  derived_from:
+    - source: knowledge_base/ontology/relationships.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "3.2"
+      transformation: >
+        semantic_relationships (L_stress INCREASES T_sym; H_hydr INCREASES
+        V_total) -> relationship entities.
+  review_manifest: packages/systemic/relationships.yaml.review.yaml
+curation_notes:
+  - "SOURCE HEADER (verbatim, relationships.yaml v3.2): Edge 3 (L_stress INCREASES T_sym): MIS-CITATION — was Geddes 2022 (contains no stress/allostatic content); DOI replaced with Carter & Ray 2009 (verified, human MSNA mental-stress data)."
+  - "Edge 4 (H_hydr INCREASES V_total): MIS-CITATION — hydration is not in Geddes 2022; DOI replaced with Cheuvront & Kenefick 2014 (verified review; hydration state determines plasma/blood volume)."
+references:
+  - id: doi:10.1152/ajpheart.01234.2008
+    doi: 10.1152/ajpheart.01234.2008
+    pmid: "19168718"
+    title: "Sympathetic neural responses to mental stress: responders, nonresponders and sex differences"
+    citation: "Carter JR, Ray CA. Am J Physiol Heart Circ Physiol 2009;296:H847-53."
+    study_type: experimental_human
+  - id: doi:10.1002/cphy.c130017
+    doi: 10.1002/cphy.c130017
+    pmid: "24692140"
+    title: "Dehydration: physiology, assessment, and performance effects"
+    citation: "Cheuvront SN, Kenefick RW. Compr Physiol 2014;4:257-85."
+    study_type: narrative_review
+entities:
+  - id: ocpe:systemic/stress-load-increases-sympathetic-tone
+    kind: relationship
+    label: Stress load increases sympathetic tone
+    subject: ocpe:autonomic/stress-load
+    predicate: INCREASES
+    object: ocpe:autonomic/sympathetic-tone
+    direction_of_effect: positive
+    confidence: {value: 8, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Mental/psychological stress increases sympathetic activity."
+        supports: [direction, mechanism]
+        references: [doi:10.1152/ajpheart.01234.2008]
+        citation: "Carter JR, Ray CA. Sympathetic neural responses to mental stress: responders, nonresponders and sex differences. Am J Physiol Heart Circ Physiol 2009;296:H847-53 (PMID 19168718) — human MSNA mental-stress data; supports direction qualitatively."
+        evidence_level: "Level 2"
+        notes: "CORRECTED (v3.2): replaced mis-cited Geddes 2022 (no stress content) with Carter & Ray 2009."
+    known_limitations: "Allostatic response is highly individualized; citation supports acute mental-stress sympathoexcitation, not the latent-state formulation or any magnitude."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.0.0"
+  - id: ocpe:systemic/hydration-state-increases-total-blood-volume
+    kind: relationship
+    label: Hydration state increases total blood volume
+    subject: ocpe:systemic/hydration-state
+    predicate: INCREASES
+    object: ocpe:cardiovascular/total-systemic-blood-volume
+    direction_of_effect: positive
+    confidence: {value: 9, scale: "legacy 0-10 (pre-0.1 relationships.yaml)"}
+    evidence:
+      - claim: "Hydration state determines plasma/blood volume."
+        supports: [direction]
+        references: [doi:10.1002/cphy.c130017]
+        citation: "Cheuvront SN, Kenefick RW. Dehydration: physiology, assessment, and performance effects. Compr Physiol 2014;4:257-85 (PMID 24692140) — hypohydration reduces plasma/blood volume; supports the hydration-volume link directionally."
+        evidence_level: "Level 2"
+        notes: "CORRECTED (v3.2): replaced mis-cited Geddes 2022 (no hydration content) with Cheuvront & Kenefick 2014."
+    known_limitations: "Varies depending on electrolyte balance and renal function; citation is a review supporting direction, not a specific volume-per-hydration-index mapping."
+    applicable_contexts:
+      - population: ocpe:populations/healthy-control-cohort
+      - population: ocpe:populations/pots-clinical-cohort
+    since: "1.0.0"

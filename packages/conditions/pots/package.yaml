@@ -1,0 +1,40 @@
+id: conditions.pots
+name: Postural Orthostatic Tachycardia Syndrome (POTS)
+version: "1.5.0"
+ocpe_spec: ">=0.1.0 <0.2.0"
+status: provisional
+license: UNSPECIFIED
+description: >
+  POTS syndrome definition and its three composable phenotype specifications
+  (neuropathic, hyperadrenergic, hypovolemic) with evidence-tiered model
+  representations for the Geddes 2022 baroreflex model. Migrated from
+  knowledge_base/diseases/pots.yaml (cycle-3 re-curation v1.5; review history
+  in the sidecar manifest).
+dependencies:
+  - package: core
+    version: ">=0.1.0 <0.2.0"
+    reason: predicate vocabulary
+  - package: models.baroreflex-geddes-2022
+    version: ">=1.0.0 <2.0.0"
+    reason: phenotype model representations reference model symbols
+  - package: populations
+    version: ">=1.0.0 <2.0.0"
+    reason: relationship applicable-context population descriptors
+contents:
+  - pots.yaml
+  - relationships.yaml
+provenance:
+  derived_from:
+    - source: knowledge_base/diseases/pots.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.5"
+      transformation: >
+        disease -> condition entity; phenotypes -> condition entities
+        (condition_type: phenotype, parent POTS); parameters_perturbed ->
+        model_representations.parameter_perturbations; unverified_parameters
+        -> model_representations.unverified_parameter_perturbations
+        (consumer-inert per legacy semantics); compliance_guard /
+        venomotor_note -> model_representations.constraints;
+        validation_criteria -> model_representations.validation_criteria;
+        provenance blocks -> evidence with verbatim citations. No scientific
+        content was re-graded during migration.

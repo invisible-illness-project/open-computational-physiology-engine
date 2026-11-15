@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ocpe"
+version = "0.1.0"
+description = "Open Computational Physiology Engine: reference implementation of the OCPE physiological specification and semantic interoperability engine"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "UNSPECIFIED - see repository LICENSE status" }
+authors = [{ name = "The Invisible Illness Project" }]
+keywords = ["physiology", "ontology", "interoperability", "specification", "json-schema", "provenance"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+dependencies = [
+  "pyyaml>=6.0",
+  "jsonschema>=3.2",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+ocpe = "ocpe.cli:main"
+
+[project.urls]
+Repository = "https://github.com/invisible-illness-project/open-computational-physiology-engine"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ocpe"]
+
+# Bundle the language-independent specification into the wheel so an installed
+# engine is self-contained. In a source checkout the engine reads ../../specification.
+[tool.hatch.build.targets.wheel.force-include]
+"../../specification" = "ocpe/_spec"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/ocpe", "README.md", "pyproject.toml", "tests"]
+
+[tool.hatch.build.targets.sdist.force-include]
+"../../specification" = "src/ocpe/_spec"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

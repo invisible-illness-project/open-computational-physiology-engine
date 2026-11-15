@@ -7,7 +7,7 @@ import tempfile
 import pytest
 from pathlib import Path
 
-from validation.sidecar_manifest import (
+from ocpe.governance import (
     SidecarManifest,
     ReviewEvent,
     Reviewer,

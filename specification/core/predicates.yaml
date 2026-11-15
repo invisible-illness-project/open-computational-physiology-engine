@@ -1,0 +1,97 @@
+ocpe: "0.1"
+package: core
+title: Relationship predicate vocabulary
+description: >
+  Predicates for 'subject PREDICATE object' relationships. Descriptions are carried
+  verbatim from the legacy relationships.yaml (v3.2). The reading direction is
+  always subject -> object, e.g. "ocpe:autonomic/sympathetic-tone MODULATED_BY
+  ocpe:autonomic/circadian-drive" means sympathetic tone is modulated by circadian drive.
+entities:
+  - id: ocpe:core/causes
+    kind: predicate
+    token: CAUSES
+    label: causes
+    definition: "A directly causal biological link where changes in subject lead to changes in object."
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/increases
+    kind: predicate
+    token: INCREASES
+    label: increases
+    definition: "A positive directional modulation; increasing subject increases object."
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/decreases
+    kind: predicate
+    token: DECREASES
+    label: decreases
+    definition: "A negative directional modulation; increasing subject decreases object."
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/regulates
+    kind: predicate
+    token: REGULATES
+    label: regulates
+    definition: "An active feedback control loop relationship (e.g., baroreflex regulates heart rate)."
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/derived-from
+    kind: predicate
+    token: DERIVED_FROM
+    label: derived from
+    definition: "A mathematical or direct physical derivation (e.g., MAP derived from SBP/DBP)."
+    causal: false
+    since: "0.1.0"
+  - id: ocpe:core/measured-by
+    kind: predicate
+    token: MEASURED_BY
+    label: measured by
+    definition: "An association where a sensor directly measures a physical variable."
+    object_kinds: [measurement_method]
+    causal: false
+    since: "0.1.0"
+  - id: ocpe:core/estimated-by
+    kind: predicate
+    token: ESTIMATED_BY
+    label: estimated by
+    definition: "An association where a variable is estimated via proxy sensor measurements."
+    object_kinds: [measurement_method, model]
+    causal: false
+    since: "0.1.0"
+  - id: ocpe:core/validated-by
+    kind: predicate
+    token: VALIDATED_BY
+    label: validated by
+    definition: "Links a model, relationship, or variable to a validation dataset."
+    causal: false
+    since: "0.1.0"
+  - id: ocpe:core/perturbed-by
+    kind: predicate
+    token: PERTURBED_BY
+    label: perturbed by
+    definition: "Indicates that a disease, medication, or external stressor alters this variable."
+    object_kinds: [condition, intervention]
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/modulated-by
+    kind: predicate
+    token: MODULATED_BY
+    label: modulated by
+    definition: "Indicates that a behavior or circadian state alters a physiological state."
+    causal: true
+    since: "0.1.0"
+  - id: ocpe:core/part-of
+    kind: predicate
+    token: PART_OF
+    label: part of
+    definition: "A structural or organizational containment link (e.g., heart is part of cardiovascular system)."
+    causal: false
+    transitive: true
+    since: "0.1.0"
+  - id: ocpe:core/associated-with
+    kind: predicate
+    token: ASSOCIATED_WITH
+    label: associated with
+    definition: "A statistical correlation or physiological association without direct causal proof."
+    causal: false
+    since: "0.1.0"

@@ -1,0 +1,201 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://w3id.org/ocpe/schema/0.1/measurement-method.schema.json",
+  "title": "OCPE measurement method",
+  "description": "A device, assay, procedure or signal-processing pipeline by which a variable or derived metric is observed. Performance characteristics are context-qualified: agreement statistics measured in one population/activity do not transfer automatically to another.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/definitions/entity_base"
+    }
+  ],
+  "required": [
+    "id",
+    "kind",
+    "label",
+    "method_type"
+  ],
+  "properties": {
+    "id": {},
+    "kind": {
+      "const": "measurement_method"
+    },
+    "label": {},
+    "definition": {},
+    "description": {},
+    "aliases": {},
+    "status": {},
+    "since": {},
+    "deprecation": {},
+    "evidence": {},
+    "provenance": {},
+    "external_mappings": {},
+    "see_also": {},
+    "notes": {},
+    "curation_notes": {},
+    "method_type": {
+      "type": "string",
+      "enum": [
+        "device",
+        "assay",
+        "imaging",
+        "questionnaire",
+        "clinical_procedure",
+        "signal_processing",
+        "other"
+      ]
+    },
+    "modality": {
+      "type": "string"
+    },
+    "manufacturer": {
+      "type": "string"
+    },
+    "device_model": {
+      "type": "string"
+    },
+    "measures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target",
+          "mode"
+        ],
+        "properties": {
+          "target": {
+            "$ref": "common.schema.json#/definitions/entity_ref"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "estimated",
+              "derived"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "specifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {},
+          "unit": {
+            "$ref": "common.schema.json#/definitions/unit_code"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "performance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "context",
+          "metrics"
+        ],
+        "properties": {
+          "target": {
+            "$ref": "common.schema.json#/definitions/entity_ref"
+          },
+          "reference_method": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "metric",
+                "value"
+              ],
+              "properties": {
+                "metric": {
+                  "type": "string",
+                  "enum": [
+                    "icc",
+                    "pearson_r",
+                    "spearman_rho",
+                    "bias",
+                    "loa_lower",
+                    "loa_upper",
+                    "mae",
+                    "mape",
+                    "rmse",
+                    "sensitivity",
+                    "specificity",
+                    "ccc",
+                    "other"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "unit": {
+                  "$ref": "common.schema.json#/definitions/unit_code"
+                },
+                "ci_lower": {
+                  "type": "number"
+                },
+                "ci_upper": {
+                  "type": "number"
+                },
+                "note": {
+                  "type": "string"
+                }
+              }
+            },
+            "minItems": 1
+          },
+          "context": {
+            "$ref": "common.schema.json#/definitions/context"
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "evidence.schema.json"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifact_handling": {
+      "type": "string"
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,36 @@
+ocpe: "0.1"
+package: populations
+title: Population descriptors
+description: >
+  Group descriptions qualifying the context in which physiological statements
+  apply. Inclusion criteria are transcribed verbatim from the pre-0.1
+  knowledge base.
+provenance:
+  derived_from:
+    - source: knowledge_base/populations/cohorts.yaml
+      git_ref: pre-architectural-refactor
+      legacy_version: "1.0"
+      transformation: "cohorts[] -> population entities; clinical_criteria -> inclusion_criteria (verbatim)."
+  review_manifest: packages/populations/populations.yaml.review.yaml
+entities:
+  - id: ocpe:populations/pots-clinical-cohort
+    kind: population
+    label: POTS Clinical Cohort
+    health_status: POTS
+    sample_size: 25
+    demographics:
+      age_range: {min: 12, max: 19}
+      sex_distribution: {female_percentage: 85.0}
+    inclusion_criteria:
+      - "Sustained heart rate increase of >= 30 bpm (or >= 40 bpm for ages 12-19) within 10 minutes of standing/tilt without orthostatic hypotension."
+    since: "1.0.0"
+  - id: ocpe:populations/healthy-control-cohort
+    kind: population
+    label: Healthy Control Cohort
+    health_status: Healthy Control
+    sample_size: 25
+    demographics:
+      age_range: {min: 18, max: 45}
+    inclusion_criteria:
+      - "No history of orthostatic intolerance, cardiovascular disease, or autonomic neuropathies."
+    since: "1.0.0"

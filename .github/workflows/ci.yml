@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  engine-and-packages:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,11 +20,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: install
+      - name: install engine (pulls pyyaml + jsonschema)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest==9.1.1
-      - name: pytest
-        run: PYTHONPATH=. pytest tests -q
-      - name: validate knowledge base
-        run: python tools/validate_kb.py
+          pip install -e implementations/python pytest==9.1.1
+      - name: pytest (engine + specification conformance)
+        run: pytest tests/ -q
+      - name: validate all domain packages
+        run: ocpe validate packages/ --strict
+      - name: resolver smoke tests
+        run: |
+          ocpe resolve ocpe:cardiovascular/heart-rate
+          ocpe resolve Hc --scope legacy-kb
+          ocpe resolve 'ocpe:models.baroreflex-geddes-2022/baroreflex-geddes-2022#RalpM'
+      - name: declared dependency satisfaction
+        run: ocpe deps
