@@ -44,7 +44,7 @@ structural content only.
 ```bash
 ocpe list entities --path some-package/                 # every entity
 ocpe show ocpe:some-package/some-variable --path some-package/
-ocpe search "baroreflex" --path some-package/           # full-text search
+ocpe search "pressure" --path some-package/            # full-text search
 ```
 
 `ocpe show` resolves the term (canonical id, alias, label or model symbol)
@@ -163,14 +163,6 @@ should not need to):
 ```bash
 ocpe conformance conformance/
 ```
-
-## The governance extension is optional
-
-Review sidecars and authorization policies (`ocpe governance ...`) are an
-extension for organizations that want layered human/agent review. Your
-packages do not need sidecars to be valid OCPE. If a downstream consumer asks
-for governance metadata, the schema is
-`specification/schemas/governance/review-manifest.schema.json`.
 
 ## Worked examples
 

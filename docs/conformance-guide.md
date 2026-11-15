@@ -16,7 +16,7 @@ research content — so any project can run it freely.
   unsatisfiable spec constraint, unregistered evidence citation, undeclared
   model symbol, namespace violation, dependency-version conflict,
   self-dependency, path traversal).
-- **`fixtures/observations/`** — 16 valid/invalid observation records.
+- **`fixtures/observations/`** — 21 valid/invalid observation records.
 - **`fixtures/versions/`** — 12 old/new package pairs exercising the
   compatibility differ: patch/minor/major classifications, nested equation
   and parameter changes, relationship semantics, dependency changes,
@@ -24,7 +24,7 @@ research content — so any project can run it freely.
   insufficient version bump.
 - **`expected-results/`** — the exact expected outcome (validation error-code
   sets, diff change classes, required bumps) for every fixture.
-- **`test-vectors/vectors.json`** — 43 language-independent declarative
+- **`test-vectors/vectors.json`** — 47 language-independent declarative
   vectors (identifier parsing, version constraints, unit conversion and
   dimension, package/observation validation, deep diffing, resolution).
 

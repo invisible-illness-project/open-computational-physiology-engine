@@ -1,7 +1,7 @@
 """``ocpe`` command-line interface.
 
-Core commands never touch governance data. Governance commands live under the
-optional ``ocpe governance`` sub-command.
+All commands operate on OCPE package data; nothing here requires, consults or
+enforces any review or approval workflow.
 """
 
 from __future__ import annotations
@@ -145,9 +145,11 @@ def cmd_deps(args) -> int:
 
 def cmd_diff(args) -> int:
     old, new = load_package(args.old), load_package(args.new)
-    if old.id != new.id:
-        print(f"warning: comparing different packages {old.id} vs {new.id}", file=sys.stderr)
-    changes = diff_packages(old, new)
+    try:
+        changes = diff_packages(old, new)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     need = required_bump(changes)
     ok = bump_is_sufficient(old.version, new.version, changes)
     data = {"old": old.version, "new": new.version, "required_bump": need, "declared_bump_sufficient": ok,
@@ -254,16 +256,6 @@ def cmd_conformance(args) -> int:
     return 0 if report["ok"] else 1
 
 
-def cmd_governance(argv: List[str]) -> int:
-    from .governance import tracker
-
-    try:
-        tracker.main(argv)
-    except SystemExit as exc:  # argparse / tracker exits
-        return int(exc.code or 0)
-    return 0
-
-
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="ocpe", description="Open Computational Physiology Engine - specification and semantic interoperability tools")
     p.add_argument("--version", action="version", version=f"ocpe {__version__} (spec {spec.spec_version()})")
@@ -348,15 +340,11 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("dir", nargs="?", help="conformance directory (default: ./conformance or the checkout's conformance/)")
     c.add_argument("--json", action="store_true")
     c.set_defaults(func=cmd_conformance)
-
-    sub.add_parser("governance", help="OPTIONAL review-manifest tools (record, aggregate, challenge, authorize, explain, history, summary, migrate)", add_help=False)
     return p
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    if argv and argv[0] == "governance":
-        return cmd_governance(argv[1:])
     parser = build_parser()
     args = parser.parse_args(argv)
     if not getattr(args, "func", None):

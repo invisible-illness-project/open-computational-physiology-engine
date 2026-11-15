@@ -14,7 +14,7 @@ value_kind: measured                     # required: measured | estimated | deri
                                          #           simulated | self_reported
 time: "2026-11-15T10:00:00Z"             # optional: ISO 8601 timestamp or interval
 subject: participant-047                 # optional: opaque, non-identifying
-method: ocpe:some-package/polar-h10      # optional: measurement_method entity
+method: ocpe:some-package/some-method    # optional: measurement_method entity
 model: ocpe:some-package/some-model      # required when value_kind == simulated
 context: {posture: seated, activity: rest}
 uncertainty: 3

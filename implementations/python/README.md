@@ -52,7 +52,6 @@ in `conformance/` against this engine).
 - `src/ocpe/versioning.py` — semver + constraint satisfaction
 - `src/ocpe/compatibility.py` — schema-aware deep diffing and bump classification
 - `src/ocpe/vectors.py` — conformance vector/fixture execution
-- `src/ocpe/governance/` — OPTIONAL review/authorization extension (lazy-imported)
 - `src/ocpe/cli.py` — the `ocpe` command-line interface
 
 Runtime dependencies: PyYAML and jsonschema only.

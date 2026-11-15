@@ -21,15 +21,16 @@ CLI and official conformance suite.
   derived/simulated/self_reported), uncertainty fields, timestamps, method
   and model references.
 - Evidence statements with reference-integrity enforcement (claims must cite
-  registered bibliographic records) and provisional grading scales
-  (`core/evidence-scales.yaml`).
+  registered bibliographic records); no predefined evidence grading scales —
+  grading vocabularies are domain-package content.
 - Context-qualified `reference_range` with an explicit `range_type`
   (reference_interval, plausibility_bound, clinical_threshold,
   model_validity_domain, observed_range).
 - UCUM-based unit registry with dimensions and alternative-spelling
   normalization (`core/units.yaml`).
-- `core` vocabulary package: 12 relationship predicates and 7 named
-  functional forms.
+- `core` vocabulary package: 12 relationship predicates and a deliberately
+  small set of generic functional-form primitives (linear, first-order lag,
+  qualitative); domain-specific forms are defined by external packages.
 - Package manifests with explicit dependencies, `ocpe_spec` compatibility
   ranges, maintainers and provenance.
 - Machine-readable compatibility rules with a comprehensive, schema-aware
@@ -38,9 +39,6 @@ CLI and official conformance suite.
   measurement semantics, evidence attachments and dependency constraints.
 - Official conformance suite (`conformance/`): synthetic fixtures, expected
   results and language-independent test vectors.
-- Optional governance extension: review-manifest schema (ADR 0001,
-  manifest v2.0.0) with separable review, derived-summary and authorization
-  layers.
 
 ### Scope
 - OCPE owns the language, schemas, identifiers, semantic rules, reference

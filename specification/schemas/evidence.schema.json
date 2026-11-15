@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/evidence.schema.json",
   "title": "OCPE evidence statement",
-  "description": "A lightweight, self-contained evidence statement that can be attached to any OCPE assertion (entity, relationship, range, perturbation). It records WHAT is supported, BY WHICH references, at WHAT strength. It is deliberately independent of review workflows and authorization policies (see specification/schemas/governance/), which are optional extensions. Structural validity of an evidence statement says nothing about its scientific correctness.",
+  "description": "A lightweight, self-contained evidence statement that can be attached to any OCPE assertion (entity, relationship, range, model element). It records WHAT is supported, BY WHICH references, at WHAT strength, and is independent of any review or approval workflow: those are downstream organizational concerns, not part of the OCPE language. Structural validity of an evidence statement says nothing about its scientific correctness.",
   "type": "object",
   "additionalProperties": false,
   "patternProperties": {
@@ -72,12 +72,6 @@
       ],
       "description": "Nature of the evidential basis. 'definitional' is used for mathematical identities (e.g. HR = 60000/RR) that need no empirical citation."
     },
-    "evidence_level": {
-      "$ref": "#/definitions/evidence_level"
-    },
-    "evidence_tier": {
-      "$ref": "#/definitions/evidence_tier"
-    },
     "study_type": {
       "$ref": "reference.schema.json#/definitions/study_type"
     },
@@ -95,26 +89,6 @@
     }
   },
   "definitions": {
-    "evidence_level": {
-      "description": "Evidence level on the scale defined in specification/core/evidence-scales.yaml. Only 'Level 1' and 'Level 4' have documented anchors; Levels 2-3 are provisional.",
-      "type": "string",
-      "enum": [
-        "Level 1",
-        "Level 2",
-        "Level 3",
-        "Level 4"
-      ]
-    },
-    "evidence_tier": {
-      "description": "Evidence tier A-D on the scale defined in specification/core/evidence-scales.yaml. Tier definitions are provisional pending community ratification.",
-      "type": "string",
-      "enum": [
-        "A",
-        "B",
-        "C",
-        "D"
-      ]
-    },
     "curation_status": {
       "type": "string",
       "enum": [

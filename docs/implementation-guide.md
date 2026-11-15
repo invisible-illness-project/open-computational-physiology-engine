@@ -71,9 +71,6 @@ Every validation report must:
 
 ## 5. Optional pieces
 
-- **Governance extension** (`specification/schemas/governance/`): review
-  sidecars, aggregation and authorization policies. Implement only if your
-  users ask; nothing in the core depends on it.
 - **CLI/export**: the reference CLI (`validate`, `resolve`, `search`,
   `show`, `list`, `deps`, `diff`, `units`, `check-observation`, `export`,
   `info`, `conformance`) is a model for interoperable tooling; the `export`

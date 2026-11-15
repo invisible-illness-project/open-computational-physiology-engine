@@ -205,13 +205,11 @@ magnitude-level support); `study_type`; `context`; `curation_status`
 `machine_calibrated` | `disputed` | `retracted` | `unknown`); `limitations`;
 `notes`.
 
-**Grading scales.** `evidence_level` (`Level 1`–`Level 4`) and
-`evidence_tier` (`A`–`D`) are defined in
-`specification/core/evidence-scales.yaml`: Level 1 is RCT-grade human
-evidence, Level 4 is in-silico evidence (both documented); Levels 2–3 and
-tiers A–D are provisional pending community ratification. Prefer `basis` over
-the level where both apply (a definitional identity can carry a `Level 1`
-without any trial behind it).
+OCPE core deliberately defines **no** evidence grading scale: grading
+vocabularies are domain-package content. Packages that need levels or tiers
+define them via `x-` extensions or their own predicates and vocabulary
+entities. Prefer an explicit `basis` over any inherited grading label (a
+definitional identity needs no empirical citation).
 
 ```yaml
 evidence:
@@ -395,14 +393,14 @@ free-form `parameters`, `input_requirements`, and `references`
 Optional: `reference_ranges`.
 
 ```yaml
-- id: ocpe:example-vitals/rate-variability
+- id: ocpe:example-vitals/windowed-spread
   kind: derived_metric
-  label: Rate variability index
+  label: Windowed spread index
   derived_from: [ocpe:example-vitals/heart-rate]
   computation:
     method: root-mean-square of successive differences over a stated window
-    formula: "RMSSD = \\sqrt{\\frac{1}{N-1} \\sum_{i=1}^{N-1} (x_{i+1} - x_i)^2}"
-    input_requirements: clean inter-beat interval series, stated window
+    formula: "\\sigma_{window} = \\sqrt{\\frac{1}{N-1} \\sum_{i=1}^{N-1} (x_{i+1} - x_i)^2}"
+    input_requirements: clean, evenly sampled series; stated window length
   dimension: time
   canonical_unit: ms
 ```
@@ -514,18 +512,19 @@ A relationship type in the core vocabulary (`specification/core/predicates.yaml`
 ## functional-form.schema.json
 
 A named qualitative/mathematical shape of a dependency used to qualify
-relationships without embedding executable code
-(`specification/core/functional-forms.yaml`): `sigmoid_hill`,
-`gravity_hydrostatic`, `inverse_proportional`, `inverse_nonlinear`,
-`first_order_lag`, `linear`, `qualitative`. Required: `id`, `kind`
+relationships without embedding executable code. The core registers only
+genuinely generic primitives — `linear`, `first_order_lag`, `qualitative`
+(`specification/core/functional-forms.yaml`); domain-specific forms
+(sigmoids, hydrostatic relations, kinetics, ...) are `functional_form`
+entities defined by external domain packages. Required: `id`, `kind`
 (`functional_form`), `label`, `token` (lower_snake). Optional:
 `expression_latex`, `parameters`, `monotonicity`.
 
 ## evidence.schema.json
 
 See [Evidence statements](#evidence-statements). Required: at least one of
-`references`, `citation`, `basis`. Schemas reference its `evidence_level`,
-`evidence_tier` and `curation_status` definitions.
+`references`, `citation`, `basis`. Other schemas reference its
+`curation_status` definition.
 
 ## reference.schema.json
 
@@ -549,20 +548,8 @@ that every citation resolves to a declared record.
 Where content came from and how it was produced. Optional: `derived_from`
 (`source` path/URL, `git_ref`, `sha256`, `legacy_id`, `legacy_version`,
 `transformation`), `contributors` (`name`, `kind`: `human` | `ai_agent` |
-`tool` | `organization`, `role`, `identifier`), `created`, `modified`,
-`review_manifest` (path to an optional governance sidecar), `notes`.
+`tool` | `organization`, `role`, `identifier`), `created`, `modified`, `notes`.
 Provenance is descriptive; it does not imply review or approval.
-
-## governance/review-manifest.schema.json
-
-OPTIONAL extension (ADR 0001). A sidecar `<asset>.review.yaml` recording
-review events, claims, challenges, adjudication and human review for one
-content addressee. Review workflows and authorization policies are not
-required to load, validate or resolve OCPE packages, and loading never
-consults them. The `ocpe.governance` Python package and the `ocpe
-governance` CLI sub-command implement the workflows; the IIP policy file in
-`specification/governance/` is an organization-specific example of the policy
-data format.
 
 ## The `core` package
 

@@ -25,7 +25,7 @@ def test_core_package_loads():
     reg = load_registry([], include_core=True)
     assert "core" in reg.packages
     assert len(reg.predicate_tokens()) == 12
-    assert len(reg.functional_form_tokens()) == 7
+    assert len(reg.functional_form_tokens()) == 3
 
 
 def test_core_package_validates_clean():

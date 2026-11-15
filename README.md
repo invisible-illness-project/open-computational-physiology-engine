@@ -29,8 +29,7 @@ specification/     The normative, language-independent contract: JSON Schemas
 implementations/
   python/          The reference engine (pip-installable `ocpe` package + CLI):
                    loader, schema+semantic validator, resolver, units,
-                   compatibility differ, conformance runner, and an OPTIONAL
-                   governance extension.
+                   compatibility differ, conformance runner.
 conformance/       The official conformance suite: synthetic fixtures, expected
                    results and language-independent test vectors.
 docs/              Mission, architecture, specification reference, authoring
@@ -107,6 +106,6 @@ Specification 0.1.0, provisional. The engine is a lightweight, deterministic
 Python implementation with no scientific-computing dependencies (PyYAML +
 jsonschema only). See `docs/adr/` for architectural decisions.
 
-**Licensing:** pending an explicit owner decision; the repository currently
-carries no LICENSE file and package metadata says `UNSPECIFIED`. Do not assume
-a license until one is published.
+**Licensing:** unresolved, pending an explicit owner decision — the
+repository carries no LICENSE file and package metadata says `UNSPECIFIED`.
+Do not assume a license until one is published. See `docs/licensing.md`.

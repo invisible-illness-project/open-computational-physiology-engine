@@ -166,10 +166,10 @@ references:
     study_type: observational_human
 ```
 
-Optional grading scales (`evidence_level` 1–4, `evidence_tier` A–D) are
-defined in `specification/core/evidence-scales.yaml`; several values are
-provisional. `basis: definitional` covers mathematical identities with no
-empirical citation needed.
+OCPE core defines no grading scale. If your domain grades evidence, the
+grading vocabulary is your package's content (`x-` extensions or your own
+vocabulary entities). `basis: definitional` covers mathematical identities
+with no empirical citation needed.
 
 ## Context-qualifying ranges and performance
 

@@ -1,4 +1,4 @@
-quantity: ocpe:conf-quantity/perfusion-index
+quantity: ocpe:conf-quantity/capacity-index
 value: 0.5
 unit: '1'
 value_kind: measured

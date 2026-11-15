@@ -5,21 +5,42 @@
   "description": "Where a piece of specification content came from and how it was produced. Provenance is descriptive; it does not imply review or approval.",
   "type": "object",
   "additionalProperties": false,
-  "patternProperties": { "^x-": {} },
+  "patternProperties": {
+    "^x-": {}
+  },
   "properties": {
     "derived_from": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["source"],
+        "required": [
+          "source"
+        ],
         "additionalProperties": false,
         "properties": {
-          "source": { "type": "string", "description": "Repository-relative path or URL of the source artifact." },
-          "git_ref": { "type": "string", "description": "Git tag or commit at which the source can be retrieved verbatim." },
-          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-          "legacy_id": { "type": "string", "description": "Identifier or symbol used in the source artifact." },
-          "legacy_version": { "type": "string" },
-          "transformation": { "type": "string", "description": "What was changed when deriving this content (e.g. 'restructured to OCPE 0.1 schema; values unchanged')." }
+          "source": {
+            "type": "string",
+            "description": "Repository-relative path or URL of the source artifact."
+          },
+          "git_ref": {
+            "type": "string",
+            "description": "Git tag or commit at which the source can be retrieved verbatim."
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "legacy_id": {
+            "type": "string",
+            "description": "Identifier or symbol used in the source artifact."
+          },
+          "legacy_version": {
+            "type": "string"
+          },
+          "transformation": {
+            "type": "string",
+            "description": "What was changed when deriving this content (e.g. 'restructured to OCPE 0.1 schema; values unchanged')."
+          }
         }
       }
     },
@@ -27,19 +48,41 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "additionalProperties": false,
         "properties": {
-          "name": { "type": "string" },
-          "kind": { "type": "string", "enum": ["human", "ai_agent", "tool", "organization"] },
-          "role": { "type": "string" },
-          "identifier": { "type": "string", "description": "ORCID, URL, or model identifier." }
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "human",
+              "ai_agent",
+              "tool",
+              "organization"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "identifier": {
+            "type": "string",
+            "description": "ORCID, URL, or model identifier."
+          }
         }
       }
     },
-    "created": { "$ref": "common.schema.json#/definitions/date" },
-    "modified": { "$ref": "common.schema.json#/definitions/date" },
-    "review_manifest": { "type": "string", "description": "Optional repository-relative path to a governance review manifest (sidecar) covering this content." },
-    "notes": { "type": "string" }
+    "created": {
+      "$ref": "common.schema.json#/definitions/date"
+    },
+    "modified": {
+      "$ref": "common.schema.json#/definitions/date"
+    },
+    "notes": {
+      "type": "string"
+    }
   }
 }

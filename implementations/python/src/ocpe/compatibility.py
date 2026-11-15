@@ -277,7 +277,16 @@ def diff_packages(old: Package, new: Package) -> List[Change]:
     ranges, evidence attachments and measurement semantics) and manifest-level
     dependency/specification constraints. Pure reordering of lists is not a
     change; textual label/description/curation edits are patch-level.
+
+    Raises:
+        ValueError: if ``old`` and ``new`` have different package ids — such a
+            comparison is a category error, not a change set.
     """
+    if old.id != new.id:
+        raise ValueError(
+            f"cannot compare different packages: {old.id!r} vs {new.id!r} "
+            f"(diff is defined between releases of the same package)"
+        )
     changes: List[Change] = []
 
     a, b = _entities(old), _entities(new)

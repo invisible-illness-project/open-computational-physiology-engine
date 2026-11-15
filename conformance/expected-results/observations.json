@@ -132,5 +132,48 @@
     "packages": [
       "valid/quantity-observation"
     ]
+  },
+  "valid/model-compartment-measured-with-pathway.yaml": {
+    "ok": true,
+    "errors": [],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/model-compartment-measured.yaml": {
+    "ok": false,
+    "errors": [
+      "model-compartment-measured"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/model-output-wrong-quantity.yaml": {
+    "ok": false,
+    "errors": [
+      "model-output-mismatch"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/model-no-output.yaml": {
+    "ok": false,
+    "errors": [
+      "model-output-mismatch"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
+  "invalid/method-no-measures.yaml": {
+    "ok": false,
+    "errors": [
+      "method-undeclared-measures"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
   }
 }

@@ -55,6 +55,24 @@ def test_no_changes_no_diff(tmp_path):
     assert diff_packages(a, b) == []
 
 
+def test_diff_requires_same_package_id(tmp_path):
+    a = _pkg(_model_pkg(tmp_path / "a", "1.0.0"))
+    other = write_package(tmp_path / "b", "other", entities=[
+        {"id": "ocpe:other/x", "kind": "concept", "label": "X", "concept_type": "phenomenon"}])
+    with pytest.raises(ValueError):
+        diff_packages(a, _pkg(other))
+    # reversed direction also rejected
+    with pytest.raises(ValueError):
+        diff_packages(_pkg(other), a)
+
+
+def test_diff_allows_same_package_different_versions(tmp_path):
+    a = _pkg(_model_pkg(tmp_path / "a", "1.0.0"))
+    b = _pkg(_model_pkg(tmp_path / "b", "1.1.0", alias={"value": "BT", "type": "symbol"}))
+    changes = diff_packages(a, b)
+    assert _codes(changes) == ["alias_added"]
+
+
 def test_nested_equation_expression_change_detected(tmp_path):
     a = _pkg(_model_pkg(tmp_path / "a", "1.0.0"))
     b = _pkg(_model_pkg(tmp_path / "b", "2.0.0", expression="dx = -2k x"))

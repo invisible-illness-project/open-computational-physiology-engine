@@ -30,11 +30,6 @@ together and what each piece may depend on.
 │  loader · validator · resolver · units · compatibility ·      │
 │  versioning · conformance runner · CLI                        │
 └───────────────────────▲───────────────────────────────────────┘
-                        │ optional, lazy import
-┌───────────────────────┴───────────────────────────────────────┐
-│  governance extension (ADR 0001, OPTIONAL): review sidecars,  │
-│  aggregation, challenges, authorization policies              │
-└───────────────────────▲───────────────────────────────────────┘
                         │ ocpe export / registry API
    downstream applications (consume, never part of OCPE):
      MOSAIC — numerical simulation, synthetic patients/cohorts
@@ -53,8 +48,8 @@ in `specification/schemas/`, the identifier grammar
 (`specification/core/units.yaml`), the compatibility rules
 (`specification/versions/compatibility.yaml`) and the versioning policy
 (`docs/versioning-policy.md`). Informative companions describe the entity-kind
-taxonomy (`core/kinds.yaml`), evidence scales (`core/evidence-scales.yaml`),
-predicates and functional forms.
+taxonomy (`core/kinds.yaml`), the predicate vocabulary and the functional
+forms.
 
 The specification is **language-independent**. The Python engine is a
 reference implementation, not the definition; another language implementing
@@ -88,8 +83,6 @@ A small, deterministic, dependency-light implementation:
 - `versioning` — semantic versions and constraint satisfaction.
 - `vectors` — executes the language-independent conformance vectors and the
   fixture expectations under `conformance/`.
-- `governance` (optional extension) — review sidecars, derived summaries and
-  authorization checks. Not imported by any core command.
 
 ### 3. External domain packages (not in this repository)
 

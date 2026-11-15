@@ -54,9 +54,6 @@ modifying OCPE**. An AI agent can produce an OCPE-compatible package
 4. **An official conformance suite** (`conformance/`) with synthetic fixtures
    and language-independent test vectors so implementations in any language
    can demonstrate consistent behavior.
-5. **An optional, separable governance extension** (ADR 0001) whose review
-   workflows and authorization policies are not required to load, validate or
-   resolve OCPE content.
 
 ## Explicit non-goals
 

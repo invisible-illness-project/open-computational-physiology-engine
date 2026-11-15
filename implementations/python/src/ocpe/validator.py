@@ -389,7 +389,6 @@ def validate_paths(paths: Optional[Sequence[PathLike]] = None) -> Tuple[Registry
     return reg, validate_registry(reg)
 
 
-MEASURABLE_OBSERVABILITY = {"directly_measurable", "indirectly_measurable", "invasive_only"}
 _VALUE_KIND_MODES = {"measured": "direct", "estimated": "estimated", "derived": "derived"}
 
 
@@ -408,10 +407,11 @@ def validate_observation(record: Dict[str, Any], reg: Optional[Registry] = None)
 
     Semantic checks establish that the record is *interpretable*: the referenced
     quantity, method and model exist and have appropriate entity types; the
-    value kind is compatible with the quantity's observability; the method
-    actually declares the quantity; units match the quantity's dimension; and
-    value/uncertainty types are coherent. A syntactically valid identifier is
-    never treated as proof that the referenced entity exists.
+    value kind is compatible with the quantity's observability; methods declare
+    the quantities they measure, and model outputs account for simulated
+    values; units match the quantity's dimension; and value/uncertainty types
+    are coherent. A syntactically valid identifier is never treated as proof
+    that the referenced entity exists.
     """
     rep = validate_instance(record, "observation.schema.json", "observation")
     if rep.errors or reg is None:
@@ -427,14 +427,38 @@ def validate_observation(record: Dict[str, Any], reg: Optional[Registry] = None)
     value_kind = record.get("value_kind")
     if q.kind == "latent_construct" and value_kind == "measured":
         rep.add("error", "latent-measured", f"{q.id} is a latent construct and cannot be 'measured'; use 'estimated'", loc)
+
+    # Resolve the measurement method up front: several checks need it.
+    method = None
+    method_ref = record.get("method")
+    if method_ref:
+        m = reg.get(method_ref)
+        if m is None:
+            rep.add("error", "unresolved-reference", f"method {method_ref} does not resolve", loc)
+        elif m.kind != "measurement_method":
+            rep.add("error", "bad-method-kind", f"{base_curie(method_ref)} is a {m.kind}, not a measurement_method", loc)
+        else:
+            method = m
+
+    def method_declares(quantity_id: str) -> bool:
+        return any(
+            isinstance(mm, dict) and base_curie(str(mm.get("target", ""))) == base_curie(quantity_id)
+            for mm in (method.data.get("measures", []) or [])
+        )
+
+    # A model-compartment abstraction has no direct physiological counterpart:
+    # 'measured' values are rejected unless a measurement pathway (a method
+    # declaring this quantity) is explicitly provided.
     if (
         q.kind in ("variable", "derived_metric")
         and value_kind == "measured"
-        and q.data.get("observability")
-        and q.data["observability"] not in MEASURABLE_OBSERVABILITY
+        and q.data.get("observability") == "model_compartment"
+        and not (method is not None and method_declares(q.id))
     ):
-        rep.add("warning", "unobservable-as-measured",
-                f"{q.id} has observability {q.data['observability']!r}; a 'measured' value is questionable", loc)
+        rep.add("error", "model-compartment-measured",
+                f"{q.id} is a model compartment (observability 'model_compartment') and has no declared "
+                "measurement pathway; a 'measured' value is not valid here — use 'estimated'/'simulated' "
+                "or name a method that declares measuring it", loc)
 
     msg = units.check(record["unit"], q.data.get("dimension"))
     if msg:
@@ -456,30 +480,28 @@ def validate_observation(record: Dict[str, Any], reg: Optional[Registry] = None)
         if units.dimension_of(unc_unit) != units.dimension_of(record["unit"]):
             rep.add("error", "unit", f"uncertainty_unit {unc_unit!r} does not match the value unit's dimension", loc)
 
-    # Measurement method: must exist, must be a method, must declare the quantity.
-    method_ref = record.get("method")
-    if method_ref:
-        m = reg.get(method_ref)
-        if m is None:
-            rep.add("error", "unresolved-reference", f"method {method_ref} does not resolve", loc)
+    # Measurement method: must declare what it measures.
+    if method is not None:
+        measures = [mm for mm in (method.data.get("measures", []) or []) if isinstance(mm, dict)]
+        if not measures:
+            rep.add("error", "method-undeclared-measures",
+                    f"method {method.id} declares no 'measures'; it cannot substantiate an observation of {q.id}", loc)
         else:
-            if m.kind != "measurement_method":
-                rep.add("error", "bad-method-kind", f"{base_curie(method_ref)} is a {m.kind}, not a measurement_method", loc)
-            else:
-                declared = {base_curie(str(mm.get("target"))) for mm in m.data.get("measures", []) or [] if isinstance(mm, dict)}
-                if declared and base_curie(q.id) not in declared:
-                    rep.add("error", "method-does-not-measure",
-                            f"method {base_curie(method_ref)} does not declare measuring {q.id}", loc)
-                expected_mode = _VALUE_KIND_MODES.get(value_kind)
-                if expected_mode:
-                    modes = {str(mm.get("mode")) for mm in m.data.get("measures", []) or []
-                             if isinstance(mm, dict) and base_curie(str(mm.get("target", ""))) == base_curie(q.id)}
-                    if modes and expected_mode not in modes:
-                        rep.add("warning", "method-mode-mismatch",
-                                f"value_kind {value_kind!r} expects mode {expected_mode!r}; "
-                                f"method declares {sorted(modes)} for {q.id}", loc)
+            declared = {base_curie(str(mm.get("target"))) for mm in measures if mm.get("target")}
+            if base_curie(q.id) not in declared:
+                rep.add("error", "method-does-not-measure",
+                        f"method {method.id} does not declare measuring {q.id}", loc)
+            expected_mode = _VALUE_KIND_MODES.get(value_kind)
+            if expected_mode:
+                modes = {str(mm.get("mode")) for mm in measures
+                         if base_curie(str(mm.get("target", ""))) == base_curie(q.id)}
+                if modes and expected_mode not in modes:
+                    rep.add("warning", "method-mode-mismatch",
+                            f"value_kind {value_kind!r} expects mode {expected_mode!r}; "
+                            f"method declares {sorted(modes)} for {q.id}", loc)
 
-    # Model: must exist and be a model (schema already requires the field for simulated values).
+    # Model: must exist, be a model, and account for the quantity via an output
+    # symbol whose 'represents' resolves to it.
     model_ref = record.get("model")
     if model_ref:
         m = reg.get(model_ref)
@@ -487,6 +509,19 @@ def validate_observation(record: Dict[str, Any], reg: Optional[Registry] = None)
             rep.add("error", "unresolved-reference", f"model {model_ref} does not resolve", loc)
         elif m.kind != "model":
             rep.add("error", "bad-method-kind", f"{base_curie(model_ref)} is a {m.kind}, not a model", loc)
+        elif value_kind == "simulated":
+            outputs = [s for s in (m.data.get("symbols", []) or [])
+                       if isinstance(s, dict) and s.get("role") == "output"]
+            accounted = any(
+                s.get("represents")
+                and (target := reg.get(str(s["represents"]))) is not None
+                and base_curie(target.id) == base_curie(q.id)
+                for s in outputs
+            )
+            if not accounted:
+                rep.add("error", "model-output-mismatch",
+                        f"model {m.id} declares no output symbol whose 'represents' resolves to {q.id}; "
+                        "a simulated value must correspond to a declared model output", loc)
 
     if record.get("time"):
         _check_timestamp(record["time"], loc, rep)

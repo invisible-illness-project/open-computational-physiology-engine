@@ -1,0 +1,4 @@
+quantity: ocpe:conf-quantity/reservoir-volume
+value: 100.0
+unit: mL
+value_kind: measured

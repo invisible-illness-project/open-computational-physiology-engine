@@ -362,7 +362,7 @@
           "valid/quantity-observation"
         ],
         "record": {
-          "quantity": "ocpe:conf-quantity/perfusion-index",
+          "quantity": "ocpe:conf-quantity/capacity-index",
           "value": 0.5,
           "unit": "1",
           "value_kind": "measured"
@@ -539,6 +539,91 @@
       "expect": {
         "id": "ocpe:core/regulates",
         "matched_by": "predicate-token"
+      }
+    },
+    {
+      "id": "obs-model-compartment-measured-rejected",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/reservoir-volume",
+          "value": 100.0,
+          "unit": "mL",
+          "value_kind": "measured"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "model-compartment-measured"
+        ]
+      }
+    },
+    {
+      "id": "obs-model-compartment-measured-with-pathway",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/reservoir-volume",
+          "value": 100.0,
+          "unit": "mL",
+          "value_kind": "measured",
+          "method": "ocpe:conf-quantity/reservoir-probe"
+        }
+      },
+      "expect": {
+        "ok": true,
+        "errors": []
+      }
+    },
+    {
+      "id": "obs-simulated-output-mismatch-rejected",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/flow-rate",
+          "value": 5.0,
+          "unit": "mL/s",
+          "value_kind": "simulated",
+          "model": "ocpe:conf-quantity/flow-model-wrong-output"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "model-output-mismatch"
+        ]
+      }
+    },
+    {
+      "id": "obs-method-must-declare-measures",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/flow-rate",
+          "value": 5.0,
+          "unit": "mL/s",
+          "value_kind": "measured",
+          "method": "ocpe:conf-quantity/undeclared-meter"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "method-undeclared-measures"
+        ]
       }
     }
   ]

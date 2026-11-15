@@ -16,9 +16,9 @@ entities:
   dimension: dimensionless
   canonical_unit: '1'
   value_type: boolean
-- id: ocpe:conf-quantity/perfusion-index
+- id: ocpe:conf-quantity/capacity-index
   kind: latent_construct
-  label: Perfusion index (fixture)
+  label: Capacity index (fixture)
   dimension: dimensionless
   canonical_unit: '1'
   scale:
@@ -37,6 +37,10 @@ entities:
   - symbol: tau
     role: parameter
     nominal_value: 2.0
+  - symbol: y
+    role: output
+    unit: mL/s
+    represents: ocpe:conf-quantity/flow-rate
   equations:
   - id: eq_flow
     expression_latex: \dot{q} = -q/\tau
@@ -55,7 +59,7 @@ entities:
   measures:
   - target: ocpe:conf-quantity/flow-rate
     mode: direct
-  - target: ocpe:conf-quantity/perfusion-index
+  - target: ocpe:conf-quantity/capacity-index
     mode: estimated
 - id: ocpe:conf-quantity/flow-loop
   kind: concept
@@ -67,3 +71,40 @@ entities:
   subject: ocpe:conf-quantity/flow-rate
   predicate: MEASURED_BY
   object: ocpe:conf-quantity/flow-meter
+- id: ocpe:conf-quantity/reservoir-volume
+  kind: variable
+  label: Reservoir volume (fixture)
+  dimension: volume
+  canonical_unit: mL
+  observability: model_compartment
+- id: ocpe:conf-quantity/reservoir-probe
+  kind: measurement_method
+  label: Reservoir probe (fixture)
+  method_type: device
+  measures:
+  - target: ocpe:conf-quantity/reservoir-volume
+    mode: direct
+- id: ocpe:conf-quantity/undeclared-meter
+  kind: measurement_method
+  label: Undeclared meter (fixture)
+  method_type: device
+- id: ocpe:conf-quantity/flow-model-wrong-output
+  kind: model
+  label: Flow model, wrong output (fixture)
+  formalism: ode
+  symbols:
+  - symbol: x
+    role: state
+  - symbol: z
+    role: output
+    unit: '1'
+    represents: ocpe:conf-quantity/alarm-state
+  equations: []
+- id: ocpe:conf-quantity/flow-model-no-output
+  kind: model
+  label: Flow model, no output (fixture)
+  formalism: ode
+  symbols:
+  - symbol: x
+    role: state
+  equations: []

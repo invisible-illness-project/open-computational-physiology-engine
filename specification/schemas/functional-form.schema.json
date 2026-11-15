@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/functional-form.schema.json",
   "title": "OCPE functional form",
-  "description": "A named qualitative/mathematical shape of a dependency (e.g. Hill sigmoid, first-order lag), used to qualify relationships without embedding executable code.",
+  "description": "A named qualitative/mathematical shape of a dependency (e.g. linear, first-order lag), used to qualify relationships without embedding executable code.",
   "type": "object",
   "allOf": [
     {

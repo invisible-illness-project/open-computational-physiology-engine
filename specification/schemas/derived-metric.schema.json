@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/derived-metric.schema.json",
   "title": "OCPE derived metric",
-  "description": "A quantity computed by a defined algorithm from one or more variables or observation series (e.g. RMSSD from RR intervals, DFA alpha-1). Its meaning depends on the computation, including window length and artifact handling, which must be declared.",
+  "description": "A quantity computed by a defined algorithm from one or more variables or observation series. Its meaning depends on the computation, including window length and artifact handling, which must be declared.",
   "type": "object",
   "allOf": [
     {

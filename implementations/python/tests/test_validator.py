@@ -185,8 +185,22 @@ def obs_registry(tmp_path_factory):
          "method_type": "device",
          "measures": [{"target": "ocpe:obs/rate", "mode": "direct"},
                        {"target": "ocpe:obs/latent", "mode": "estimated"}]},
+        {"id": "ocpe:obs/abstraction-probe", "kind": "measurement_method", "label": "Abstraction probe",
+         "method_type": "device",
+         "measures": [{"target": "ocpe:obs/abstraction", "mode": "direct"}]},
+        {"id": "ocpe:obs/empty-meter", "kind": "measurement_method", "label": "Empty meter",
+         "method_type": "device"},
         {"id": "ocpe:obs/sim", "kind": "model", "label": "Sim", "formalism": "ode",
-         "symbols": [{"symbol": "x", "role": "state"}], "equations": []},
+         "symbols": [{"symbol": "x", "role": "state"},
+                     {"symbol": "y", "role": "output", "represents": "ocpe:obs/rate"}],
+         "equations": []},
+        {"id": "ocpe:obs/sim-wrong-output", "kind": "model", "label": "Sim wrong output", "formalism": "ode",
+         "symbols": [{"symbol": "x", "role": "state"},
+                     {"symbol": "z", "role": "output", "represents": "ocpe:obs/flag"}],
+         "equations": []},
+        {"id": "ocpe:obs/sim-no-output", "kind": "model", "label": "Sim no output", "formalism": "ode",
+         "symbols": [{"symbol": "x", "role": "state"}],
+         "equations": []},
     ])
     return load_registry([str(root / "obs")])
 
@@ -282,10 +296,41 @@ def test_observation_timestamp_checked(obs_registry):
     assert any(i.code == "bad-timestamp" for i in rep.errors)
 
 
-def test_observation_model_compartment_measured_warns(obs_registry):
+def test_observation_model_compartment_measured_rejected_without_pathway(obs_registry):
     rep = validate_observation(
         {"quantity": "ocpe:obs/abstraction", "value": 100, "unit": "mL", "value_kind": "measured"}, obs_registry)
-    assert any(i.code == "unobservable-as-measured" and i.severity == "warning" for i in rep.issues)
+    assert any(i.code == "model-compartment-measured" for i in rep.errors)
+
+
+def test_observation_model_compartment_measured_allowed_with_declared_pathway(obs_registry):
+    rep = validate_observation(
+        {"quantity": "ocpe:obs/abstraction", "value": 100, "unit": "mL", "value_kind": "measured",
+         "method": "ocpe:obs/abstraction-probe"}, obs_registry)
+    assert rep.ok, [str(i) for i in rep.issues]
+
+
+def test_observation_simulated_requires_declared_output(obs_registry):
+    ok = validate_observation(
+        {"quantity": "ocpe:obs/rate", "value": 72, "unit": "/min", "value_kind": "simulated",
+         "model": "ocpe:obs/sim"}, obs_registry)
+    assert ok.ok, [str(i) for i in ok.issues]
+    # output symbol represents a different quantity
+    wrong = validate_observation(
+        {"quantity": "ocpe:obs/rate", "value": 72, "unit": "/min", "value_kind": "simulated",
+         "model": "ocpe:obs/sim-wrong-output"}, obs_registry)
+    assert any(i.code == "model-output-mismatch" for i in wrong.errors)
+    # model declares no output symbols at all
+    none_out = validate_observation(
+        {"quantity": "ocpe:obs/rate", "value": 72, "unit": "/min", "value_kind": "simulated",
+         "model": "ocpe:obs/sim-no-output"}, obs_registry)
+    assert any(i.code == "model-output-mismatch" for i in none_out.errors)
+
+
+def test_observation_method_must_declare_measures(obs_registry):
+    rep = validate_observation(
+        {"quantity": "ocpe:obs/rate", "value": 72, "unit": "/min", "value_kind": "measured",
+         "method": "ocpe:obs/empty-meter"}, obs_registry)
+    assert any(i.code == "method-undeclared-measures" for i in rep.errors)
 
 
 def test_observation_uncertainty_unit_dimension_checked(obs_registry):

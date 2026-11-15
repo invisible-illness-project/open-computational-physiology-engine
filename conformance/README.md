@@ -27,7 +27,7 @@ fixtures/
                 symbol, namespace violation, dependency-version conflict,
                 self-dependency, path traversal)
     base/       dependency target for the cross-package fixtures
-  observations/ valid and invalid observation exchange records
+  observations/ 21 valid and invalid observation exchange records
   versions/     old/new package pairs exercising the compatibility differ
                 (patch/minor/major classifications, nested equation and
                 parameter changes, relationship semantics, dependencies,
@@ -37,7 +37,7 @@ expected-results/
   observations.json  record  -> expected validation outcome
   versions.json      pair    -> expected change classes + required bump
 test-vectors/
-  vectors.json       language-independent declarative vectors; every engine
+  vectors.json       47 language-independent declarative vectors; every engine
                      must produce results matching `expect` (subset match)
 ```
 
