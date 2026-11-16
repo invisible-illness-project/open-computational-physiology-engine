@@ -1,9 +1,11 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 id: core
 name: OCPE Core Vocabulary
 version: "0.1.0"
 ocpe_spec: ">=0.1.0 <0.2.0"
 status: provisional
-license: UNSPECIFIED
+license: Apache-2.0
 description: >
   Specification-level vocabulary every package may depend on: the relationship
   predicate vocabulary and named functional forms used to qualify relationships.

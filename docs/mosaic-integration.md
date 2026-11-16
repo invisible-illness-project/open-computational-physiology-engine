@@ -73,3 +73,5 @@ OCPE observation records (value_kind: simulated, model named)
         ▼
 datasets / analysis tools (validated with ocpe check-observation)
 ```
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

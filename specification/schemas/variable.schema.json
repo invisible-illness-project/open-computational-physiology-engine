@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/variable.schema.json",
   "title": "OCPE physiological variable",
   "description": "A quantifiable, time-varying property of a physiological system that is measurable in principle (a quantity kind such as a flow rate or a pressure). A variable is independent of how it is measured (see measurement_method) and of any particular recorded value (see observation). Unit is a representation choice: the same variable may be expressed in any unit of its dimension.",

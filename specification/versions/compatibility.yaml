@@ -1,3 +1,5 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 # Machine-readable compatibility rules for the OCPE specification.
 # Consumed by the reference engine (ocpe.compatibility) and documented in
 # docs/versioning-policy.md.

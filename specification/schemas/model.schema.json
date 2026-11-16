@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/model.schema.json",
   "title": "OCPE computational model specification",
   "description": "A declarative specification of a mathematical or computational model: its symbols (states, parameters, inputs, outputs) with units and meanings, equations, assumptions, validity domain and evidence. OCPE stores the specification only. Numerical execution (solvers, step sizes, initialisation routines, run orchestration) belongs to implementations, which are referenced but not contained.",

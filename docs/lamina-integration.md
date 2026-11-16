@@ -61,3 +61,5 @@ sensors ──► Lamina processing pipelines (ECG/PPG/EDA/respiration, HRV)
                 ▼
         applications / datasets / MOSAIC validation
 ```
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

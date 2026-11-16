@@ -1,3 +1,5 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 ocpe: "0.1"
 package: core
 title: Functional forms

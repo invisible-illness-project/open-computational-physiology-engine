@@ -16,3 +16,7 @@ build/
 .DS_Store
 Thumbs.db
 implementations/python/src/ocpe/_spec/
+
+# License copies materialized from the repository root by hatch_build.py
+implementations/python/LICENSE
+implementations/python/NOTICE

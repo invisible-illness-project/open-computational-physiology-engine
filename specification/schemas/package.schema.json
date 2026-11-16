@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/package.schema.json",
   "title": "OCPE package manifest (package.yaml)",
   "description": "Manifest of an independently versioned OCPE domain package. The package id is also the CURIE namespace of every entity the package defines.",

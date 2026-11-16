@@ -81,3 +81,5 @@ Every validation report must:
 Engine versions are independent of the specification version they implement
 (e.g. engine 0.3.1 may implement specification 0.1.0). Report both, as the
 reference CLI does: `ocpe 0.1.0 (spec 0.1.0)`.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

@@ -112,3 +112,5 @@ integration boundaries are documented in `docs/mosaic-integration.md` and
   execution is explicitly out of scope.
 - **Structural ≠ scientific.** Validation output always carries the scope
   disclaimer.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

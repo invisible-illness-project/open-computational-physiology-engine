@@ -1,3 +1,5 @@
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0 -->
+
 # OCPE Specification Changelog
 
 All notable changes to the OCPE specification (schemas, identifier rules, core
@@ -9,6 +11,14 @@ version numbers.
 First release of OCPE as a standalone, language-independent computational
 physiology interoperability engine: specification, reference implementation,
 CLI and official conformance suite.
+
+### Administrative
+- License resolved (owner decision): the entire repository — specification
+  (schemas, core vocabularies), reference engine, conformance suite and
+  documentation — is licensed under the Apache License, Version 2.0
+  (repository-root `LICENSE`; attribution and third-party notices in
+  `NOTICE`; decision record in `docs/licensing.md`). Manifest `license`
+  fields and package metadata declare `Apache-2.0`.
 
 ### Added
 - Canonical identifier scheme `ocpe:<package>/<local-id>` with stability,

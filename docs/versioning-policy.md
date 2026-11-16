@@ -115,3 +115,5 @@ specification-major; adding optional fields or enum values, or adding a kind,
 are specification-minor; clarifications are specification-patch.
 Specification-minor releases must not invalidate documents written against
 earlier 0.1.x markers.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

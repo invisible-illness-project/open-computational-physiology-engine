@@ -61,3 +61,5 @@ The suite tests **semantic behavior**, not merely JSON Schema parsing: error
 codes are exact sets, diff classifications are exact, and fixtures deliberately
 include cases where a syntactically valid identifier or unit is semantically
 wrong.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

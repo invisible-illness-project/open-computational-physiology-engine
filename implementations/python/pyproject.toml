@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.18"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,8 +8,12 @@ version = "0.1.0"
 description = "Open Computational Physiology Engine: reference implementation of the OCPE physiological specification and semantic interoperability engine"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "UNSPECIFIED - see repository LICENSE status" }
+license = "Apache-2.0"
+# Symlinks to the canonical files at the repository root (single source of
+# truth); hatchling embeds them in the wheel/sdist as dist-info/licenses/.
+license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "The Invisible Illness Project" }]
+copyright = "Copyright 2026 The Invisible Illness Project"
 keywords = ["physiology", "ontology", "interoperability", "specification", "json-schema", "provenance"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -41,7 +45,7 @@ packages = ["src/ocpe"]
 path = "hatch_build.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/ocpe", "README.md", "pyproject.toml", "tests", "hatch_build.py"]
+include = ["src/ocpe", "README.md", "pyproject.toml", "tests", "hatch_build.py", "LICENSE", "NOTICE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

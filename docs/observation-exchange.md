@@ -88,3 +88,5 @@ exists.
   datasets, Lamina pipelines, analysis tools) must preserve `value_kind`,
   `method` and `provenance` when aggregating.
 - OCPE never sees subject identities: `subject` is an opaque token.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

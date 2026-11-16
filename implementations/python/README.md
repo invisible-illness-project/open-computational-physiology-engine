@@ -55,3 +55,5 @@ in `conformance/` against this engine).
 - `src/ocpe/cli.py` — the `ocpe` command-line interface
 
 Runtime dependencies: PyYAML and jsonschema only.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

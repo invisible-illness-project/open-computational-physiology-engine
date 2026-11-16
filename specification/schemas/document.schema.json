@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/document.schema.json",
   "title": "OCPE document",
   "description": "A YAML/JSON file listed in a package manifest's 'contents'. Contains entities (discriminated by 'kind') and/or bibliographic references. Each entity is validated against the schema for its kind. OCPE itself ships no domain content; the entities here are defined by independently versioned external domain packages.",

@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/reference.schema.json",
   "title": "OCPE literature / data reference",
   "description": "Bibliographic record for a source cited by evidence statements. Identified by a persistent identifier (DOI, PMID, ...). Fields must be transcribed from the source, never inferred.",

@@ -1,43 +1,61 @@
-# OCPE Licensing — Outstanding Owner Decision
+# OCPE Licensing — Decision Record
 
-**Status: UNRESOLVED. No license has been chosen. Do not assume one.**
+**Status: RESOLVED (owner decision, 2026-11-16).** The repository is licensed
+under the **Apache License, Version 2.0**.
 
-The repository currently carries no `LICENSE` file. Software metadata says so
-explicitly (`implementations/python/pyproject.toml`:
-`license = { text = "UNSPECIFIED - see repository LICENSE status" }`, and the
-core package manifest declares `license: UNSPECIFIED`). This is a deliberate
-placeholder, not an omission to be silently fixed: choosing a license is the
-project owner's decision, and it has not been made.
+- License text: [`LICENSE`](../LICENSE) (repository root, verbatim Apache-2.0).
+- Attribution and third-party notices: [`NOTICE`](../NOTICE).
+- Copyright (c) 2026 **The Invisible Illness Project**.
 
-## What must be decided
+## Scope: one license for the whole repository
 
-1. **Software license** — covers `implementations/python/` (the reference
-   engine and CLI), the conformance runner, and any build tooling.
-   Considerations: downstream adoption by research and commercial projects;
-   patent clauses (e.g. Apache-2.0 vs MIT/BSD); compatibility with the
-   organization's other software.
-2. **Specification/content license** — covers `specification/` (JSON Schemas,
-   core YAML vocabularies), `conformance/` fixtures and vectors, and
-   `docs/`. Specifications are frequently licensed differently from code
-   (e.g. CC-BY-4.0 / CC0 / Apache-2.0) so that implementing the spec in any
-   language is unambiguously permitted. The schemas must remain freely
-   implementable for the interoperability goal to hold; test vectors should
-   be usable by conformance runners in any license regime.
+The same license applies to everything in this repository, not just the
+Python package:
 
-## Recommended resolution path
+| Area | Path | Covered by |
+|---|---|---|
+| Reference engine + CLI | `implementations/python/` | Apache-2.0 |
+| Specification: JSON Schemas, core vocabularies, identifier grammar, unit registry, compatibility rules | `specification/` | Apache-2.0 |
+| Conformance suite (fixtures, expected results, test vectors) | `conformance/` | Apache-2.0 |
+| Documentation | `docs/`, `README.md` | Apache-2.0 |
+| Build tooling, CI | `.github/`, `hatch_build.py` | Apache-2.0 |
 
-- Owner selects the software license and the specification license.
-- Add `LICENSE` (software) at the repository root and, if different,
-  a `specification/LICENSE` (or `docs/LICENSE`) for content.
-- Replace the `UNSPECIFIED` placeholders in `pyproject.toml` and
-  `specification/core/package.yaml` with the SPDX expression.
-- Record the decision in `specification/versions/CHANGELOG.md`.
+Apache-2.0 was chosen over a split (e.g. CC-BY for content) so that
+implementing the specification in any language is unambiguously permitted:
+the patent grant matters for an interoperability specification, and a single
+license keeps redistribution of schema files, fixtures and code together
+simple. The machine-readable declarations:
 
-## Until then
+- `implementations/python/pyproject.toml` — `license = "Apache-2.0"` (PEP 639
+  `License-Expression`); LICENSE and NOTICE are embedded in built wheels and
+  sdists under `dist-info/licenses/`.
+- `specification/core/meta.yaml` — `license: Apache-2.0` (specification-level).
+- `specification/core/package.yaml` — `license: Apache-2.0` (core package
+  manifest field; external domain packages declare their own SPDX expression
+  or `UNSPECIFIED`).
 
-- Treat the repository as **all rights reserved** for any use beyond reading.
-- Do not copy conformance fixtures, schemas or engine code into other
-  projects.
-- External domain packages are their authors' own works; their licenses are
-  declared per package in each manifest's `license` field (SPDX expression or
-  `UNSPECIFIED`).
+## Dependencies and contributions
+
+**Runtime dependencies** (not bundled; each retains its own license):
+PyYAML — MIT; jsonschema — MIT. Both are permissive and fully compatible
+with Apache-2.0. Dev/test tooling (pytest, hatchling, build) is MIT-licensed.
+No third-party source code is vendored into this repository (see NOTICE).
+
+**Existing contributions:** every commit in this repository's history is by
+The Invisible Illness Project, its maintainers, or its authorized automation
+(agent/bot accounts) on the organization's behalf; there are no external
+third-party contributions requiring separate consent for this licensing.
+
+## What reusers must do
+
+Standard Apache-2.0 conditions: retain the copyright/license notices, state
+your changes, and include a copy of the license with any redistribution.
+If you build a derivative work that bundles OCPE content, the attribution
+notices in [`NOTICE`](../NOTICE) must remain readable per section 4(d) of
+the license.
+
+**External domain packages are NOT covered by this license.** Packages
+authored by other projects declare their own license per package manifest
+(`license` field, SPDX expression or `UNSPECIFIED`) and are their authors'
+independent works; consuming OCPE does not impose OCPE's license on your
+package content.

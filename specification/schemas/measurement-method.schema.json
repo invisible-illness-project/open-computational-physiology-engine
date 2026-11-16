@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/measurement-method.schema.json",
   "title": "OCPE measurement method",
   "description": "A device, assay, procedure or signal-processing pipeline by which a variable or derived metric is observed. Performance characteristics are context-qualified: agreement statistics measured in one population/activity do not transfer automatically to another.",

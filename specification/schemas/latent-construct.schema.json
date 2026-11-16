@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0.",
   "$id": "https://w3id.org/ocpe/schema/0.1/latent-construct.schema.json",
   "title": "OCPE latent construct",
   "description": "A theoretical quantity that is not directly observable even in principle and must be inferred from indicators or a model (e.g. 'sympathetic tone', 'sleep pressure'). Values of a latent construct are always estimates conditional on an operationalization; they must never be exchanged as if they were measurements.",

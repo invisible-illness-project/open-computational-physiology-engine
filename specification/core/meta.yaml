@@ -1,6 +1,10 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 # OCPE specification metadata.
 ocpe_spec_version: "0.1.0"
 status: provisional
+license: Apache-2.0   # SPDX expression; applies to the specification as a whole
+                      # (schemas, core vocabularies, conformance suite, docs)
 identifier_prefix: "ocpe"
 identifier_expansion: "https://w3id.org/ocpe/id/"
 schema_base_uri: "https://w3id.org/ocpe/schema/0.1/"

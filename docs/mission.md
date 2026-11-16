@@ -95,3 +95,5 @@ process signals.
 | ECG/PPG/EDA/respiration processing, HRV computation, signal quality assessment | Lamina (produces OCPE observation records) |
 
 See `docs/mosaic-integration.md` and `docs/lamina-integration.md`.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

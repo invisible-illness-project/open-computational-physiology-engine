@@ -1,3 +1,5 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 # OCPE canonical unit registry (normative for specification 0.1.x).
 #
 # Units are written as UCUM case-sensitive codes (https://ucum.org). This registry

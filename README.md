@@ -1,5 +1,8 @@
 # Open Computational Physiology Engine (OCPE)
 
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+[![Spec: 0.1.0 provisional](https://img.shields.io/badge/spec-0.1.0-informational)](specification/)
+
 OCPE is an open, versioned **computational physiology interoperability
 engine**. It defines the common language — schemas, canonical identifiers,
 semantic contracts and validation mechanisms — through which AI agents,
@@ -107,6 +110,8 @@ Python implementation with no scientific-computing dependencies (PyYAML +
 jsonschema only). Architectural decisions are recorded in the repository's
 commit history and summarized in `docs/architecture.md`.
 
-**Licensing:** unresolved, pending an explicit owner decision — the
-repository carries no LICENSE file and package metadata says `UNSPECIFIED`.
-Do not assume a license until one is published. See `docs/licensing.md`.
+**Licensing:** [Apache License 2.0](LICENSE) — applies to the entire
+repository: the reference engine, the specification (JSON Schemas and core
+vocabularies), the conformance suite and the documentation. Attribution and
+third-party notices live in [NOTICE](NOTICE). See
+[docs/licensing.md](docs/licensing.md) for the decision record.

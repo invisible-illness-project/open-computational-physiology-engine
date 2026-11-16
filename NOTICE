@@ -1,0 +1,26 @@
+Open Computational Physiology Engine (OCPE)
+Copyright 2026 The Invisible Illness Project
+
+This product includes software developed by
+The Invisible Illness Project (https://github.com/invisible-illness-project).
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this product except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Third-party software
+--------------------
+No third-party source code is bundled with or vendored into this project.
+
+Runtime dependencies (installed separately by the user, not distributed
+with this source tree; each retains its own license):
+  - PyYAML (https://pyyaml.org/) -- MIT License
+  - jsonschema (https://python-jsonschema.readthedocs.io/) -- MIT License

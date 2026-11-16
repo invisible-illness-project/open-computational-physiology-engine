@@ -556,3 +556,5 @@ Provenance is descriptive; it does not imply review or approval.
 `specification/core/package.yaml` defines the `core` package (predicate
 vocabulary + functional forms), which the engine always loads. Its manifest
 provenance is empty by design: the core is authored natively in OCPE 0.1.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

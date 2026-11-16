@@ -301,3 +301,5 @@ entities:
 `ocpe validate example-flow/` passes on this package. Your own packages will
 be far richer — that is the point: the language is small, the domains are
 yours.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

@@ -73,3 +73,5 @@ vector `operation` vocabulary is:
 Fixture-relative paths in `input` resolve against the `conformance/`
 directory. Publish your runner and results alongside your implementation;
 the suite is designed to be vendored.
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->

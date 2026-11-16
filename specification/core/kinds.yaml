@@ -1,3 +1,5 @@
+# Copyright 2026 The Invisible Illness Project
+# SPDX-License-Identifier: Apache-2.0
 # OCPE entity kinds (informative; the JSON Schemas are normative).
 #
 # Requirement: the quantitative kinds (variable, latent_construct,

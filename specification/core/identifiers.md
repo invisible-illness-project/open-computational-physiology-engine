@@ -1,3 +1,5 @@
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0 -->
+
 # OCPE Canonical Identifiers
 
 **Status:** normative for OCPE specification 0.1.x

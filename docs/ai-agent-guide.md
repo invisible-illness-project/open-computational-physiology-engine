@@ -205,3 +205,5 @@ for eq in model.data["equations"]:
 # Execution is a downstream engine's job (MOSAIC); OCPE checks the
 # specification: declared symbols, dimensional consistency, evidence links.
 ```
+
+<!-- Copyright 2026 The Invisible Illness Project. SPDX-License-Identifier: Apache-2.0. See LICENSE in the repository root. -->
