@@ -5,7 +5,7 @@
       "id": "id-valid-simple",
       "operation": "parse_identifier",
       "input": {
-        "identifier": "ocpe:example-vitals/heart-rate"
+        "identifier": "ocpe:example-org/flow-rate"
       },
       "expect": {
         "valid": true
@@ -15,7 +15,7 @@
       "id": "id-valid-dotted-ns",
       "operation": "parse_identifier",
       "input": {
-        "identifier": "ocpe:research.cardiovascular/stroke-volume"
+        "identifier": "ocpe:consortium.project-a/output-rate"
       },
       "expect": {
         "valid": true
@@ -25,7 +25,7 @@
       "id": "id-valid-symbol-fragment",
       "operation": "parse_identifier",
       "input": {
-        "identifier": "ocpe:research.my-model/my-model#Rtot"
+        "identifier": "ocpe:example-org.flow-demo/flow-demo#Rtot"
       },
       "expect": {
         "valid": true
@@ -45,7 +45,7 @@
       "id": "id-invalid-no-prefix",
       "operation": "parse_identifier",
       "input": {
-        "identifier": "heart-rate"
+        "identifier": "flow-rate"
       },
       "expect": {
         "valid": false
@@ -601,6 +601,28 @@
         "ok": false,
         "errors": [
           "model-output-mismatch"
+        ]
+      }
+    },
+    {
+      "id": "obs-simulated-model-unresolved-rejected",
+      "operation": "validate_observation",
+      "input": {
+        "packages": [
+          "valid/quantity-observation"
+        ],
+        "record": {
+          "quantity": "ocpe:conf-quantity/flow-rate",
+          "value": 5.0,
+          "unit": "mL/s",
+          "value_kind": "simulated",
+          "model": "ocpe:conf-quantity/absent-model"
+        }
+      },
+      "expect": {
+        "ok": false,
+        "errors": [
+          "unresolved-reference"
         ]
       }
     },

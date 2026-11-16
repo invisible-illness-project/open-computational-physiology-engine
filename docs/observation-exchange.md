@@ -7,9 +7,9 @@ semantic validation**; it stores no observational data.
 ## The record
 
 ```yaml
-quantity: ocpe:some-package/heart-rate   # required: variable | latent_construct | derived_metric
-value: 72                                # required: number, string or boolean
-unit: /min                               # required: registered UCUM code
+quantity: ocpe:some-package/flow-rate   # required: variable | latent_construct | derived_metric
+value: 12.0                             # required: number, string or boolean
+unit: mL/s                              # required: registered UCUM code
 value_kind: measured                     # required: measured | estimated | derived |
                                          #           simulated | self_reported
 time: "2026-11-15T10:00:00Z"             # optional: ISO 8601 timestamp or interval
@@ -17,9 +17,9 @@ subject: participant-047                 # optional: opaque, non-identifying
 method: ocpe:some-package/some-method    # optional: measurement_method entity
 model: ocpe:some-package/some-model      # required when value_kind == simulated
 context: {posture: seated, activity: rest}
-uncertainty: 3
+uncertainty: 0.5
 uncertainty_type: sd                     # sd | se | ci95_halfwidth | range_halfwidth | unspecified
-uncertainty_unit: /min                   # optional; must share the value unit's dimension
+uncertainty_unit: mL/s                   # optional; must share the value unit's dimension
 quality: {flag: good}                    # good | questionable | artifact | missing
 provenance: {contributors: [{name: device-42, kind: tool}]}
 ```

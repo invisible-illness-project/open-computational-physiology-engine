@@ -104,7 +104,8 @@ validity.
 
 Specification 0.1.0, provisional. The engine is a lightweight, deterministic
 Python implementation with no scientific-computing dependencies (PyYAML +
-jsonschema only). See `docs/adr/` for architectural decisions.
+jsonschema only). Architectural decisions are recorded in the repository's
+commit history and summarized in `docs/architecture.md`.
 
 **Licensing:** unresolved, pending an explicit owner decision — the
 repository carries no LICENSE file and package metadata says `UNSPECIFIED`.

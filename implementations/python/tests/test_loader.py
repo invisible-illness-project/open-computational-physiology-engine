@@ -9,13 +9,13 @@ from ocpe.loader import discover, load_package, load_registry, parse_curie
 
 
 def test_parse_curie_valid():
-    assert parse_curie("ocpe:example-vitals/heart-rate") == ("example-vitals", "heart-rate", None)
-    assert parse_curie("ocpe:research.cardiovascular/stroke-volume") == ("research.cardiovascular", "stroke-volume", None)
+    assert parse_curie("ocpe:example-org/flow-rate") == ("example-org", "flow-rate", None)
+    assert parse_curie("ocpe:consortium.project-a/output-rate") == ("consortium.project-a", "output-rate", None)
     assert parse_curie("ocpe:models.demo/demo#Rtot") == ("models.demo", "demo", "Rtot")
 
 
 def test_parse_curie_rejects_non_curie():
-    assert parse_curie("heart-rate") is None
+    assert parse_curie("flow-rate") is None
     assert parse_curie("ocpe:BadCase/x") is None
     assert parse_curie("ocpe:pkg/Not_Kebab") is None
     assert parse_curie("") is None

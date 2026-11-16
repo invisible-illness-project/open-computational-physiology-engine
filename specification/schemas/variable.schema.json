@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://w3id.org/ocpe/schema/0.1/variable.schema.json",
   "title": "OCPE physiological variable",
-  "description": "A quantifiable, time-varying property of a physiological system that is measurable in principle (a quantity kind such as 'heart rate' or 'arterial blood pressure'). A variable is independent of how it is measured (see measurement_method) and of any particular recorded value (see observation). Unit is a representation choice: the same variable may be expressed in any unit of its dimension.",
+  "description": "A quantifiable, time-varying property of a physiological system that is measurable in principle (a quantity kind such as a flow rate or a pressure). A variable is independent of how it is measured (see measurement_method) and of any particular recorded value (see observation). Unit is a representation choice: the same variable may be expressed in any unit of its dimension.",
   "type": "object",
   "allOf": [
     {
@@ -65,7 +65,7 @@
         "invasive_only",
         "model_compartment"
       ],
-      "description": "How the variable can be observed. 'model_compartment' marks lumped-model abstractions (e.g. 'upper-body arterial volume') whose physiological counterpart is approximate."
+      "description": "How the variable can be observed. 'model_compartment' marks lumped-model abstractions (e.g. 'a lumped reservoir volume') whose physiological counterpart is approximate."
     },
     "system": {
       "$ref": "common.schema.json#/definitions/curie"

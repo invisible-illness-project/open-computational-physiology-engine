@@ -10,7 +10,7 @@ Authoring format is YAML 1.2 (JSON is equally valid). Unless noted, every
 schema allows `x-` prefixed extension keys and forbids undeclared properties.
 
 OCPE ships **no domain content**: every example below uses a placeholder
-package such as `example-vitals`. Real entities are defined by external,
+package such as `example-org`. Real entities are defined by external,
 independently versioned domain packages.
 
 **Status of validation.** Conformance to these schemas establishes that
@@ -25,8 +25,8 @@ Every content file listed in a package manifest's `contents` is a document
 
 ```yaml
 ocpe: "0.1"                # specification major.minor the document is written against
-package: example-vitals    # the owning package id; equals the CURIE namespace
-title: Vitals variables
+package: example-org      # the owning package id; equals the CURIE namespace
+title: Example variables
 entities: [ ... ]          # at least one of entities / references is required
 references: [ ... ]
 ```
@@ -70,11 +70,11 @@ ocpe:<namespace>/<local-id>
 ```
 
 - `namespace` — the owning package id: one or more dot-separated kebab-case
-  segments (`example-vitals`, `research.cardiovascular`).
-- `local-id` — kebab-case (`heart-rate`).
+  segments (`example-org`, `consortium.project-a`).
+- `local-id` — kebab-case (`flow-rate`).
 
-Examples: `ocpe:example-vitals/heart-rate`,
-`ocpe:research.cardiovascular/stroke-volume`, `ocpe:core/regulates`. Only the
+Examples: `ocpe:example-org/flow-rate`,
+`ocpe:consortium.project-a/output-rate`, `ocpe:core/regulates`. Only the
 package whose `id` equals the namespace may define identifiers in it. The
 `ocpe:` prefix expands to `https://w3id.org/ocpe/id/`; the persistent-URL
 registration is pending, so the CURIE is currently the only normative form.
@@ -103,7 +103,7 @@ never a guess. Alias `type` is one of `symbol`, `synonym`, `abbreviation`,
 
 ```yaml
 aliases:
-  - {value: HR, type: symbol, unit: /min}    # same quantity expressed per minute
+  - {value: FR, type: symbol, unit: mL/s}    # same quantity expressed in mL/s
   - {value: hr, type: synonym}
 ```
 
@@ -118,7 +118,7 @@ implementation — every unit used in OCPE content must be registered (common
 alternative spellings such as `mmHg` or `bpm` normalize to their registered
 codes), and new units are added to the registry before use. Dimension vectors
 use exponents of L, M, T and the OCPE pseudo-dimension EVT (countable events),
-which keeps `beats/min` (event rate) distinguishable in intent from generic
+which keeps `counts/min` (event rate) distinguishable in intent from generic
 frequency while remaining convertible within the `event_rate` dimension.
 Registered dimensions: `dimensionless`, `length`, `time`, `volume`,
 `pressure`, `volume_flow`, `frequency`, `event_rate`, `angle`, `compliance`,
@@ -288,8 +288,8 @@ Dependencies:
 The `core` vocabulary package need not be declared. Example:
 
 ```yaml
-id: example-vitals
-name: Example Vitals Package
+id: example-org
+name: Example Org Package
 version: "1.0.0"
 ocpe_spec: ">=0.1.0 <0.2.0"
 description: Synthetic example package for documentation (no scientific content).
@@ -317,9 +317,9 @@ Required: `id`, `kind` (`concept`), `label`, `concept_type`. `concept_type`:
 Optional: `broader`, `part_of` (arrays of concept CURIEs).
 
 ```yaml
-- id: ocpe:example-vitals/pressure-regulation
+- id: ocpe:example-org/flow-loop
   kind: concept
-  label: Pressure regulation
+  label: Flow loop
   concept_type: mechanism
   definition: "Placeholder concept supplied by the example package."
 ```
@@ -342,21 +342,21 @@ Unit is a representation choice: the same variable may be expressed in any
 registered unit of its dimension; `canonical_unit` is the preferred one.
 
 ```yaml
-- id: ocpe:example-vitals/heart-rate
+- id: ocpe:example-org/flow-rate
   kind: variable
-  label: Heart Rate
-  dimension: event_rate
-  canonical_unit: /min
-  accepted_units: [/min, /s]
+  label: Flow rate
+  dimension: volume_flow
+  canonical_unit: mL/s
+  accepted_units: [mL/s, L/min]
   observability: directly_measurable
   aliases:
-    - {value: HR, type: symbol, unit: /min}
+    - {value: FR, type: symbol, unit: mL/s}
 ```
 
 ## latent-construct.schema.json
 
 A theoretical quantity not directly observable even in principle (a
-regulatory-tone index, a subjective-state construct). Values are always
+capacity index, a composite score). Values are always
 estimates conditional on an operationalization and must never be exchanged as
 if they were measurements.
 
@@ -371,9 +371,9 @@ The validator rejects an observation record that reports a latent construct
 with `value_kind: measured`; use `estimated`.
 
 ```yaml
-- id: ocpe:example-vitals/regulatory-tone
+- id: ocpe:example-org/capacity-index
   kind: latent_construct
-  label: Regulatory tone index
+  label: Capacity index
   dimension: dimensionless
   canonical_unit: "1"
   scale: {scale_type: normalized, min: 0, max: 1}
@@ -393,10 +393,10 @@ free-form `parameters`, `input_requirements`, and `references`
 Optional: `reference_ranges`.
 
 ```yaml
-- id: ocpe:example-vitals/windowed-spread
+- id: ocpe:example-org/windowed-spread
   kind: derived_metric
   label: Windowed spread index
-  derived_from: [ocpe:example-vitals/heart-rate]
+  derived_from: [ocpe:example-org/flow-rate]
   computation:
     method: root-mean-square of successive differences over a stated window
     formula: "\\sigma_{window} = \\sqrt{\\frac{1}{N-1} \\sum_{i=1}^{N-1} (x_{i+1} - x_i)^2}"

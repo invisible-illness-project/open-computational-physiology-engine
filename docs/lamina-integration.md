@@ -17,8 +17,8 @@ it consumes from OCPE, and the contract it must honor.
 
 ## What Lamina consumes from OCPE
 
-1. **Canonical quantity identifiers**: heart-rate variables, derived metrics
-   (HRV indices), latent constructs — so Lamina's outputs label themselves
+1. **Canonical quantity identifiers**: quantity variables, derived metrics
+   (variability indices), latent constructs — so Lamina's outputs label themselves
    with the same identifiers everyone else uses.
 2. **Derived-metric definitions**: `derived_metric` entities declare the
    algorithm (`computation.method`, `formula`, `parameters`,
@@ -26,8 +26,8 @@ it consumes from OCPE, and the contract it must honor.
    Lamina must implement faithfully.
 3. **Measurement-method semantics**: what a method measures, in which mode
    (`direct`/`estimated`/`derived`), with context-qualified performance.
-4. **Units and dimensions**: beats vs. events-per-second, milliseconds vs.
-   seconds — the registry resolves them.
+4. **Units and dimensions**: event counts vs. per-second rates, milliseconds
+   vs. seconds — the registry resolves them.
 5. **The observation contract** (see `docs/observation-exchange.md`): the
    format for everything Lamina emits.
 

@@ -70,7 +70,7 @@
         "computational_experiment",
         "dataset"
       ],
-      "description": "Nature of the evidential basis. 'definitional' is used for mathematical identities (e.g. HR = 60000/RR) that need no empirical citation."
+      "description": "Nature of the evidential basis. 'definitional' is used for mathematical identities (e.g. mean = sum/n) that need no empirical citation."
     },
     "study_type": {
       "$ref": "reference.schema.json#/definitions/study_type"

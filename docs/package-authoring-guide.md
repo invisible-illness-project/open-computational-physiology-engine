@@ -107,7 +107,7 @@ even in principle, be observed directly?* If no, it is a latent construct.
 
 ## Choosing identifiers
 
-`ocpe:my-package/heart-rate` style: kebab-case English name; no units,
+`ocpe:my-package/flow-rate` style: kebab-case English name; no units,
 models, populations or methods encoded in the local-id. Identifiers are
 permanent — a meaning change requires a new identifier, and retirement is
 `status: deprecated` plus a `deprecation` block, never deletion:

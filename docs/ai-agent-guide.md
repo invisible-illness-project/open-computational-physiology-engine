@@ -71,12 +71,12 @@ Aliases map alternative names onto canonical ids and may carry a `unit`
 meaning "the same quantity expressed in this unit":
 
 ```bash
-ocpe resolve HR --path some-package/ --json
-# -> {"term": "HR", "id": "ocpe:...", "matched_by": "alias", "unit": "/min"}
+ocpe resolve FR --path some-package/ --json
+# -> {"term": "FR", "id": "ocpe:...", "matched_by": "alias", "unit": "mL/s"}
 ```
 
 When `unit` is present, interpret raw values in that unit or convert before
-mixing with other data (`ocpe units convert 72 /min /s`).
+mixing with other data (`ocpe units convert 1000 mL/s L/min`).
 
 ### Model symbol fragments
 
@@ -172,11 +172,11 @@ ocpe conformance conformance/
 import ocpe
 
 reg = ocpe.load(["some-package/"])
-r = ocpe.Resolver(reg).resolve("HR")            # alias
-print(r.id, r.unit)                             # canonical id + "/min"
-# Interpret raw values as beats per minute, or convert:
+r = ocpe.Resolver(reg).resolve("FR")            # alias
+print(r.id, r.unit)                             # canonical id + "mL/s"
+# Interpret raw values as mL/s, or convert:
 from ocpe import units
-print(units.convert(72, "/min", "/s"))          # 1.2
+print(units.convert(1000, "mL/s", "L/min"))     # 60.0
 ```
 
 ### Validate an observation exchange record

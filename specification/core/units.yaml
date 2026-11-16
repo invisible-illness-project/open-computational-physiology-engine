@@ -7,8 +7,8 @@
 # general-purpose UCUM implementation. Add units here before using them.
 #
 # Dimension vectors use exponents of: L (length), M (mass), T (time), and the
-# OCPE pseudo-dimensions EVT (countable events such as heart beats) — kept
-# separate so 'beats/min' is distinguishable from generic frequency in intent but
+# OCPE pseudo-dimensions EVT (countable events) — kept
+# separate so 'counts/min' is distinguishable from generic frequency in intent but
 # convertible within the 'event_rate' dimension.
 ocpe_spec: "0.1"
 
@@ -20,7 +20,7 @@ dimensions:
   pressure:      { reference_unit: "mm[Hg]", vector: { M: 1, L: -1, T: -2 } }
   volume_flow:   { reference_unit: "mL/s", vector: { L: 3, T: -1 } }
   frequency:     { reference_unit: "Hz", vector: { T: -1 } }
-  event_rate:    { reference_unit: "/min", vector: { EVT: 1, T: -1 }, note: "Rates of countable events (heart beats, breaths)." }
+  event_rate:    { reference_unit: "/min", vector: { EVT: 1, T: -1 }, note: "Rates of countable events." }
   angle:         { reference_unit: "deg", vector: {}, note: "Plane angle; dimensionless in SI but tracked separately." }
   compliance:    { reference_unit: "mL/mm[Hg]", vector: { L: 4, T: 2, M: -1 } }
   elastance:     { reference_unit: "mm[Hg]/mL", vector: { M: 1, L: -4, T: -2 } }
@@ -49,8 +49,8 @@ units:
   "mL/s":         { dimension: volume_flow, to_reference: 1, label: "millilitre per second", legacy: ["ml/s"] }
   "L/min":        { dimension: volume_flow, to_reference: 16.6666667, label: "litre per minute" }
   "Hz":           { dimension: frequency, to_reference: 1, label: "hertz", legacy: ["Hz"] }
-  "/min":         { dimension: event_rate, to_reference: 1, label: "per minute (events, e.g. beats/min)", legacy: ["bpm", "beats/min"] }
-  "/s":           { dimension: event_rate, to_reference: 60, label: "per second (events, e.g. beats/s)", legacy: ["bps", "beats/s"] }
+  "/min":         { dimension: event_rate, to_reference: 1, label: "per minute (countable events)", legacy: ["bpm", "beats/min"] }
+  "/s":           { dimension: event_rate, to_reference: 60, label: "per second (countable events)", legacy: ["bps", "beats/s"] }
   "deg":          { dimension: angle, to_reference: 1, label: "degree", legacy: ["degrees"] }
   "mL/mm[Hg]":    { dimension: compliance, to_reference: 1, label: "millilitre per mmHg", legacy: ["ml/mmHg"] }
   "mm[Hg]/mL":    { dimension: elastance, to_reference: 1, label: "mmHg per millilitre", legacy: ["mmHg/ml"] }

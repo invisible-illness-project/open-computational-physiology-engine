@@ -24,7 +24,7 @@ research content — so any project can run it freely.
   insufficient version bump.
 - **`expected-results/`** — the exact expected outcome (validation error-code
   sets, diff change classes, required bumps) for every fixture.
-- **`test-vectors/vectors.json`** — 47 language-independent declarative
+- **`test-vectors/vectors.json`** — 48 language-independent declarative
   vectors (identifier parsing, version constraints, unit conversion and
   dimension, package/observation validation, deep diffing, resolution).
 

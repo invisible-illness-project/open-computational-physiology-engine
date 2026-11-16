@@ -13,10 +13,10 @@ ocpe:<namespace>/<local-id>
 | Part | Grammar | Example |
 |---|---|---|
 | prefix | literal `ocpe` | `ocpe` |
-| namespace | the owning **package id**: one or more dot-separated segments, each lowercase kebab-case (`[a-z][a-z0-9]*(-[a-z0-9]+)*`) | `example-vitals`, `research.cardiovascular` |
-| local-id | lowercase kebab-case (`[a-z0-9]+(-[a-z0-9]+)*`) | `heart-rate` |
+| namespace | the owning **package id**: one or more dot-separated segments, each lowercase kebab-case (`[a-z][a-z0-9]*(-[a-z0-9]+)*`) | `example-org`, `consortium.project-a` |
+| local-id | lowercase kebab-case (`[a-z0-9]+(-[a-z0-9]+)*`) | `flow-rate` |
 
-Examples: `ocpe:example-vitals/heart-rate`, `ocpe:research.cardiovascular/stroke-volume`,
+Examples: `ocpe:example-org/flow-rate`, `ocpe:consortium.project-a/output-rate`,
 `ocpe:core/regulates`.
 
 The authoritative regular expression lives in
@@ -30,14 +30,14 @@ A symbol declared inside a computational model specification is referenced as
 <model-curie>#<symbol>
 ```
 
-e.g. `ocpe:research.my-model/my-model#Rtot`. Symbols are
+e.g. `ocpe:example-org.flow-demo/flow-demo#Rtot`. Symbols are
 case-sensitive and only meaningful inside the declaring model. A model symbol is
 **not** a physiological identifier; it may *represent* one (`represents:` field).
 
 ### Prefix expansion
 
 The `ocpe:` prefix expands to `https://w3id.org/ocpe/id/`, so
-`ocpe:example-vitals/heart-rate` ≡ `https://w3id.org/ocpe/id/example-vitals/heart-rate`.
+`ocpe:example-org/flow-rate` ≡ `https://w3id.org/ocpe/id/example-org/flow-rate`.
 The persistent-URL registration is pending; until it is registered the CURIE is the only
 normative form.
 
@@ -61,12 +61,12 @@ symbols from an author's previous notation, or unit-qualified spellings.
 
 ```yaml
 aliases:
-  - value: HR
+  - value: FR
     type: symbol
-    unit: /min          # 'HR' denotes the quantity expressed in beats per minute
+    unit: mL/s           # 'FR' denotes the quantity expressed in mL/s
 ```
 
-* Aliases are case-sensitive (`HR` ≠ `hr`).
+* Aliases are case-sensitive (`FR` ≠ `fr`).
 * An alias with a `scope` is only unique within that scope (a package id or a
   model CURIE). The resolver reports an ambiguity rather than guessing when an
   unscoped lookup matches several entities.
@@ -75,7 +75,7 @@ aliases:
 
 ## 4. Choosing local-ids
 
-* Use the established English name in kebab-case (`mean-arterial-pressure`).
+* Use the established English name in kebab-case (`mean-flow-rate`).
 * Do not encode units, models, populations or measurement methods in a variable's
   local-id. Where a model abstraction has no direct physiological equivalent, say so
   explicitly (e.g. with `observability: model_compartment`).

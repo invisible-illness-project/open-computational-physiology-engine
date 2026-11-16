@@ -167,6 +167,15 @@
       "valid/quantity-observation"
     ]
   },
+  "invalid/model-unknown.yaml": {
+    "ok": false,
+    "errors": [
+      "unresolved-reference"
+    ],
+    "packages": [
+      "valid/quantity-observation"
+    ]
+  },
   "invalid/method-no-measures.yaml": {
     "ok": false,
     "errors": [

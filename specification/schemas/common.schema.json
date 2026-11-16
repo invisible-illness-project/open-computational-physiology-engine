@@ -79,7 +79,7 @@
         },
         "unit": {
           "$ref": "#/definitions/unit_code",
-          "description": "If the alias denotes the quantity expressed in a specific unit (e.g. 'Hc' = heart rate in beats/s)."
+          "description": "If the alias denotes the quantity expressed in a specific unit (e.g. 'rpm' = rotation rate in /min)."
         },
         "type": {
           "type": "string",
